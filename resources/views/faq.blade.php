@@ -102,8 +102,8 @@
                         <div class="text-gray-600 leading-relaxed">
                             <p class="mb-3">مدة التوصيل تختلف حسب المنطقة:</p>
                             <ul class="list-disc list-inside space-y-1 mr-4">
-                                <li>الرياض: 1-2 أيام عمل</li>
-                                <li>جدة والدمام: 2-3 أيام عمل</li>
+                                <li>عمان: 1-2 أيام عمل</li>
+                                <li>إربد والزرقاء: 2-3 أيام عمل</li>
                                 <li>المدن الرئيسية: 3-4 أيام عمل</li>
                                 <li>المناطق النائية: 5-7 أيام عمل</li>
                             </ul>
@@ -122,9 +122,9 @@
                         <div class="text-gray-600 leading-relaxed">
                             <p class="mb-3">رسوم الشحن كالتالي:</p>
                             <ul class="list-disc list-inside space-y-1 mr-4">
-                                <li>مجاني للطلبات أكثر من 200 ريال</li>
-                                <li>15 ريال للطلبات داخل المدن الرئيسية</li>
-                                <li>25 ريال للمناطق النائية</li>
+                                <li>مجاني للطلبات أكثر من 50 دينار</li>
+                                <li>3 دينار للطلبات داخل المدن الرئيسية</li>
+                                <li>5 دينار للمناطق النائية</li>
                                 <li>رسوم إضافية للتوصيل السريع</li>
                             </ul>
                         </div>
@@ -133,14 +133,14 @@
 
                 <div class="bg-white rounded-xl shadow-lg overflow-hidden faq-item" data-category="shipping">
                     <button class="w-full px-8 py-6 text-right flex justify-between items-center hover:bg-gray-50 faq-toggle">
-                        <span class="text-lg font-semibold text-gray-800">هل توصلون خارج المملكة؟</span>
+                        <span class="text-lg font-semibold text-gray-800">هل توصلون خارج الأردن؟</span>
                         <svg class="w-5 h-5 text-gray-500 transform transition-transform faq-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                         </svg>
                     </button>
                     <div class="faq-content hidden px-8 pb-6">
                         <p class="text-gray-600 leading-relaxed">
-                            حالياً نوصل داخل المملكة العربية السعودية فقط. نعمل على توسيع خدماتنا لتشمل دول مجلس التعاون الخليجي قريباً.
+                            حالياً نوصل داخل المملكة الأردنية الهاشمية فقط. نعمل على توسيع خدماتنا لتشمل دول المنطقة قريباً.
                         </p>
                     </div>
                 </div>
@@ -221,9 +221,9 @@
                         <div class="text-gray-600 leading-relaxed">
                             <p class="mb-3">يمكنك التواصل معنا عبر:</p>
                             <ul class="list-disc list-inside space-y-1 mr-4">
-                                <li>الهاتف: +966-11-234-5678</li>
-                                <li>البريد الإلكتروني: support@malak-outlet.com</li>
-                                <li>الواتساب: +966-50-123-4567</li>
+                                <li>الهاتف: +962-6-234-5678</li>
+                                <li>البريد الإلكتروني: support@malakoutlet.com</li>
+                                <li>الواتساب: +962-79-123-4567</li>
                                 <li>ساعات العمل: الأحد - الخميس، 9:00 ص - 6:00 م</li>
                             </ul>
                         </div>
@@ -235,7 +235,7 @@
             <div class="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl p-8 mt-12 text-center">
                 <h2 class="text-2xl font-bold mb-4">لم تجد إجابة لسؤالك؟</h2>
                 <p class="text-lg opacity-90 mb-6">فريق خدمة العملاء لدينا جاهز لمساعدتك</p>
-                <a href="mailto:support@malak-outlet.com" 
+                <a href="mailto:support@malakoutlet.com" 
                    class="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors inline-block">
                     تواصل معنا
                 </a>

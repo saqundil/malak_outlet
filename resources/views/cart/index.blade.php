@@ -195,7 +195,7 @@ function removeFromCart(productId) {
 
 function clearCart() {
     if (confirm('هل أنت متأكد من مسح السلة بالكامل؟')) {
-        fetch('/cart/clear', {
+        fetch('{{ url("/cart/clear") }}', {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',

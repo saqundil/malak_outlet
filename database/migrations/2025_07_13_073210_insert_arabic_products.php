@@ -12,6 +12,66 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // First, ensure we have the required categories and brands
+        // Get or create categories
+        $electronicsCategory = DB::table('categories')->where('slug', 'electronics')->first();
+        if (!$electronicsCategory) {
+            $electronicsCategory = (object) ['id' => DB::table('categories')->insertGetId([
+                'name' => 'Electronics',
+                'slug' => 'electronics',
+                'description' => 'Electronic devices and gadgets',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ])];
+        }
+
+        $toysCategory = DB::table('categories')->where('slug', 'toys-games')->first();
+        if (!$toysCategory) {
+            $toysCategory = (object) ['id' => DB::table('categories')->insertGetId([
+                'name' => 'Toys & Games',
+                'slug' => 'toys-games',
+                'description' => 'Toys and games for all ages',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ])];
+        }
+
+        // Get or create brands
+        $samsungBrand = DB::table('brands')->where('slug', 'samsung')->first();
+        if (!$samsungBrand) {
+            $samsungBrand = (object) ['id' => DB::table('brands')->insertGetId([
+                'name' => 'Samsung',
+                'slug' => 'samsung',
+                'description' => 'South Korean multinational electronics company',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ])];
+        }
+
+        $appleBrand = DB::table('brands')->where('slug', 'apple')->first();
+        if (!$appleBrand) {
+            $appleBrand = (object) ['id' => DB::table('brands')->insertGetId([
+                'name' => 'Apple',
+                'slug' => 'apple',
+                'description' => 'American technology company',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ])];
+        }
+
+        $sonyBrand = DB::table('brands')->where('slug', 'sony')->first();
+        if (!$sonyBrand) {
+            $sonyBrand = (object) ['id' => DB::table('brands')->insertGetId([
+                'name' => 'Sony',
+                'slug' => 'sony',
+                'description' => 'Japanese multinational conglomerate corporation',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ])];
+        }
+
         $products = [
             [
                 'name' => 'سيارة التحكم عن بعد الرياضية',
@@ -20,8 +80,8 @@ return new class extends Migration
                 'sale_price' => 149.99,
                 'sku' => 'TOY-002',
                 'stock_quantity' => 25,
-                'category_id' => 1,
-                'brand_id' => 1,
+                'category_id' => $electronicsCategory->id,
+                'brand_id' => $samsungBrand->id,
                 'weight' => '800 جرام',
                 'materials' => 'بلاستيك مقوى ومعدن',
                 'country_of_origin' => 'اليابان',
@@ -45,8 +105,8 @@ return new class extends Migration
                 'sale_price' => null,
                 'sku' => 'TOY-003',
                 'stock_quantity' => 40,
-                'category_id' => 2,
-                'brand_id' => 2,
+                'category_id' => $toysCategory->id,
+                'brand_id' => $appleBrand->id,
                 'weight' => '500 جرام',
                 'materials' => 'قطن طبيعي 100% وحشو بوليستر آمن',
                 'country_of_origin' => 'تركيا',
@@ -70,8 +130,8 @@ return new class extends Migration
                 'sale_price' => 99.99,
                 'sku' => 'TOY-004',
                 'stock_quantity' => 30,
-                'category_id' => 1,
-                'brand_id' => 3,
+                'category_id' => $electronicsCategory->id,
+                'brand_id' => $sonyBrand->id,
                 'weight' => '600 جرام',
                 'materials' => 'خشب طبيعي مع طلاء آمن',
                 'country_of_origin' => 'ألمانيا',
@@ -95,8 +155,8 @@ return new class extends Migration
                 'sale_price' => 249.99,
                 'sku' => 'TOY-006',
                 'stock_quantity' => 15,
-                'category_id' => 1,
-                'brand_id' => 1,
+                'category_id' => $electronicsCategory->id,
+                'brand_id' => $samsungBrand->id,
                 'weight' => '1.5 كيلوجرام',
                 'materials' => 'بلاستيك ABS وقطع إلكترونية',
                 'country_of_origin' => 'كوريا الجنوبية',
@@ -120,8 +180,8 @@ return new class extends Migration
                 'sale_price' => 49.99,
                 'sku' => 'TOY-007',
                 'stock_quantity' => 60,
-                'category_id' => 2,
-                'brand_id' => 2,
+                'category_id' => $toysCategory->id,
+                'brand_id' => $appleBrand->id,
                 'weight' => '700 جرام',
                 'materials' => 'بلاستيك آمن ومغناطيس',
                 'country_of_origin' => 'الصين',

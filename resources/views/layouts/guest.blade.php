@@ -177,7 +177,7 @@
             <div class="max-w-lg w-full space-y-8 relative z-10">
                 <!-- Logo Section -->
                 <div class="text-center mb-8">
-                    <a href="/">
+                    <a href="{{ route('home') }}">
                         <div class="logo-container mx-auto w-28 h-28 rounded-3xl flex items-center justify-center mb-6 p-2">
                             <!-- Your Actual Logo -->
                             <img src="{{ asset('images/malak.png') }}" 

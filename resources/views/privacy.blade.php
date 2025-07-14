@@ -169,8 +169,8 @@
                     </p>
                     <div class="space-y-2 text-gray-600">
                         <p><strong>البريد الإلكتروني:</strong> privacy@malak-outlet.com</p>
-                        <p><strong>الهاتف:</strong> +966-11-234-5678</p>
-                        <p><strong>العنوان:</strong> الرياض، المملكة العربية السعودية</p>
+                        <p><strong>الهاتف:</strong> +962-6-234-5678</p>
+                        <p><strong>العنوان:</strong> عمان، المملكة الأردنية الهاشمية</p>
                     </div>
                 </div>
             </div>

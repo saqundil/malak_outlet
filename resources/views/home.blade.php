@@ -310,7 +310,7 @@ function addToCart(productId, button) {
     if (loadingText) loadingText.classList.remove('hidden');
     button.disabled = true;
     
-    fetch('/cart/add/' + productId, {
+    fetch('{{ url("/cart/add") }}/' + productId, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

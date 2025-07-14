@@ -244,7 +244,7 @@
                 <div class="grid md:grid-cols-3 gap-4 text-center">
                     <div>
                         <h4 class="font-semibold text-gray-800 mb-1">الهاتف</h4>
-                        <p class="text-gray-600">+966-11-234-5678</p>
+                        <p class="text-gray-600">+962-6-234-5678</p>
                     </div>
                     <div>
                         <h4 class="font-semibold text-gray-800 mb-1">البريد الإلكتروني</h4>

@@ -50,7 +50,7 @@
             <!-- Free Shipping -->
             <div class="bg-gradient-to-r from-green-400 to-blue-500 rounded-2xl p-8 text-white">
                 <h3 class="text-3xl font-bold mb-2">شحن مجاني</h3>
-                <p class="text-lg mb-4 opacity-90">على جميع الطلبات أكثر من 200 ريال</p>
+                <p class="text-lg mb-4 opacity-90">على جميع الطلبات أكثر من 50 دينار</p>
                 <div class="flex items-center gap-2 mb-4">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>

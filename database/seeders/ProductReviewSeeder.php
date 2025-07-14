@@ -60,7 +60,7 @@ class ProductReviewSeeder extends Seeder
             ],
             [
                 'rating' => 5,
-                'comment' => 'رائع جداً! يستحق كل ريال دفعته فيه. سأطلب المزيد بالتأكيد.'
+                'comment' => 'رائع جداً! يستحق كل دينار دفعته فيه. سأطلب المزيد بالتأكيد.'
             ],
             [
                 'rating' => 4,

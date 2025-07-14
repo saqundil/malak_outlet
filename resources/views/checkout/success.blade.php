@@ -140,11 +140,11 @@
                 <div class="space-y-2 text-gray-600">
                     <p>يمكنك التواصل معنا عبر:</p>
                     <div class="flex justify-center space-x-6 space-x-reverse">
-                        <a href="tel:+966500000000" class="flex items-center text-blue-600 hover:text-blue-800">
+                        <a href="tel:+962790000000" class="flex items-center text-blue-600 hover:text-blue-800">
                             <svg class="w-5 h-5 ml-2" fill="currentColor" viewBox="0 0 20 20">
                                 <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"></path>
                             </svg>
-                            +966 50 000 0000
+                            +962 79 000 0000
                         </a>
                         <a href="mailto:support@malak-outlet.com" class="flex items-center text-blue-600 hover:text-blue-800">
                             <svg class="w-5 h-5 ml-2" fill="currentColor" viewBox="0 0 20 20">

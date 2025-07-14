@@ -559,7 +559,7 @@ function confirmCancelOrder(orderId) {
     }
 
     // Make AJAX request to cancel order
-    fetch(`/orders/${orderId}/cancel`, {
+    fetch(`{{ url('/orders') }}/${orderId}/cancel`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
