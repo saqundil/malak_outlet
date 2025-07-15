@@ -18,7 +18,6 @@ RUN apt-get update && apt-get install -y \
     npm \
     libfreetype6-dev \
     libjpeg62-turbo-dev \
-    libpng-dev \
     libgd-dev \
     libmcrypt-dev \
     libicu-dev \
@@ -28,8 +27,7 @@ RUN apt-get update && apt-get install -y \
 
 # Install PHP extensions
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install -j$(nproc) gd \
-    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip intl
+    && docker-php-ext-install -j$(nproc) pdo_mysql mbstring exif pcntl bcmath gd zip intl
 
 # Enable Apache modules
 RUN a2enmod rewrite headers
@@ -61,6 +59,9 @@ RUN echo '<VirtualHost *:80>\n\
     ErrorLog ${APACHE_LOG_DIR}/error.log\n\
     CustomLog ${APACHE_LOG_DIR}/access.log combined\n\
 </VirtualHost>' > /etc/apache2/sites-available/000-default.conf
+
+# Set global ServerName to suppress warning
+RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
 
 # Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader
