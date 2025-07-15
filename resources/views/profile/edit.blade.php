@@ -152,7 +152,7 @@
                                 <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm">تم التوصيل</span>
                             </div>
                             <div class="border-t pt-4">
-                                <p class="text-gray-700">المجموع: 450.00 ر.س</p>
+                                <p class="text-gray-700">المجموع: 450.00 د.أ</p>
                                 <div class="mt-4 flex space-x-3 space-x-reverse">
                                     <button class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">عرض التفاصيل</button>
                                     <button class="border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50">إعادة الطلب</button>

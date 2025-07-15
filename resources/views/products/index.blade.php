@@ -63,13 +63,13 @@
                                 <h4 class="text-md font-medium text-gray-700 mb-3">النطاق السعري</h4>
                                 <div class="space-y-3">
                                     <div>
-                                        <label class="block text-xs text-gray-500 mb-1">من (ر.س)</label>
+                                        <label class="block text-xs text-gray-500 mb-1">من (د.أ)</label>
                                         <input type="number" name="min_price" placeholder="0" 
                                                value="{{ request('min_price') }}"
                                                class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                                     </div>
                                     <div>
-                                        <label class="block text-xs text-gray-500 mb-1">إلى (ر.س)</label>
+                                        <label class="block text-xs text-gray-500 mb-1">إلى (د.أ)</label>
                                         <input type="number" name="max_price" placeholder="1000" 
                                                value="{{ request('max_price') }}"
                                                class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -123,6 +123,35 @@
                                                {{ request('in_stock') ? 'checked' : '' }}>
                                         <span class="text-sm text-gray-600">متوفر في المخزن</span>
                                     </label>
+                                </div>
+                            </div>
+
+                            <!-- Sizes Filter -->
+                            <div class="mb-6">
+                                <h4 class="text-md font-medium text-gray-700 mb-3">
+                                    <i class="fas fa-ruler-horizontal ml-1 text-orange-500"></i>
+                                    الأحجام المتاحة
+                                </h4>
+                                <div class="grid grid-cols-3 gap-2">
+                                    @foreach($availableSizes as $size => $count)
+                                        <label class="flex items-center justify-center cursor-pointer">
+                                            <input type="checkbox" name="sizes[]" value="{{ $size }}" class="hidden size-checkbox"
+                                                   {{ in_array($size, request('sizes', [])) ? 'checked' : '' }}>
+                                            <span class="size-button w-full text-center py-2 px-2 text-xs font-medium border border-gray-300 rounded-lg transition-all duration-200 hover:border-orange-300
+                                                  {{ in_array($size, request('sizes', [])) ? 'bg-orange-500 text-white border-orange-500' : 'bg-white text-gray-700' }}">
+                                                <div>{{ $size }}</div>
+                                                <div class="text-xs opacity-75">({{ $count }})</div>
+                                            </span>
+                                        </label>
+                                    @endforeach
+                                </div>
+                                
+                                <!-- Popular sizes indicator -->
+                                <div class="mt-3 text-center">
+                                    <div class="inline-flex items-center text-xs text-gray-500">
+                                        <i class="fas fa-star text-yellow-400 ml-1"></i>
+                                        <span>الأحجام الشائعة: 41، 42، 43</span>
+                                    </div>
                                 </div>
                             </div>
 
@@ -217,10 +246,10 @@
                                     
                                     <div class="mb-3">
                                         @if($product->sale_price)
-                                            <span class="text-base sm:text-lg font-bold text-orange-600">{{ number_format($product->sale_price, 2) }} ر.س</span>
-                                            <span class="text-xs sm:text-sm text-gray-500 line-through mr-2">{{ number_format($product->price, 2) }} ر.س</span>
+                                            <span class="text-base sm:text-lg font-bold text-orange-600">{{ number_format($product->sale_price, 2) }} د.أ</span>
+                                            <span class="text-xs sm:text-sm text-gray-500 line-through mr-2">{{ number_format($product->price, 2) }} د.أ</span>
                                         @else
-                                            <span class="text-base sm:text-lg font-bold text-gray-800">{{ number_format($product->price, 2) }} ر.س</span>
+                                            <span class="text-base sm:text-lg font-bold text-gray-800">{{ number_format($product->price, 2) }} د.أ</span>
                                         @endif
                                     </div>
                                     
@@ -253,7 +282,7 @@
             @else
                 <div class="text-center py-12 lg:py-16">
                     <svg class="w-20 sm:w-24 h-20 sm:h-24 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4v-6.586a1 1 0 00-.293-.707L3.293 7.414A1 1 0 013 6.707V4z"></path>
                     </svg>
                     <h2 class="text-xl sm:text-2xl font-semibold text-gray-600 mb-2">لا توجد منتجات</h2>
                     <p class="text-sm sm:text-base text-gray-500">لم يتم العثور على أي منتجات حالياً</p>
@@ -532,6 +561,30 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
             const productId = this.getAttribute('data-product-id');
             addToWishlist(productId, this);
+        });
+    });
+    
+    // Size filter functionality
+    document.querySelectorAll('.size-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const sizeButton = this.nextElementSibling;
+            if (this.checked) {
+                sizeButton.classList.remove('bg-white', 'text-gray-700', 'border-gray-300');
+                sizeButton.classList.add('bg-orange-500', 'text-white', 'border-orange-500');
+            } else {
+                sizeButton.classList.remove('bg-orange-500', 'text-white', 'border-orange-500');
+                sizeButton.classList.add('bg-white', 'text-gray-700', 'border-gray-300');
+            }
+        });
+    });
+    
+    // Make size buttons clickable
+    document.querySelectorAll('.size-button').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            const checkbox = this.previousElementSibling;
+            checkbox.checked = !checkbox.checked;
+            checkbox.dispatchEvent(new Event('change'));
         });
     });
 });

@@ -237,7 +237,7 @@
                     <h3 class="text-lg font-bold text-gray-800 mb-4 text-right">جميع الفئات</h3>
                     <div class="grid grid-cols-2 gap-3">
                         <?php
-                            $categoriesForDropdown = \App\Models\Category::all();
+                            $categoriesForDropdown = \App\Models\Category::with('brands')->get();
                             $categoryIcons = [
                                 'electronics' => '📱',
                                 'clothing' => '👕', 
@@ -257,7 +257,12 @@
                                 <span class="text-2xl ml-3"><?php echo e($categoryIcons[$category->slug] ?? '🛍️'); ?></span>
                                 <div class="text-right">
                                     <div class="font-medium text-gray-800 group-hover:text-orange-600"><?php echo e($category->name); ?></div>
-                                    <div class="text-xs text-gray-500"><?php echo e($category->products_count ?? 0); ?> منتج</div>
+                                    <div class="text-xs text-gray-500">
+                                        <?php echo e($category->products_count ?? 0); ?> منتج
+                                        <?php if($category->brands->count() > 0): ?>
+                                            • <?php echo e($category->brands->count()); ?> علامة تجارية
+                                        <?php endif; ?>
+                                    </div>
                                 </div>
                             </a>
                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>

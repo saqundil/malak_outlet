@@ -108,10 +108,10 @@
                         
                         <div class="flex items-center gap-2 mb-3">
                             @if($product->sale_price)
-                                <span class="text-xl font-bold text-red-600">{{ number_format($product->sale_price, 2) }} ر.س</span>
-                                <span class="text-sm text-gray-500 line-through">{{ number_format($product->price, 2) }} ر.س</span>
+                                <span class="text-xl font-bold text-red-600">{{ number_format($product->sale_price, 2) }} د.أ</span>
+                                <span class="text-sm text-gray-500 line-through">{{ number_format($product->price, 2) }} د.أ</span>
                             @else
-                                <span class="text-xl font-bold text-gray-800">{{ number_format($product->price, 2) }} ر.س</span>
+                                <span class="text-xl font-bold text-gray-800">{{ number_format($product->price, 2) }} د.أ</span>
                             @endif
                         </div>
                         

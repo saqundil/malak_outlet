@@ -57,7 +57,7 @@ return [
 
     'url' => env('APP_URL', 'https://malakoutlet-production.up.railway.app'),
 
-    'asset_url' => env('ASSET_URL'),
+    'asset_url' => env('ASSET_URL', env('APP_URL', 'https://malakoutlet-production.up.railway.app')),
 
     /*
     |--------------------------------------------------------------------------

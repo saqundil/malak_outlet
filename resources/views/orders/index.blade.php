@@ -52,7 +52,7 @@
                             <span class="{{ $order->status_badge_class }} px-3 py-1 rounded-full text-sm font-semibold">
                                 {{ $order->status_arabic }}
                             </span>
-                            <span class="text-lg font-bold text-gray-800">{{ number_format($order->total_amount, 2) }} ر.س</span>
+                            <span class="text-lg font-bold text-gray-800">{{ number_format($order->total_amount, 2) }} د.أ</span>
                         </div>
                     </div>
                 </div>
@@ -77,10 +77,10 @@
                             </div>
                             <div class="flex-1">
                                 <h4 class="font-semibold text-gray-800">{{ $item->product_name }}</h4>
-                                <p class="text-sm text-gray-600">الكمية: {{ $item->quantity }} × {{ number_format($item->product_price, 2) }} ر.س</p>
+                                <p class="text-sm text-gray-600">الكمية: {{ $item->quantity }} × {{ number_format($item->product_price, 2) }} د.أ</p>
                             </div>
                             <div class="text-right">
-                                <p class="font-semibold">{{ number_format($item->total_price, 2) }} ر.س</p>
+                                <p class="font-semibold">{{ number_format($item->total_price, 2) }} د.أ</p>
                             </div>
                         </div>
                         @endforeach
@@ -474,7 +474,7 @@ function viewOrderDetails(orderId) {
                             </div>
                             <div>
                                 <span class="text-gray-600">المجموع:</span>
-                                <span class="font-medium">${parseFloat(order.total_amount).toFixed(2)} ر.س</span>
+                                <span class="font-medium">${parseFloat(order.total_amount).toFixed(2)} د.أ</span>
                             </div>
                         </div>
                     </div>

@@ -15,16 +15,39 @@ class CartController extends Controller
         $total = 0;
 
         if (!empty($cart)) {
-            $productIds = array_keys($cart);
-            $products = Product::whereIn('id', $productIds)->get();
+            foreach ($cart as $cartKey => $cartItem) {
+                // Handle old format (backwards compatibility)
+                if (is_numeric($cartItem)) {
+                    $productId = $cartKey;
+                    $quantity = $cartItem;
+                    $sizeId = null;
+                } else {
+                    // New format with size support
+                    $productId = $cartItem['product_id'];
+                    $quantity = $cartItem['quantity'];
+                    $sizeId = $cartItem['size_id'] ?? null;
+                }
 
-            foreach ($products as $product) {
-                $quantity = $cart[$product->id];
+                $product = Product::find($productId);
+                if (!$product) continue;
+
                 $price = $product->sale_price ?? $product->price;
+                $size = null;
+                
+                // Add size price if applicable
+                if ($sizeId) {
+                    $size = $product->sizes()->find($sizeId);
+                    if ($size) {
+                        $price += $size->additional_price;
+                    }
+                }
+                
                 $subtotal = $price * $quantity;
                 
                 $cartItems[] = [
+                    'cart_key' => $cartKey,
                     'product' => $product,
+                    'size' => $size,
                     'quantity' => $quantity,
                     'price' => $price,
                     'subtotal' => $subtotal
@@ -41,13 +64,24 @@ class CartController extends Controller
     {
         $product = Product::findOrFail($productId);
         $quantity = $request->input('quantity', 1);
+        $sizeId = $request->input('size_id');
 
         $cart = $this->getCartFromCookie();
         
-        if (isset($cart[$productId])) {
-            $cart[$productId] += $quantity;
+        // Create unique cart key including size
+        $cartKey = $productId;
+        if ($sizeId) {
+            $cartKey = $productId . '_size_' . $sizeId;
+        }
+        
+        if (isset($cart[$cartKey])) {
+            $cart[$cartKey]['quantity'] += $quantity;
         } else {
-            $cart[$productId] = $quantity;
+            $cart[$cartKey] = [
+                'product_id' => $productId,
+                'quantity' => $quantity,
+                'size_id' => $sizeId
+            ];
         }
 
         $this->saveCartToCookie($cart);
@@ -62,15 +96,22 @@ class CartController extends Controller
     public function update(Request $request, $productId)
     {
         $quantity = $request->input('quantity', 1);
+        $cartKey = $request->input('cart_key', $productId);
         
         if ($quantity <= 0) {
-            return $this->remove($productId);
+            return $this->remove($cartKey);
         }
 
         $cart = $this->getCartFromCookie();
         
-        if (isset($cart[$productId])) {
-            $cart[$productId] = $quantity;
+        if (isset($cart[$cartKey])) {
+            if (is_numeric($cart[$cartKey])) {
+                // Old format
+                $cart[$cartKey] = $quantity;
+            } else {
+                // New format
+                $cart[$cartKey]['quantity'] = $quantity;
+            }
             $this->saveCartToCookie($cart);
         }
 
@@ -81,12 +122,12 @@ class CartController extends Controller
         ]);
     }
 
-    public function remove($productId)
+    public function remove($cartKey)
     {
         $cart = $this->getCartFromCookie();
         
-        if (isset($cart[$productId])) {
-            unset($cart[$productId]);
+        if (isset($cart[$cartKey])) {
+            unset($cart[$cartKey]);
             $this->saveCartToCookie($cart);
         }
 
@@ -127,6 +168,16 @@ class CartController extends Controller
 
     private function getCartCount($cart)
     {
-        return array_sum($cart);
+        $count = 0;
+        foreach ($cart as $cartItem) {
+            if (is_numeric($cartItem)) {
+                // Old format
+                $count += $cartItem;
+            } else {
+                // New format
+                $count += $cartItem['quantity'] ?? 0;
+            }
+        }
+        return $count;
     }
 }

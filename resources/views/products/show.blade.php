@@ -145,21 +145,21 @@
                         @if($product->sale_price)
                             <div class="space-y-2">
                                 <div class="flex items-center justify-between">
-                                    <span class="text-3xl lg:text-4xl font-bold text-orange-600">{{ number_format($product->sale_price, 2) }} ر.س</span>
+                                    <span class="text-3xl lg:text-4xl font-bold text-orange-600">{{ number_format($product->sale_price, 2) }} د.أ</span>
                                     <span class="bg-red-100 text-red-800 text-sm font-bold px-3 py-1 rounded-full">
                                         خصم {{ number_format((($product->price - $product->sale_price) / $product->price) * 100, 0) }}%
                                     </span>
                                 </div>
                                 <div class="flex items-center gap-3">
-                                    <span class="text-lg text-gray-500 line-through">{{ number_format($product->price, 2) }} ر.س</span>
+                                    <span class="text-lg text-gray-500 line-through">{{ number_format($product->price, 2) }} د.أ</span>
                                     <span class="text-green-600 font-medium">
-                                        وفرت {{ number_format($product->price - $product->sale_price, 2) }} ر.س
+                                        وفرت {{ number_format($product->price - $product->sale_price, 2) }} د.أ
                                     </span>
                                 </div>
                             </div>
                         @else
                             <div class="flex items-center justify-between">
-                                <span class="text-3xl lg:text-4xl font-bold text-gray-900">{{ number_format($product->price, 2) }} ر.س</span>
+                                <span class="text-3xl lg:text-4xl font-bold text-gray-900">{{ number_format($product->price, 2) }} د.أ</span>
                                 <span class="text-sm text-gray-500">السعر شامل الضريبة</span>
                             </div>
                         @endif
@@ -185,6 +185,127 @@
                             </div>
                         @endif
                     </div>
+
+                    <!-- Product Sizes -->
+                    @if($product->sizes && $product->sizes->count() > 0)
+                        <div class="mb-8 p-6 bg-white rounded-xl border" x-data="{ selectedSize: null, showSizeGuide: false }">
+                            <label class="text-lg font-semibold text-gray-700 mb-4 block">الحجم المتاح:</label>
+                            <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
+                                @foreach($product->availableSizes as $size)
+                                    <button 
+                                        type="button" 
+                                        @click="selectedSize = {{ $size->id }}"
+                                        :class="selectedSize === {{ $size->id }} ? 'border-orange-500 bg-orange-50 text-orange-600' : 'border-gray-300 hover:border-orange-300'"
+                                        class="relative border-2 rounded-xl py-3 px-4 text-center transition-all duration-200 group"
+                                        data-size-id="{{ $size->id }}"
+                                        data-additional-price="{{ $size->additional_price }}">
+                                        <div class="font-semibold text-sm">{{ $size->size }}</div>
+                                        @if($size->additional_price > 0)
+                                            <div class="text-xs text-gray-500 mt-1">+{{ number_format($size->additional_price, 0) }} د.أ</div>
+                                        @endif
+                                        @if($size->stock_quantity < 5)
+                                            <div class="text-xs text-red-500 mt-1">{{ $size->stock_quantity }} متبقي</div>
+                                        @endif
+                                        
+                                        <!-- Stock status -->
+                                        @if($size->stock_quantity == 0)
+                                            <div class="absolute inset-0 bg-gray-200 bg-opacity-75 rounded-xl flex items-center justify-center">
+                                                <span class="text-gray-600 text-xs font-medium">نفذ المخزون</span>
+                                            </div>
+                                        @elseif($size->stock_quantity <= 3)
+                                            <div class="absolute top-1 left-1 bg-red-500 text-white rounded-full text-xs px-2 py-1">
+                                                {{ $size->stock_quantity }}
+                                            </div>
+                                        @elseif($size->stock_quantity <= 10)
+                                            <div class="absolute top-1 left-1 bg-yellow-500 text-white rounded-full text-xs px-2 py-1">
+                                                {{ $size->stock_quantity }}
+                                            </div>
+                                        @endif
+                                        
+                                        <!-- Popular size indicator -->
+                                        @if($size->is_popular ?? false)
+                                            <div class="absolute -top-1 -left-1 bg-gradient-to-r from-yellow-400 to-yellow-500 text-white rounded-full text-xs px-2 py-1 font-bold shadow-lg">
+                                                <i class="fas fa-star mr-1"></i>شائع
+                                            </div>
+                                        @endif
+                                        
+                                        <!-- Selection indicator -->
+                                        <div x-show="selectedSize === {{ $size->id }}" 
+                                             x-transition:enter="transition ease-out duration-200"
+                                             x-transition:enter-start="opacity-0 scale-95"
+                                             x-transition:enter-end="opacity-100 scale-100"
+                                             class="absolute -top-2 -right-2 w-5 h-5 bg-orange-500 rounded-full flex items-center justify-center">
+                                            <i class="fas fa-check text-white text-xs"></i>
+                                        </div>
+                                    </button>
+                                @endforeach
+                            </div>
+                            
+                            <!-- Size Guide Link -->
+                            <div class="mt-4 text-center">
+                                <button type="button" class="text-orange-500 hover:text-orange-600 underline text-sm" @click="showSizeGuide = true">
+                                    <i class="fas fa-ruler ml-1"></i>دليل المقاسات
+                                </button>
+                            </div>
+
+                            <!-- Selected Size Summary -->
+                            <div x-show="selectedSize" 
+                                 x-transition:enter="transition ease-out duration-200"
+                                 x-transition:enter-start="opacity-0 transform translate-y-2"
+                                 x-transition:enter-end="opacity-100 transform translate-y-0"
+                                 class="mb-4 p-4 bg-green-50 border border-green-200 rounded-xl">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-3">
+                                        <i class="fas fa-check-circle text-green-600"></i>
+                                        <span class="text-green-800 font-medium">تم اختيار الحجم:</span>
+                                        <span x-text="document.querySelector('[data-size-id=\"' + selectedSize + '\"]')?.innerText.split('\n')[0] || ''" 
+                                              class="bg-green-100 text-green-800 px-2 py-1 rounded-lg text-sm font-bold"></span>
+                                    </div>
+                                    <button @click="selectedSize = null" class="text-green-600 hover:text-green-800 text-sm">
+                                        <i class="fas fa-times"></i> تغيير
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Size Selection Alert -->
+                            <div x-show="!selectedSize && Object.keys($data).includes('selectedSize')" 
+                                 x-transition:enter="transition ease-out duration-200"
+                                 x-transition:enter-start="opacity-0 transform scale-95"
+                                 x-transition:enter-end="opacity-100 transform scale-100"
+                                 class="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-xl">
+                                <div class="flex items-center gap-2 text-yellow-800">
+                                    <i class="fas fa-exclamation-triangle text-yellow-500"></i>
+                                    <span class="text-sm font-medium">يرجى اختيار الحجم المطلوب قبل الإضافة للسلة</span>
+                                </div>
+                            </div>
+
+                            <!-- Size Information Panel -->
+                            <template x-if="selectedSize">
+                                <div class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                                    <h4 class="font-semibold text-blue-800 mb-2">تفاصيل الحجم المختار</h4>
+                                    <div class="space-y-2 text-sm">
+                                        <div class="flex justify-between">
+                                            <span class="text-blue-700">الحجم:</span>
+                                            <span x-text="document.querySelector('[data-size-id=\"' + selectedSize + '\"]')?.innerText.split('\n')[0] || ''" 
+                                                  class="font-bold text-blue-900"></span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="text-blue-700">الكمية المتاحة:</span>
+                                            <span x-text="document.querySelector('[data-size-id=\"' + selectedSize + '\"]')?.innerText.includes('متبقي') ? document.querySelector('[data-size-id=\"' + selectedSize + '\"]')?.innerText.match(/(\d+) متبقي/)?.[1] || 'متوفر' : 'متوفر'" 
+                                                  class="font-bold text-blue-900"></span>
+                                        </div>
+                                        <template x-if="document.querySelector('[data-size-id=\"' + selectedSize + '\"]')?.getAttribute('data-additional-price') > 0">
+                                            <div class="flex justify-between border-t border-blue-200 pt-2">
+                                                <span class="text-blue-700">السعر الإضافي:</span>
+                                                <span x-text="'+' + document.querySelector('[data-size-id=\"' + selectedSize + '\"]')?.getAttribute('data-additional-price') + ' د.أ'" 
+                                                      class="font-bold text-blue-900"></span>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    @endif
 
                     <!-- Quantity & Add to Cart -->
                     @if($product->stock_quantity > 0)
@@ -229,7 +350,7 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div class="flex items-center gap-3">
                                 <i class="fas fa-shipping-fast text-orange-500"></i>
-                                <span class="text-gray-700">شحن مجاني للطلبات فوق 200 ر.س</span>
+                                <span class="text-gray-700">شحن مجاني للطلبات فوق 200 د.أ</span>
                             </div>
                             <div class="flex items-center gap-3">
                                 <i class="fas fa-undo text-orange-500"></i>
@@ -516,12 +637,12 @@
                                         <div>
                                             @if($relatedProduct->sale_price)
                                                 <div class="space-y-1">
-                                                    <span class="text-lg font-bold text-orange-600">{{ number_format($relatedProduct->sale_price, 2) }} ر.س</span>
+                                                    <span class="text-lg font-bold text-orange-600">{{ number_format($relatedProduct->sale_price, 2) }} د.أ</span>
                                                     <br>
-                                                    <span class="text-sm text-gray-500 line-through">{{ number_format($relatedProduct->price, 2) }} ر.س</span>
+                                                    <span class="text-sm text-gray-500 line-through">{{ number_format($relatedProduct->price, 2) }} د.أ</span>
                                                 </div>
                                             @else
-                                                <span class="text-lg font-bold text-gray-800">{{ number_format($relatedProduct->price, 2) }} ر.س</span>
+                                                <span class="text-lg font-bold text-gray-800">{{ number_format($relatedProduct->price, 2) }} د.أ</span>
                                             @endif
                                         </div>
                                         
@@ -543,6 +664,91 @@
         @endif
     </main>
 </div>
+
+<!-- Size Guide Modal -->
+<div x-show="showSizeGuide" 
+     x-transition:enter="transition ease-out duration-300"
+     x-transition:enter-start="opacity-0"
+     x-transition:enter-end="opacity-100"
+     x-transition:leave="transition ease-in duration-200"
+     x-transition:leave-start="opacity-100"
+     x-transition:leave-end="opacity-0"
+     class="fixed inset-0 z-50 overflow-y-auto"
+     x-cloak>
+    <div class="flex items-center justify-center min-h-screen px-4">
+        <div class="fixed inset-0 bg-black opacity-50" @click="showSizeGuide = false"></div>
+        
+        <div class="relative bg-white rounded-2xl max-w-2xl w-full p-8 shadow-2xl">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-2xl font-bold text-gray-900">دليل المقاسات</h3>
+                <button @click="showSizeGuide = false" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <div class="space-y-6" dir="rtl">
+                <!-- Shoes Size Guide -->
+                <div>
+                    <h4 class="text-lg font-semibold text-gray-800 mb-4">مقاسات الأحذية</h4>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm border-collapse border border-gray-300">
+                            <thead>
+                                <tr class="bg-orange-50">
+                                    <th class="border border-gray-300 px-3 py-2">المقاس الأوروبي</th>
+                                    <th class="border border-gray-300 px-3 py-2">طول القدم (سم)</th>
+                                    <th class="border border-gray-300 px-3 py-2">المقاس الأمريكي</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td class="border border-gray-300 px-3 py-2 text-center">38</td><td class="border border-gray-300 px-3 py-2 text-center">24.0</td><td class="border border-gray-300 px-3 py-2 text-center">6</td></tr>
+                                <tr><td class="border border-gray-300 px-3 py-2 text-center">39</td><td class="border border-gray-300 px-3 py-2 text-center">24.7</td><td class="border border-gray-300 px-3 py-2 text-center">6.5</td></tr>
+                                <tr><td class="border border-gray-300 px-3 py-2 text-center">40</td><td class="border border-gray-300 px-3 py-2 text-center">25.3</td><td class="border border-gray-300 px-3 py-2 text-center">7</td></tr>
+                                <tr><td class="border border-gray-300 px-3 py-2 text-center">41</td><td class="border border-gray-300 px-3 py-2 text-center">26.0</td><td class="border border-gray-300 px-3 py-2 text-center">8</td></tr>
+                                <tr><td class="border border-gray-300 px-3 py-2 text-center">42</td><td class="border border-gray-300 px-3 py-2 text-center">26.7</td><td class="border border-gray-300 px-3 py-2 text-center">8.5</td></tr>
+                                <tr><td class="border border-gray-300 px-3 py-2 text-center">43</td><td class="border border-gray-300 px-3 py-2 text-center">27.3</td><td class="border border-gray-300 px-3 py-2 text-center">9</td></tr>
+                                <tr><td class="border border-gray-300 px-3 py-2 text-center">44</td><td class="border border-gray-300 px-3 py-2 text-center">28.0</td><td class="border border-gray-300 px-3 py-2 text-center">10</td></tr>
+                                <tr><td class="border border-gray-300 px-3 py-2 text-center">45</td><td class="border border-gray-300 px-3 py-2 text-center">28.7</td><td class="border border-gray-300 px-3 py-2 text-center">11</td></tr>
+                                <tr><td class="border border-gray-300 px-3 py-2 text-center">46</td><td class="border border-gray-300 px-3 py-2 text-center">29.3</td><td class="border border-gray-300 px-3 py-2 text-center">12</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- How to measure -->
+                <div>
+                    <h4 class="text-lg font-semibold text-gray-800 mb-4">كيفية قياس قدمك</h4>
+                    <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                        <ol class="list-decimal list-inside space-y-2 text-gray-700">
+                            <li>ضع قدمك على ورقة وأنت واقف</li>
+                            <li>ضع علامة عند أطول نقطة في قدمك</li>
+                            <li>اقس المسافة من الكعب إلى العلامة</li>
+                            <li>قارن النتيجة مع الجدول أعلاه</li>
+                            <li>ننصح بإضافة 0.5 سم للراحة</li>
+                        </ol>
+                    </div>
+                </div>
+                
+                <!-- Tips -->
+                <div>
+                    <h4 class="text-lg font-semibold text-gray-800 mb-4">نصائح مهمة</h4>
+                    <div class="bg-orange-50 border border-orange-200 rounded-xl p-4">
+                        <ul class="list-disc list-inside space-y-2 text-gray-700">
+                            <li>قس قدمك في نهاية اليوم عندما تكون في أكبر حجم لها</li>
+                            <li>إذا كان هناك اختلاف بين القدمين، اختر المقاس الأكبر</li>
+                            <li>المقاسات قد تختلف قليلاً بين العلامات التجارية</li>
+                            <li>يمكنك التواصل معنا لمساعدتك في اختيار المقاس المناسب</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-6 text-center">
+                <button @click="showSizeGuide = false" class="bg-orange-500 text-white px-6 py-3 rounded-xl font-medium hover:bg-orange-600 transition-colors">
+                    فهمت، شكراً
+                </button>
+            </div>
+        </div>
+    </div>
 
 @push('scripts')
 <script>
@@ -578,12 +784,51 @@ function changeQuantity(change) {
     }
 }
 
+// Size selection functionality
+function updatePriceWithSize() {
+    const selectedSizeButton = document.querySelector('[data-size-id].border-orange-500');
+    const originalPrice = {{ $product->sale_price ?? $product->price }};
+    let additionalPrice = 0;
+    
+    if (selectedSizeButton) {
+        additionalPrice = parseFloat(selectedSizeButton.getAttribute('data-additional-price')) || 0;
+    }
+    
+    const finalPrice = originalPrice + additionalPrice;
+    
+    // Update main price display
+    const priceElement = document.querySelector('.text-3xl.font-bold');
+    if (priceElement) {
+        priceElement.textContent = new Intl.NumberFormat('ar-JO', {
+            style: 'decimal',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }).format(finalPrice) + ' د.أ';
+    }
+}
+
+function getSelectedSize() {
+    const selectedSizeButton = document.querySelector('[data-size-id].border-orange-500');
+    return selectedSizeButton ? {
+        id: selectedSizeButton.getAttribute('data-size-id'),
+        additionalPrice: parseFloat(selectedSizeButton.getAttribute('data-additional-price')) || 0
+    } : null;
+}
+
 function addToCartWithQuantity(productId) {
     const quantityElement = document.getElementById('quantity');
     const quantity = quantityElement ? parseInt(quantityElement.value) || 1 : 1;
+    const selectedSize = getSelectedSize();
     const button = event.target.closest('.add-to-cart-btn');
     
     if (!button) return;
+    
+    // Check if size is required but not selected
+    const sizeOptions = document.querySelectorAll('[data-size-id]');
+    if (sizeOptions.length > 0 && !selectedSize) {
+        showNotification('يرجى اختيار الحجم المطلوب', 'error');
+        return;
+    }
     
     const btnText = button.querySelector('.btn-text');
     const loadingText = button.querySelector('.loading-text');
@@ -593,13 +838,18 @@ function addToCartWithQuantity(productId) {
     if (loadingText) loadingText.classList.remove('hidden');
     button.disabled = true;
     
+    const requestData = { 
+        quantity: quantity,
+        size_id: selectedSize ? selectedSize.id : null
+    };
+    
     fetch('{{ route("cart.add", ":productId") }}'.replace(':productId', productId), {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
         },
-        body: JSON.stringify({ quantity: quantity })
+        body: JSON.stringify(requestData)
     })
     .then(response => response.json())
     .then(data => {
@@ -855,6 +1105,24 @@ document.addEventListener('DOMContentLoaded', function() {
     // Quantity buttons
     document.querySelector('.quantity-btn-minus')?.addEventListener('click', () => changeQuantity(-1));
     document.querySelector('.quantity-btn-plus')?.addEventListener('click', () => changeQuantity(1));
+    
+    // Size selection buttons
+    document.querySelectorAll('[data-size-id]').forEach(button => {
+        button.addEventListener('click', function() {
+            // Remove selection from all size buttons
+            document.querySelectorAll('[data-size-id]').forEach(btn => {
+                btn.classList.remove('border-orange-500', 'bg-orange-50', 'text-orange-600');
+                btn.classList.add('border-gray-300');
+            });
+            
+            // Add selection to clicked button
+            this.classList.remove('border-gray-300');
+            this.classList.add('border-orange-500', 'bg-orange-50', 'text-orange-600');
+            
+            // Update price if there's additional cost
+            updatePriceWithSize();
+        });
+    });
     
     // Main add to cart button
     document.querySelector('.add-to-cart-main')?.addEventListener('click', function() {

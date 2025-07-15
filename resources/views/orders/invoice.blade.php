@@ -266,9 +266,9 @@
                 @foreach($order->items as $item)
                 <tr>
                     <td>{{ $item->product_name }}</td>
-                    <td>{{ number_format($item->product_price, 2) }} ر.س</td>
+                    <td>{{ number_format($item->product_price, 2) }} د.أ</td>
                     <td>{{ $item->quantity }}</td>
-                    <td>{{ number_format($item->total_price, 2) }} ر.س</td>
+                    <td>{{ number_format($item->total_price, 2) }} د.أ</td>
                 </tr>
                 @endforeach
             </tbody>
@@ -278,19 +278,19 @@
         <div class="total-section">
             <div class="total-row">
                 <span>المجموع الفرعي:</span>
-                <span>{{ number_format($order->subtotal, 2) }} ر.س</span>
+                <span>{{ number_format($order->subtotal, 2) }} د.أ</span>
             </div>
             <div class="total-row">
                 <span>الشحن:</span>
-                <span>{{ number_format($order->shipping_cost, 2) }} ر.س</span>
+                <span>{{ number_format($order->shipping_cost, 2) }} د.أ</span>
             </div>
             <div class="total-row">
                 <span>ضريبة القيمة المضافة (15%):</span>
-                <span>{{ number_format($order->tax_amount, 2) }} ر.س</span>
+                <span>{{ number_format($order->tax_amount, 2) }} د.أ</span>
             </div>
             <div class="total-row final">
                 <span>المجموع الإجمالي:</span>
-                <span>{{ number_format($order->total_amount, 2) }} ر.س</span>
+                <span>{{ number_format($order->total_amount, 2) }} د.أ</span>
             </div>
         </div>
 

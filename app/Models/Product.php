@@ -45,6 +45,16 @@ class Product extends Model
         return $this->hasMany(ProductReview::class);
     }
 
+    public function sizes(): HasMany
+    {
+        return $this->hasMany(ProductSize::class);
+    }
+
+    public function availableSizes(): HasMany
+    {
+        return $this->hasMany(ProductSize::class)->available();
+    }
+
     public function approvedReviews(): HasMany
     {
         return $this->hasMany(ProductReview::class)->approved()->with('user')->latest();

@@ -234,7 +234,7 @@
                     <h3 class="text-lg font-bold text-gray-800 mb-4 text-right">جميع الفئات</h3>
                     <div class="grid grid-cols-2 gap-3">
                         @php
-                            $categoriesForDropdown = \App\Models\Category::all();
+                            $categoriesForDropdown = \App\Models\Category::with('brands')->get();
                             $categoryIcons = [
                                 'electronics' => '📱',
                                 'clothing' => '👕', 
@@ -254,7 +254,12 @@
                                 <span class="text-2xl ml-3">{{ $categoryIcons[$category->slug] ?? '🛍️' }}</span>
                                 <div class="text-right">
                                     <div class="font-medium text-gray-800 group-hover:text-orange-600">{{ $category->name }}</div>
-                                    <div class="text-xs text-gray-500">{{ $category->products_count ?? 0 }} منتج</div>
+                                    <div class="text-xs text-gray-500">
+                                        {{ $category->products_count ?? 0 }} منتج
+                                        @if($category->brands->count() > 0)
+                                            • {{ $category->brands->count() }} علامة تجارية
+                                        @endif
+                                    </div>
                                 </div>
                             </a>
                         @endforeach

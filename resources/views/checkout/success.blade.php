@@ -37,7 +37,7 @@
                     
                     <div class="flex justify-between items-center border-b pb-2">
                         <span class="font-medium">الإجمالي:</span>
-                        <span class="text-green-600 font-bold">{{ number_format($order->total_amount, 2) }} ر.س</span>
+                        <span class="text-green-600 font-bold">{{ number_format($order->total_amount, 2) }} د.أ</span>
                     </div>
                     
                     <div class="flex justify-between items-center border-b pb-2">
@@ -84,7 +84,7 @@
                                     <p class="text-sm text-gray-600">الكمية: {{ $item->quantity }}</p>
                                 </div>
                             </div>
-                            <span class="font-semibold">{{ number_format($item->total_price, 2) }} ر.س</span>
+                            <span class="font-semibold">{{ number_format($item->total_price, 2) }} د.أ</span>
                         </div>
                         @endforeach
                     </div>

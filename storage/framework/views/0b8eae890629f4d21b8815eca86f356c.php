@@ -1,29 +1,29 @@
-@extends('layouts.main')
 
-@section('title', $category->name . ' - Malak Outlet')
 
-@section('content')
+<?php $__env->startSection('title', $category->name . ' - Malak Outlet'); ?>
+
+<?php $__env->startSection('content'); ?>
 <div class="min-h-screen bg-gray-50">
     <div class="container mx-auto px-4 py-8">
         <div class="max-w-7xl mx-auto">
             <!-- Breadcrumb -->
             <nav class="text-sm mb-6" dir="ltr">
-                <a href="{{ route('home') }}" class="text-orange-500 hover:underline">الرئيسية</a>
+                <a href="<?php echo e(route('home')); ?>" class="text-orange-500 hover:underline">الرئيسية</a>
                 <span class="mx-2">/</span>
-                <span class="text-gray-600">{{ $category->name }}</span>
+                <span class="text-gray-600"><?php echo e($category->name); ?></span>
             </nav>
 
             <div class="flex justify-between items-center mb-8">
-                <h1 class="text-3xl font-bold text-gray-900">{{ $category->name }}</h1>
+                <h1 class="text-3xl font-bold text-gray-900"><?php echo e($category->name); ?></h1>
                 <div class="flex items-center space-x-4 space-x-reverse">
-                    <span class="text-gray-600">{{ $products->total() }} منتج</span>
+                    <span class="text-gray-600"><?php echo e($products->total()); ?> منتج</span>
                 </div>
             </div>
 
             <!-- Filters Section -->
-            @if(count($availableSizes) > 0)
+            <?php if(count($availableSizes) > 0): ?>
             <div class="bg-white rounded-lg shadow-md p-6 mb-8">
-                <form method="GET" action="{{ route('products.category', $category->slug) }}" id="categoryFilterForm">
+                <form method="GET" action="<?php echo e(route('products.category', $category->slug)); ?>" id="categoryFilterForm">
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         <!-- Size Filter -->
                         <div>
@@ -32,17 +32,17 @@
                                 الأحجام المتاحة
                             </h4>
                             <div class="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-2">
-                                @foreach($availableSizes as $size => $count)
+                                <?php $__currentLoopData = $availableSizes; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $size => $count): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                     <label class="flex items-center justify-center cursor-pointer">
-                                        <input type="checkbox" name="sizes[]" value="{{ $size }}" class="hidden size-checkbox"
-                                               {{ in_array($size, request('sizes', [])) ? 'checked' : '' }}>
+                                        <input type="checkbox" name="sizes[]" value="<?php echo e($size); ?>" class="hidden size-checkbox"
+                                               <?php echo e(in_array($size, request('sizes', [])) ? 'checked' : ''); ?>>
                                         <span class="size-button w-full text-center py-2 px-2 text-xs font-medium border border-gray-300 rounded-lg transition-all duration-200 hover:border-orange-300
-                                              {{ in_array($size, request('sizes', [])) ? 'bg-orange-500 text-white border-orange-500' : 'bg-white text-gray-700' }}">
-                                            <div>{{ $size }}</div>
-                                            <div class="text-xs opacity-75">({{ $count }})</div>
+                                              <?php echo e(in_array($size, request('sizes', [])) ? 'bg-orange-500 text-white border-orange-500' : 'bg-white text-gray-700'); ?>">
+                                            <div><?php echo e($size); ?></div>
+                                            <div class="text-xs opacity-75">(<?php echo e($count); ?>)</div>
                                         </span>
                                     </label>
-                                @endforeach
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             </div>
                         </div>
                         
@@ -53,10 +53,10 @@
                                 ترتيب حسب
                             </h4>
                             <select name="sort" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500">
-                                <option value="newest" {{ request('sort') == 'newest' ? 'selected' : '' }}>الأحدث</option>
-                                <option value="price_low" {{ request('sort') == 'price_low' ? 'selected' : '' }}>السعر: من الأقل للأعلى</option>
-                                <option value="price_high" {{ request('sort') == 'price_high' ? 'selected' : '' }}>السعر: من الأعلى للأقل</option>
-                                <option value="name" {{ request('sort') == 'name' ? 'selected' : '' }}>الاسم</option>
+                                <option value="newest" <?php echo e(request('sort') == 'newest' ? 'selected' : ''); ?>>الأحدث</option>
+                                <option value="price_low" <?php echo e(request('sort') == 'price_low' ? 'selected' : ''); ?>>السعر: من الأقل للأعلى</option>
+                                <option value="price_high" <?php echo e(request('sort') == 'price_high' ? 'selected' : ''); ?>>السعر: من الأعلى للأقل</option>
+                                <option value="name" <?php echo e(request('sort') == 'name' ? 'selected' : ''); ?>>الاسم</option>
                             </select>
                         </div>
                     </div>
@@ -68,7 +68,7 @@
                                 <i class="fas fa-filter ml-1"></i>
                                 تطبيق التصفية
                             </button>
-                            <a href="{{ route('products.category', $category->slug) }}" class="bg-gray-200 text-gray-700 py-2 px-6 rounded-lg hover:bg-gray-300 transition duration-200">
+                            <a href="<?php echo e(route('products.category', $category->slug)); ?>" class="bg-gray-200 text-gray-700 py-2 px-6 rounded-lg hover:bg-gray-300 transition duration-200">
                                 <i class="fas fa-undo ml-1"></i>
                                 إعادة تعيين
                             </a>
@@ -82,32 +82,32 @@
                     </div>
                 </form>
             </div>
-            @endif
+            <?php endif; ?>
 
-            @if($products->count() > 0)
+            <?php if($products->count() > 0): ?>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    @foreach($products as $product)
+                    <?php $__currentLoopData = $products; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $product): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition duration-300 group">
                             <div class="relative">
-                                <a href="{{ route('products.show', $product->id) }}">
-                                    @if($product->images->first())
-                                        <img src="{{ $product->images->first()->image_url }}" 
-                                             alt="{{ $product->name }}" 
+                                <a href="<?php echo e(route('products.show', $product->id)); ?>">
+                                    <?php if($product->images->first()): ?>
+                                        <img src="<?php echo e($product->images->first()->image_url); ?>" 
+                                             alt="<?php echo e($product->name); ?>" 
                                              class="w-full h-48 object-cover group-hover:scale-105 transition duration-300">
-                                    @else
+                                    <?php else: ?>
                                         <div class="w-full h-48 bg-gray-200 flex items-center justify-center">
                                             <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                                             </svg>
                                         </div>
-                                    @endif
+                                    <?php endif; ?>
                                 </a>
                                 
-                                @if($product->sale_price)
+                                <?php if($product->sale_price): ?>
                                     <span class="absolute top-3 left-3 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-semibold">
-                                        خصم {{ number_format((($product->price - $product->sale_price) / $product->price) * 100, 0) }}%
+                                        خصم <?php echo e(number_format((($product->price - $product->sale_price) / $product->price) * 100, 0)); ?>%
                                     </span>
-                                @endif
+                                <?php endif; ?>
                                 
                                 <div class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition duration-300">
                                     <button class="bg-white p-2 rounded-full shadow-lg hover:bg-gray-100 text-gray-600">
@@ -120,34 +120,34 @@
                             
                             <div class="p-4">
                                 <div class="text-right">
-                                    <a href="{{ route('products.show', $product->id) }}">
-                                        <h3 class="font-semibold text-lg mb-1 text-gray-800 hover:text-orange-600 transition duration-200">{{ $product->name }}</h3>
+                                    <a href="<?php echo e(route('products.show', $product->id)); ?>">
+                                        <h3 class="font-semibold text-lg mb-1 text-gray-800 hover:text-orange-600 transition duration-200"><?php echo e($product->name); ?></h3>
                                     </a>
-                                    @if($product->brand)
-                                        <p class="text-sm text-gray-500 mb-2">{{ $product->brand->name }}</p>
-                                    @endif
+                                    <?php if($product->brand): ?>
+                                        <p class="text-sm text-gray-500 mb-2"><?php echo e($product->brand->name); ?></p>
+                                    <?php endif; ?>
                                     
                                     <div class="mb-3">
-                                        @if($product->sale_price)
-                                            <span class="text-lg font-bold text-orange-600">{{ number_format($product->sale_price, 2) }} د.أ</span>
-                                            <span class="text-sm text-gray-500 line-through mr-2">{{ number_format($product->price, 2) }} د.أ</span>
-                                        @else
-                                            <span class="text-lg font-bold text-gray-800">{{ number_format($product->price, 2) }} د.أ</span>
-                                        @endif
+                                        <?php if($product->sale_price): ?>
+                                            <span class="text-lg font-bold text-orange-600"><?php echo e(number_format($product->sale_price, 2)); ?> د.أ</span>
+                                            <span class="text-sm text-gray-500 line-through mr-2"><?php echo e(number_format($product->price, 2)); ?> د.أ</span>
+                                        <?php else: ?>
+                                            <span class="text-lg font-bold text-gray-800"><?php echo e(number_format($product->price, 2)); ?> د.أ</span>
+                                        <?php endif; ?>
                                     </div>
                                     
                                     <div class="flex items-center justify-between">
-                                        @if($product->stock_quantity > 0)
-                                            <button onclick="addToCart({{ $product->id }})" 
+                                        <?php if($product->stock_quantity > 0): ?>
+                                            <button onclick="addToCart(<?php echo e($product->id); ?>)" 
                                                     class="add-to-cart-btn bg-orange-500 text-white px-3 py-2 rounded-lg text-sm hover:bg-orange-600 transition duration-300">
                                                 <span class="btn-text">أضف للسلة</span>
                                                 <span class="loading-text hidden">جاري...</span>
                                             </button>
-                                        @else
+                                        <?php else: ?>
                                             <span class="text-xs text-red-500 bg-red-50 px-2 py-1 rounded">غير متوفر</span>
-                                        @endif
+                                        <?php endif; ?>
                                         
-                                        <a href="{{ route('products.show', $product->id) }}" 
+                                        <a href="<?php echo e(route('products.show', $product->id)); ?>" 
                                            class="text-orange-500 hover:text-orange-600 text-sm font-medium">
                                             عرض التفاصيل
                                         </a>
@@ -155,25 +155,26 @@
                                 </div>
                             </div>
                         </div>
-                    @endforeach
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                 </div>
 
                 <!-- Pagination -->
                 <div class="mt-12">
-                    {{ $products->links() }}
+                    <?php echo e($products->links()); ?>
+
                 </div>
-            @else
+            <?php else: ?>
                 <div class="text-center py-16">
                     <svg class="w-24 h-24 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
                     </svg>
-                    <h2 class="text-2xl font-semibold text-gray-600 mb-2">لا توجد منتجات في {{ $category->name }}</h2>
+                    <h2 class="text-2xl font-semibold text-gray-600 mb-2">لا توجد منتجات في <?php echo e($category->name); ?></h2>
                     <p class="text-gray-500">لم يتم العثور على أي منتجات في هذه الفئة حالياً</p>
-                    <a href="{{ route('home') }}" class="inline-block mt-4 bg-orange-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-orange-600 transition duration-300">
+                    <a href="<?php echo e(route('home')); ?>" class="inline-block mt-4 bg-orange-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-orange-600 transition duration-300">
                         العودة للرئيسية
                     </a>
                 </div>
-            @endif
+            <?php endif; ?>
         </div>
     </div>
 </div>
@@ -190,7 +191,7 @@ function addToCart(productId) {
     loadingText.classList.remove('hidden');
     button.disabled = true;
     
-    fetch('{{ route("cart.add", ":productId") }}'.replace(':productId', productId), {
+    fetch('<?php echo e(route("cart.add", ":productId")); ?>'.replace(':productId', productId), {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -284,4 +285,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
-@endsection
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.main', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH C:\wamp64\www\Malak_E_commers\malak_outlet\resources\views/products/category.blade.php ENDPATH**/ ?>

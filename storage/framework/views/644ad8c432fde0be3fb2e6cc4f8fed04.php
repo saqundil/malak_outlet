@@ -146,21 +146,21 @@
                         <?php if($product->sale_price): ?>
                             <div class="space-y-2">
                                 <div class="flex items-center justify-between">
-                                    <span class="text-3xl lg:text-4xl font-bold text-orange-600"><?php echo e(number_format($product->sale_price, 2)); ?> ر.س</span>
+                                    <span class="text-3xl lg:text-4xl font-bold text-orange-600"><?php echo e(number_format($product->sale_price, 2)); ?> د.أ</span>
                                     <span class="bg-red-100 text-red-800 text-sm font-bold px-3 py-1 rounded-full">
                                         خصم <?php echo e(number_format((($product->price - $product->sale_price) / $product->price) * 100, 0)); ?>%
                                     </span>
                                 </div>
                                 <div class="flex items-center gap-3">
-                                    <span class="text-lg text-gray-500 line-through"><?php echo e(number_format($product->price, 2)); ?> ر.س</span>
+                                    <span class="text-lg text-gray-500 line-through"><?php echo e(number_format($product->price, 2)); ?> د.أ</span>
                                     <span class="text-green-600 font-medium">
-                                        وفرت <?php echo e(number_format($product->price - $product->sale_price, 2)); ?> ر.س
+                                        وفرت <?php echo e(number_format($product->price - $product->sale_price, 2)); ?> د.أ
                                     </span>
                                 </div>
                             </div>
                         <?php else: ?>
                             <div class="flex items-center justify-between">
-                                <span class="text-3xl lg:text-4xl font-bold text-gray-900"><?php echo e(number_format($product->price, 2)); ?> ر.س</span>
+                                <span class="text-3xl lg:text-4xl font-bold text-gray-900"><?php echo e(number_format($product->price, 2)); ?> د.أ</span>
                                 <span class="text-sm text-gray-500">السعر شامل الضريبة</span>
                             </div>
                         <?php endif; ?>
@@ -186,6 +186,45 @@
                             </div>
                         <?php endif; ?>
                     </div>
+
+                    <!-- Product Sizes -->
+                    <?php if($product->sizes && $product->sizes->count() > 0): ?>
+                        <div class="mb-8 p-6 bg-white rounded-xl border">
+                            <label class="text-lg font-semibold text-gray-700 mb-4 block">الحجم المتاح:</label>
+                            <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3" x-data="{ selectedSize: null }">
+                                <?php $__currentLoopData = $product->availableSizes; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $size): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <button 
+                                        type="button" 
+                                        @click="selectedSize = <?php echo e($size->id); ?>"
+                                        :class="selectedSize === <?php echo e($size->id); ?> ? 'border-orange-500 bg-orange-50 text-orange-600' : 'border-gray-300 hover:border-orange-300'"
+                                        class="relative border-2 rounded-xl py-3 px-4 text-center transition-all duration-200 group"
+                                        data-size-id="<?php echo e($size->id); ?>"
+                                        data-additional-price="<?php echo e($size->additional_price); ?>">
+                                        <div class="font-semibold text-sm"><?php echo e($size->size); ?></div>
+                                        <?php if($size->additional_price > 0): ?>
+                                            <div class="text-xs text-gray-500 mt-1">+<?php echo e(number_format($size->additional_price, 0)); ?> د.أ</div>
+                                        <?php endif; ?>
+                                        <?php if($size->stock_quantity < 5): ?>
+                                            <div class="text-xs text-red-500 mt-1"><?php echo e($size->stock_quantity); ?> متبقي</div>
+                                        <?php endif; ?>
+                                        
+                                        <!-- Selection indicator -->
+                                        <div x-show="selectedSize === <?php echo e($size->id); ?>" 
+                                             class="absolute -top-2 -right-2 w-5 h-5 bg-orange-500 rounded-full flex items-center justify-center">
+                                            <i class="fas fa-check text-white text-xs"></i>
+                                        </div>
+                                    </button>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                            </div>
+                            
+                            <!-- Size Guide Link -->
+                            <div class="mt-4 text-center">
+                                <button type="button" class="text-orange-500 hover:text-orange-600 underline text-sm">
+                                    <i class="fas fa-ruler ml-1"></i>دليل المقاسات
+                                </button>
+                            </div>
+                        </div>
+                    <?php endif; ?>
 
                     <!-- Quantity & Add to Cart -->
                     <?php if($product->stock_quantity > 0): ?>
@@ -230,7 +269,7 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div class="flex items-center gap-3">
                                 <i class="fas fa-shipping-fast text-orange-500"></i>
-                                <span class="text-gray-700">شحن مجاني للطلبات فوق 200 ر.س</span>
+                                <span class="text-gray-700">شحن مجاني للطلبات فوق 200 د.أ</span>
                             </div>
                             <div class="flex items-center gap-3">
                                 <i class="fas fa-undo text-orange-500"></i>
@@ -521,12 +560,12 @@
                                         <div>
                                             <?php if($relatedProduct->sale_price): ?>
                                                 <div class="space-y-1">
-                                                    <span class="text-lg font-bold text-orange-600"><?php echo e(number_format($relatedProduct->sale_price, 2)); ?> ر.س</span>
+                                                    <span class="text-lg font-bold text-orange-600"><?php echo e(number_format($relatedProduct->sale_price, 2)); ?> د.أ</span>
                                                     <br>
-                                                    <span class="text-sm text-gray-500 line-through"><?php echo e(number_format($relatedProduct->price, 2)); ?> ر.س</span>
+                                                    <span class="text-sm text-gray-500 line-through"><?php echo e(number_format($relatedProduct->price, 2)); ?> د.أ</span>
                                                 </div>
                                             <?php else: ?>
-                                                <span class="text-lg font-bold text-gray-800"><?php echo e(number_format($relatedProduct->price, 2)); ?> ر.س</span>
+                                                <span class="text-lg font-bold text-gray-800"><?php echo e(number_format($relatedProduct->price, 2)); ?> د.أ</span>
                                             <?php endif; ?>
                                         </div>
                                         
@@ -583,12 +622,51 @@ function changeQuantity(change) {
     }
 }
 
+// Size selection functionality
+function updatePriceWithSize() {
+    const selectedSizeButton = document.querySelector('[data-size-id].border-orange-500');
+    const originalPrice = <?php echo e($product->sale_price ?? $product->price); ?>;
+    let additionalPrice = 0;
+    
+    if (selectedSizeButton) {
+        additionalPrice = parseFloat(selectedSizeButton.getAttribute('data-additional-price')) || 0;
+    }
+    
+    const finalPrice = originalPrice + additionalPrice;
+    
+    // Update main price display
+    const priceElement = document.querySelector('.text-3xl.font-bold');
+    if (priceElement) {
+        priceElement.textContent = new Intl.NumberFormat('ar-JO', {
+            style: 'decimal',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }).format(finalPrice) + ' د.أ';
+    }
+}
+
+function getSelectedSize() {
+    const selectedSizeButton = document.querySelector('[data-size-id].border-orange-500');
+    return selectedSizeButton ? {
+        id: selectedSizeButton.getAttribute('data-size-id'),
+        additionalPrice: parseFloat(selectedSizeButton.getAttribute('data-additional-price')) || 0
+    } : null;
+}
+
 function addToCartWithQuantity(productId) {
     const quantityElement = document.getElementById('quantity');
     const quantity = quantityElement ? parseInt(quantityElement.value) || 1 : 1;
+    const selectedSize = getSelectedSize();
     const button = event.target.closest('.add-to-cart-btn');
     
     if (!button) return;
+    
+    // Check if size is required but not selected
+    const sizeOptions = document.querySelectorAll('[data-size-id]');
+    if (sizeOptions.length > 0 && !selectedSize) {
+        showNotification('يرجى اختيار الحجم المطلوب', 'error');
+        return;
+    }
     
     const btnText = button.querySelector('.btn-text');
     const loadingText = button.querySelector('.loading-text');
@@ -598,13 +676,18 @@ function addToCartWithQuantity(productId) {
     if (loadingText) loadingText.classList.remove('hidden');
     button.disabled = true;
     
+    const requestData = { 
+        quantity: quantity,
+        size_id: selectedSize ? selectedSize.id : null
+    };
+    
     fetch('<?php echo e(route("cart.add", ":productId")); ?>'.replace(':productId', productId), {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
         },
-        body: JSON.stringify({ quantity: quantity })
+        body: JSON.stringify(requestData)
     })
     .then(response => response.json())
     .then(data => {
@@ -860,6 +943,24 @@ document.addEventListener('DOMContentLoaded', function() {
     // Quantity buttons
     document.querySelector('.quantity-btn-minus')?.addEventListener('click', () => changeQuantity(-1));
     document.querySelector('.quantity-btn-plus')?.addEventListener('click', () => changeQuantity(1));
+    
+    // Size selection buttons
+    document.querySelectorAll('[data-size-id]').forEach(button => {
+        button.addEventListener('click', function() {
+            // Remove selection from all size buttons
+            document.querySelectorAll('[data-size-id]').forEach(btn => {
+                btn.classList.remove('border-orange-500', 'bg-orange-50', 'text-orange-600');
+                btn.classList.add('border-gray-300');
+            });
+            
+            // Add selection to clicked button
+            this.classList.remove('border-gray-300');
+            this.classList.add('border-orange-500', 'bg-orange-50', 'text-orange-600');
+            
+            // Update price if there's additional cost
+            updatePriceWithSize();
+        });
+    });
     
     // Main add to cart button
     document.querySelector('.add-to-cart-main')?.addEventListener('click', function() {

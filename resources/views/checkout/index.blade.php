@@ -129,7 +129,7 @@
                                             <h4 class="font-medium text-gray-800">{{ $item['product']->name }}</h4>
                                             <div class="flex justify-between items-center mt-1">
                                                 <span class="text-sm text-gray-600">الكمية: {{ $item['quantity'] }}</span>
-                                                <span class="font-medium">{{ number_format($item['subtotal'], 2) }} ر.س</span>
+                                                <span class="font-medium">{{ number_format($item['subtotal'], 2) }} د.أ</span>
                                             </div>
                                         </div>
                                     </div>
@@ -139,7 +139,7 @@
                             <div class="border-t pt-4 space-y-2">
                                 <div class="flex justify-between">
                                     <span>المجموع الفرعي:</span>
-                                    <span>{{ number_format($total, 2) }} ر.س</span>
+                                    <span>{{ number_format($total, 2) }} د.أ</span>
                                 </div>
                                 <div class="flex justify-between">
                                     <span>الشحن:</span>
@@ -147,11 +147,11 @@
                                 </div>
                                 <div class="flex justify-between">
                                     <span>الضريبة (15%):</span>
-                                    <span>{{ number_format($total * 0.15, 2) }} ر.س</span>
+                                    <span>{{ number_format($total * 0.15, 2) }} د.أ</span>
                                 </div>
                                 <div class="flex justify-between text-lg font-bold border-t pt-2">
                                     <span>الإجمالي:</span>
-                                    <span>{{ number_format($total * 1.15, 2) }} ر.س</span>
+                                    <span>{{ number_format($total * 1.15, 2) }} د.أ</span>
                                 </div>
                             </div>
 

@@ -8,6 +8,7 @@ use App\Models\Category;
 use App\Models\Brand;
 use App\Models\Favorite;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class ProductController extends Controller
 {
@@ -18,6 +19,21 @@ class ProductController extends Controller
         // Get all categories and brands for filter options
         $categories = Category::get();
         $brands = Brand::get();
+        
+        // Get available sizes for filter with product count
+        $availableSizes = \App\Models\ProductSize::select('product_sizes.size', DB::raw('COUNT(DISTINCT product_sizes.product_id) as product_count'))
+            ->join('products', 'product_sizes.product_id', '=', 'products.id')
+            ->where('products.is_active', true)
+            ->where('product_sizes.stock_quantity', '>', 0)
+            ->where('product_sizes.is_available', true)
+            ->groupBy('product_sizes.size')
+            ->orderByRaw('CASE 
+                WHEN product_sizes.size REGEXP "^[0-9]+$" THEN CAST(product_sizes.size AS UNSIGNED)
+                ELSE 999 
+            END, product_sizes.size')
+            ->get()
+            ->pluck('product_count', 'size')
+            ->toArray();
         
         // Apply filters
         if ($request->filled('category')) {
@@ -60,6 +76,15 @@ class ProductController extends Controller
             $query->where('stock', true)->where('stock_quantity', '>', 0);
         }
         
+        // Size filter
+        if ($request->filled('sizes') && is_array($request->sizes)) {
+            $query->whereHas('sizes', function($q) use ($request) {
+                $q->whereIn('size', $request->sizes)
+                  ->where('stock_quantity', '>', 0)
+                  ->where('is_available', true);
+            });
+        }
+
         // Sorting
         $sortBy = $request->get('sort', 'created_at');
         $sortOrder = $request->get('order', 'desc');
@@ -90,7 +115,7 @@ class ProductController extends Controller
                 ->toArray();
         }
         
-        return view('products.index', compact('products', 'categories', 'brands', 'wishlistProductIds'));
+        return view('products.index', compact('products', 'categories', 'brands', 'wishlistProductIds', 'availableSizes'));
     }
 
     public function show($id)
@@ -180,14 +205,59 @@ class ProductController extends Controller
         ]);
     }
 
-    public function category($slug)
+    public function category($slug, Request $request)
     {
         $category = Category::where('slug', $slug)->firstOrFail();
-        $products = Product::with(['category', 'brand', 'images'])
+        
+        $query = Product::with(['category', 'brand', 'images'])
             ->where('category_id', $category->id)
-            ->where('is_active', true)
-            ->paginate(12);
+            ->where('is_active', true);
             
-        return view('products.category', compact('products', 'category'));
+        // Get available sizes for this category
+        $availableSizes = \App\Models\ProductSize::select('product_sizes.size', DB::raw('COUNT(DISTINCT product_sizes.product_id) as product_count'))
+            ->join('products', 'product_sizes.product_id', '=', 'products.id')
+            ->where('products.category_id', $category->id)
+            ->where('products.is_active', true)
+            ->where('product_sizes.stock_quantity', '>', 0)
+            ->where('product_sizes.is_available', true)
+            ->groupBy('product_sizes.size')
+            ->orderByRaw('CASE 
+                WHEN product_sizes.size REGEXP "^[0-9]+$" THEN CAST(product_sizes.size AS UNSIGNED)
+                ELSE 999 
+            END, product_sizes.size')
+            ->get()
+            ->pluck('product_count', 'size')
+            ->toArray();
+            
+        // Apply size filter
+        if ($request->filled('sizes') && is_array($request->sizes)) {
+            $query->whereHas('sizes', function($q) use ($request) {
+                $q->whereIn('size', $request->sizes)
+                  ->where('stock_quantity', '>', 0)
+                  ->where('is_available', true);
+            });
+        }
+        
+        // Apply sorting
+        $sortBy = $request->get('sort', 'created_at');
+        switch ($sortBy) {
+            case 'price_low':
+                $query->orderByRaw('COALESCE(sale_price, price) ASC');
+                break;
+            case 'price_high':
+                $query->orderByRaw('COALESCE(sale_price, price) DESC');
+                break;
+            case 'name':
+                $query->orderBy('name', 'asc');
+                break;
+            case 'newest':
+            default:
+                $query->orderBy('created_at', 'desc');
+                break;
+        }
+            
+        $products = $query->paginate(12)->appends($request->all());
+            
+        return view('products.category', compact('products', 'category', 'availableSizes'));
     }
 }
