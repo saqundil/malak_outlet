@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\Category;
 use App\Models\Brand;
+use App\Models\Favorite;
+use Illuminate\Support\Facades\Auth;
 
 class ProductController extends Controller
 {
@@ -80,7 +82,15 @@ class ProductController extends Controller
         
         $products = $query->paginate(12)->appends($request->all());
         
-        return view('products.index', compact('products', 'categories', 'brands'));
+        // Get user's wishlist product IDs if authenticated
+        $wishlistProductIds = [];
+        if (Auth::check()) {
+            $wishlistProductIds = Favorite::where('user_id', Auth::id())
+                ->pluck('product_id')
+                ->toArray();
+        }
+        
+        return view('products.index', compact('products', 'categories', 'brands', 'wishlistProductIds'));
     }
 
     public function show($id)
@@ -92,8 +102,24 @@ class ProductController extends Controller
             ->where('is_active', true)
             ->limit(4)
             ->get();
+        
+        // Check if current product is in user's wishlist
+        $isInWishlist = false;
+        if (Auth::check()) {
+            $isInWishlist = Favorite::where('user_id', Auth::id())
+                ->where('product_id', $product->id)
+                ->exists();
+        }
+        
+        // Get wishlist status for related products
+        $wishlistProductIds = [];
+        if (Auth::check()) {
+            $wishlistProductIds = Favorite::where('user_id', Auth::id())
+                ->pluck('product_id')
+                ->toArray();
+        }
             
-        return view('products.show', compact('product', 'relatedProducts'));
+        return view('products.show', compact('product', 'relatedProducts', 'isInWishlist', 'wishlistProductIds'));
     }
 
     public function search(Request $request)

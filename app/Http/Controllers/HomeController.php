@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\Category;
+use App\Models\Favorite;
+use Illuminate\Support\Facades\Auth;
 
 class HomeController extends Controller
 {
@@ -38,6 +40,14 @@ class HomeController extends Controller
             ->limit(4)
             ->get();
 
-        return view('home', compact('featuredProducts', 'categories', 'latestProducts', 'saleProducts'));
+        // Get user's wishlist product IDs if authenticated
+        $wishlistProductIds = [];
+        if (Auth::check()) {
+            $wishlistProductIds = Favorite::where('user_id', Auth::id())
+                ->pluck('product_id')
+                ->toArray();
+        }
+
+        return view('home', compact('featuredProducts', 'categories', 'latestProducts', 'saleProducts', 'wishlistProductIds'));
     }
 }

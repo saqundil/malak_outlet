@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'MalakOutlet - Ultimate Toy & LEGO Store')</title>
+    <meta name="csrf-token" content="<?php echo e(csrf_token()); ?>">
+    <title><?php echo $__env->yieldContent('title', 'MalakOutlet - Ultimate Toy & LEGO Store'); ?></title>
     
     <!-- Styles -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -108,20 +108,20 @@
         }
     </style>
     
-    @stack('styles')
+    <?php echo $__env->yieldPushContent('styles'); ?>
 </head>
 
 <body class="text-gray-700 bg-white m-0 p-0" x-data="{ mobileMenuOpen: false }">
     <!-- Header Component -->
-    @include('components.header')
+    <?php echo $__env->make('components.header', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
     
     <!-- Main Content -->
-    @yield('content')
+    <?php echo $__env->yieldContent('content'); ?>
     
     <!-- Footer Component -->
-    @include('components.footer')
+    <?php echo $__env->make('components.footer', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
     
-    @stack('scripts')
+    <?php echo $__env->yieldPushContent('scripts'); ?>
     
     <script>
         // Global error handler for better debugging
@@ -139,4 +139,4 @@
         });
     </script>
 </body>
-</html>
+</html><?php /**PATH C:\wamp64\www\Malak_E_commers\malak_outlet\resources\views/layouts/main.blade.php ENDPATH**/ ?>

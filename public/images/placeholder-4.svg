@@ -1,0 +1,9 @@
+<svg width="800" height="600" xmlns="http://www.w3.org/2000/svg">
+  <rect width="100%" height="100%" fill="#f0fdf4"/>
+  <rect x="100" y="150" width="600" height="300" fill="#bbf7d0" rx="20"/>
+  <circle cx="350" cy="230" r="25" fill="#22c55e"/>
+  <circle cx="450" cy="230" r="25" fill="#22c55e"/>
+  <rect x="320" y="270" width="160" height="60" fill="#22c55e" rx="30"/>
+  <rect x="360" y="285" width="80" height="30" fill="#f0fdf4" rx="15"/>
+  <text x="400" y="500" text-anchor="middle" fill="#16a34a" font-size="24" font-family="Arial">ألعاب ذكية</text>
+</svg>

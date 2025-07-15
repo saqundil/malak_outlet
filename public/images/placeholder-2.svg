@@ -1,0 +1,8 @@
+<svg width="800" height="600" xmlns="http://www.w3.org/2000/svg">
+  <rect width="100%" height="100%" fill="#fef2f2"/>
+  <rect x="100" y="150" width="600" height="300" fill="#fecaca" rx="20"/>
+  <rect x="250" y="200" width="100" height="80" fill="#ef4444" rx="10"/>
+  <rect x="450" y="200" width="100" height="80" fill="#ef4444" rx="10"/>
+  <rect x="320" y="320" width="160" height="40" fill="#ef4444" rx="20"/>
+  <text x="400" y="500" text-anchor="middle" fill="#dc2626" font-size="24" font-family="Arial">منتج مميز</text>
+</svg>

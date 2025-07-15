@@ -1,8 +1,8 @@
-@extends('layouts.main')
 
-@section('title', 'قائمة الأمنيات - متجر ملاك')
 
-@section('content')
+<?php $__env->startSection('title', 'قائمة الأمنيات - متجر ملاك'); ?>
+
+<?php $__env->startSection('content'); ?>
     <!-- Header Section -->
     <div class="bg-gradient-to-r from-pink-600 to-red-600 text-white py-12">
         <div class="container mx-auto px-4 text-center">
@@ -16,9 +16,9 @@
         <div class="flex items-center justify-between mb-8">
             <div>
                 <h2 class="text-2xl font-bold text-gray-800">منتجاتي المفضلة</h2>
-                <p class="text-gray-600">لديك <span id="wishlist-count">{{ $favorites->count() }}</span> منتجات في قائمة الأمنيات</p>
+                <p class="text-gray-600">لديك <span id="wishlist-count"><?php echo e($favorites->count()); ?></span> منتجات في قائمة الأمنيات</p>
             </div>
-            @if($favorites->count() > 0)
+            <?php if($favorites->count() > 0): ?>
             <div class="flex gap-3">
                 <button class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
                     إضافة الكل للسلة
@@ -27,34 +27,34 @@
                     مسح القائمة
                 </button>
             </div>
-            @endif
+            <?php endif; ?>
         </div>
 
         <!-- Wishlist Items -->
-        @if($favorites->count() > 0)
+        <?php if($favorites->count() > 0): ?>
         <div class="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" id="wishlist-items">
-            @foreach($favorites as $favorite)
+            <?php $__currentLoopData = $favorites; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $favorite): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
             <!-- Wishlist Item -->
-            <div class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 group wishlist-item" data-product-id="{{ $favorite->product->id }}">
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 group wishlist-item" data-product-id="<?php echo e($favorite->product->id); ?>">
                 <div class="relative">
                     <div class="aspect-square bg-gray-100 overflow-hidden">
-                        @if($favorite->product->images && $favorite->product->images->first())
-                            <img src="{{ $favorite->product->images->first()->image_path }}" 
-                                 alt="{{ $favorite->product->name }}" 
+                        <?php if($favorite->product->images && $favorite->product->images->first()): ?>
+                            <img src="<?php echo e($favorite->product->images->first()->image_path); ?>" 
+                                 alt="<?php echo e($favorite->product->name); ?>" 
                                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
-                        @else
+                        <?php else: ?>
                             <div class="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
                                 <div class="text-center">
                                     <svg class="w-16 h-16 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                                     </svg>
-                                    <span class="text-gray-500 font-bold text-sm">{{ $favorite->product->name }}</span>
+                                    <span class="text-gray-500 font-bold text-sm"><?php echo e($favorite->product->name); ?></span>
                                 </div>
                             </div>
-                        @endif
+                        <?php endif; ?>
                     </div>
                     
-                    <button class="absolute top-3 left-3 p-2 bg-white rounded-full shadow-lg hover:bg-red-50 transition-colors remove-from-wishlist" data-product-id="{{ $favorite->product->id }}">
+                    <button class="absolute top-3 left-3 p-2 bg-white rounded-full shadow-lg hover:bg-red-50 transition-colors remove-from-wishlist" data-product-id="<?php echo e($favorite->product->id); ?>">
                         <svg class="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"/>
                         </svg>
@@ -62,35 +62,35 @@
                 </div>
                 
                 <div class="p-6">
-                    <h3 class="text-lg font-bold text-gray-800 mb-2 line-clamp-2">{{ $favorite->product->name }}</h3>
+                    <h3 class="text-lg font-bold text-gray-800 mb-2 line-clamp-2"><?php echo e($favorite->product->name); ?></h3>
                     
-                    <p class="text-sm text-gray-500 mb-2">{{ $favorite->product->category->name ?? 'فئة غير محددة' }}</p>
+                    <p class="text-sm text-gray-500 mb-2"><?php echo e($favorite->product->category->name ?? 'فئة غير محددة'); ?></p>
                     
                     <div class="flex items-center gap-2 mb-3">
-                        @if($favorite->product->sale_price)
-                            <span class="text-xl font-bold text-red-600">{{ number_format($favorite->product->sale_price, 2) }} ر.س</span>
-                            <span class="text-sm text-gray-500 line-through">{{ number_format($favorite->product->price, 2) }} ر.س</span>
-                        @else
-                            <span class="text-xl font-bold text-gray-800">{{ number_format($favorite->product->price, 2) }} ر.س</span>
-                        @endif
+                        <?php if($favorite->product->sale_price): ?>
+                            <span class="text-xl font-bold text-red-600"><?php echo e(number_format($favorite->product->sale_price, 2)); ?> ر.س</span>
+                            <span class="text-sm text-gray-500 line-through"><?php echo e(number_format($favorite->product->price, 2)); ?> ر.س</span>
+                        <?php else: ?>
+                            <span class="text-xl font-bold text-gray-800"><?php echo e(number_format($favorite->product->price, 2)); ?> ر.س</span>
+                        <?php endif; ?>
                     </div>
                     
                     <div class="flex items-center gap-2 mb-4">
                         <div class="flex items-center">
-                            @foreach(range(1, 5) as $star)
-                                <svg class="w-4 h-4 {{ $star <= ($favorite->product->average_rating ?? 0) ? 'text-yellow-400' : 'text-gray-300' }}" fill="currentColor" viewBox="0 0 20 20">
+                            <?php $__currentLoopData = range(1, 5); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $star): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <svg class="w-4 h-4 <?php echo e($star <= ($favorite->product->average_rating ?? 0) ? 'text-yellow-400' : 'text-gray-300'); ?>" fill="currentColor" viewBox="0 0 20 20">
                                     <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
                                 </svg>
-                            @endforeach
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </div>
-                        <span class="text-sm text-gray-500">({{ $favorite->product->reviews_count ?? 0 }} تقييم)</span>
+                        <span class="text-sm text-gray-500">(<?php echo e($favorite->product->reviews_count ?? 0); ?> تقييم)</span>
                     </div>
                     
                     <div class="flex gap-2">
-                        <button class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-semibold add-to-cart" data-product-id="{{ $favorite->product->id }}">
+                        <button class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-semibold add-to-cart" data-product-id="<?php echo e($favorite->product->id); ?>">
                             إضافة للسلة
                         </button>
-                        <a href="{{ route('products.show', $favorite->product->id) }}" 
+                        <a href="<?php echo e(route('products.show', $favorite->product->id)); ?>" 
                            class="bg-gray-100 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-200 transition-colors">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -100,9 +100,9 @@
                     </div>
                 </div>
             </div>
-            @endforeach
+            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
         </div>
-        @else
+        <?php else: ?>
         <!-- Empty Wishlist State -->
         <div class="text-center py-16" id="empty-wishlist">
             <svg class="w-24 h-24 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -110,11 +110,11 @@
             </svg>
             <h3 class="text-xl font-bold text-gray-600 mb-2">قائمة الأمنيات فارغة</h3>
             <p class="text-gray-500 mb-6">لم تقم بإضافة أي منتجات لقائمة الأمنيات بعد</p>
-            <a href="{{ route('home') }}" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold">
+            <a href="<?php echo e(route('home')); ?>" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold">
                 تصفح المنتجات
             </a>
         </div>
-        @endif
+        <?php endif; ?>
     </div>
 
     <script>
@@ -342,4 +342,6 @@
         }
     });
     </script>
-@endsection
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.main', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH C:\wamp64\www\Malak_E_commers\malak_outlet\resources\views/wishlist.blade.php ENDPATH**/ ?>

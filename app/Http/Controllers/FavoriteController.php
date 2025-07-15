@@ -27,32 +27,62 @@ class FavoriteController extends Controller
         return view('wishlist', compact('favorites'));
     }
 
-    public function store(Request $request)
+    public function store(Request $request, $productId)
     {
         $request->validate([
-            'product_id' => 'required|exists:products,id'
+            'product_id' => 'sometimes|exists:products,id'
         ]);
+
+        $productId = $productId ?? $request->product_id;
+
+        // Check if product exists
+        if (!Product::find($productId)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'المنتج غير موجود'
+            ], 404);
+        }
 
         $favorite = Favorite::firstOrCreate([
             'user_id' => Auth::id(),
-            'product_id' => $request->product_id
+            'product_id' => $productId
         ]);
+
+        $wasRecentlyCreated = $favorite->wasRecentlyCreated;
+        
+        // Get updated wishlist count
+        $wishlistCount = Favorite::where('user_id', Auth::id())->count();
 
         return response()->json([
             'success' => true,
-            'message' => 'تم إضافة المنتج لقائمة الأمنيات'
+            'message' => $wasRecentlyCreated ? 'تم إضافة المنتج لقائمة الأمنيات' : 'المنتج موجود بالفعل في قائمة الأمنيات',
+            'added' => $wasRecentlyCreated,
+            'wishlist_count' => $wishlistCount
         ]);
     }
 
-    public function destroy(Product $product)
+    public function destroy($productId)
     {
-        Favorite::where('user_id', Auth::id())
-            ->where('product_id', $product->id)
+        // Check if product exists
+        if (!Product::find($productId)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'المنتج غير موجود'
+            ], 404);
+        }
+
+        $deleted = Favorite::where('user_id', Auth::id())
+            ->where('product_id', $productId)
             ->delete();
+            
+        // Get updated wishlist count
+        $wishlistCount = Favorite::where('user_id', Auth::id())->count();
 
         return response()->json([
             'success' => true,
-            'message' => 'تم حذف المنتج من قائمة الأمنيات'
+            'message' => $deleted ? 'تم حذف المنتج من قائمة الأمنيات' : 'المنتج غير موجود في قائمة الأمنيات',
+            'removed' => $deleted > 0,
+            'wishlist_count' => $wishlistCount
         ]);
     }
 }

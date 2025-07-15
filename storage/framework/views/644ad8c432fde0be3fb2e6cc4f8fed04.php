@@ -1,8 +1,8 @@
-@extends('layouts.main')
 
-@section('title', $product->name . ' - Malak Outlet')
 
-@push('styles')
+<?php $__env->startSection('title', $product->name . ' - Malak Outlet'); ?>
+
+<?php $__env->startPush('styles'); ?>
 <style>
     .product-image-zoom {
         transition: transform 0.3s ease;
@@ -44,27 +44,28 @@
         }
     }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="min-h-screen bg-gray-50" x-data="productPage()">
     <!-- Professional Breadcrumb -->
     <div class="bg-white shadow-sm border-b">
         <div class="container mx-auto px-4 py-4" style="max-width: 1400px;">
             <nav class="flex items-center text-sm text-gray-600" dir="rtl">
-                <a href="{{ route('home') }}" class="hover:text-orange-500 transition-colors">
+                <a href="<?php echo e(route('home')); ?>" class="hover:text-orange-500 transition-colors">
                     <i class="fas fa-home ml-2"></i>الرئيسية
                 </a>
                 <i class="fas fa-chevron-left mx-3 text-gray-400"></i>
-                <a href="{{ route('products.category', $product->category->slug) }}" class="hover:text-orange-500 transition-colors">
-                    {{ $product->category->name }}
+                <a href="<?php echo e(route('products.category', $product->category->slug)); ?>" class="hover:text-orange-500 transition-colors">
+                    <?php echo e($product->category->name); ?>
+
                 </a>
-                @if($product->brand)
+                <?php if($product->brand): ?>
                     <i class="fas fa-chevron-left mx-3 text-gray-400"></i>
-                    <span class="text-gray-500">{{ $product->brand->name }}</span>
-                @endif
+                    <span class="text-gray-500"><?php echo e($product->brand->name); ?></span>
+                <?php endif; ?>
                 <i class="fas fa-chevron-left mx-3 text-gray-400"></i>
-                <span class="text-gray-900 font-medium">{{ Str::limit($product->name, 30) }}</span>
+                <span class="text-gray-900 font-medium"><?php echo e(Str::limit($product->name, 30)); ?></span>
             </nav>
         </div>
     </div>
@@ -78,104 +79,104 @@
                     <!-- Main Product Image -->
                     <div class="relative mb-6">
                         <div class="aspect-square bg-gray-100 rounded-2xl overflow-hidden group">
-                            @if($product->images->first())
-                                <img src="{{ $product->images->first()->image_path }}" 
-                                     alt="{{ $product->name }}" 
+                            <?php if($product->images->first()): ?>
+                                <img src="<?php echo e($product->images->first()->image_path); ?>" 
+                                     alt="<?php echo e($product->name); ?>" 
                                      class="w-full h-full object-cover product-image-zoom cursor-zoom-in"
                                      id="main-image">
-                            @else
+                            <?php else: ?>
                                 <div class="w-full h-full bg-gray-200 flex items-center justify-center">
                                     <div class="text-center">
                                         <i class="fas fa-image text-6xl text-gray-400 mb-4"></i>
                                         <p class="text-gray-500">لا توجد صورة متاحة</p>
                                     </div>
                                 </div>
-                            @endif
+                            <?php endif; ?>
                         </div>
                         
                         <!-- Sale Badge -->
-                        @if($product->sale_price)
+                        <?php if($product->sale_price): ?>
                             <div class="absolute top-4 right-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold">
-                                وفر {{ number_format((($product->price - $product->sale_price) / $product->price) * 100, 0) }}%
+                                وفر <?php echo e(number_format((($product->price - $product->sale_price) / $product->price) * 100, 0)); ?>%
                             </div>
-                        @endif
+                        <?php endif; ?>
                         
                         <!-- Stock Badge -->
-                        @if($product->stock_quantity <= 5 && $product->stock_quantity > 0)
+                        <?php if($product->stock_quantity <= 5 && $product->stock_quantity > 0): ?>
                             <div class="absolute top-4 left-4 bg-orange-500 text-white px-3 py-1 rounded-full text-sm font-bold">
-                                بقي {{ $product->stock_quantity }} فقط!
+                                بقي <?php echo e($product->stock_quantity); ?> فقط!
                             </div>
-                        @endif
+                        <?php endif; ?>
                     </div>
 
                     <!-- Thumbnail Gallery -->
-                    @if($product->images->count() > 1)
+                    <?php if($product->images->count() > 1): ?>
                         <div class="flex gap-3 overflow-x-auto pb-2">
-                            @foreach($product->images as $index => $image)
-                                <div class="flex-shrink-0 w-20 h-20 bg-gray-100 rounded-lg overflow-hidden cursor-pointer border-2 transition-all duration-200 {{ $index === 0 ? 'border-orange-500' : 'border-transparent hover:border-gray-300' }} thumbnail-image"
-                                     data-image-url="{{ $image->image_path }}">
-                                    <img src="{{ $image->image_path }}" 
-                                         alt="{{ $product->name }}" 
+                            <?php $__currentLoopData = $product->images; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $image): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <div class="flex-shrink-0 w-20 h-20 bg-gray-100 rounded-lg overflow-hidden cursor-pointer border-2 transition-all duration-200 <?php echo e($index === 0 ? 'border-orange-500' : 'border-transparent hover:border-gray-300'); ?> thumbnail-image"
+                                     data-image-url="<?php echo e($image->image_path); ?>">
+                                    <img src="<?php echo e($image->image_path); ?>" 
+                                         alt="<?php echo e($product->name); ?>" 
                                          class="w-full h-full object-cover">
                                 </div>
-                            @endforeach
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </div>
-                    @endif
+                    <?php endif; ?>
                 </div>
 
                 <!-- Professional Product Details -->
                 <div class="p-6 lg:p-8 bg-gray-50" dir="rtl">
                     <!-- Product Header -->
                     <div class="mb-6">
-                        @if($product->brand)
+                        <?php if($product->brand): ?>
                             <div class="flex items-center mb-3">
-                                <span class="text-sm text-gray-500 bg-gray-200 px-3 py-1 rounded-full">{{ $product->brand->name }}</span>
+                                <span class="text-sm text-gray-500 bg-gray-200 px-3 py-1 rounded-full"><?php echo e($product->brand->name); ?></span>
                             </div>
-                        @endif
-                        <h1 class="text-2xl lg:text-3xl font-bold text-gray-900 mb-3 leading-tight">{{ $product->name }}</h1>
+                        <?php endif; ?>
+                        <h1 class="text-2xl lg:text-3xl font-bold text-gray-900 mb-3 leading-tight"><?php echo e($product->name); ?></h1>
                         <div class="flex items-center gap-4 text-sm text-gray-500">
-                            <span>رقم المنتج: {{ $product->sku }}</span>
+                            <span>رقم المنتج: <?php echo e($product->sku); ?></span>
                             <span>•</span>
-                            <span>الفئة: {{ $product->category->name }}</span>
+                            <span>الفئة: <?php echo e($product->category->name); ?></span>
                         </div>
                     </div>
 
                     <!-- Price Section -->
                     <div class="mb-8 p-6 bg-white rounded-xl border">
-                        @if($product->sale_price)
+                        <?php if($product->sale_price): ?>
                             <div class="space-y-2">
                                 <div class="flex items-center justify-between">
-                                    <span class="text-3xl lg:text-4xl font-bold text-orange-600">{{ number_format($product->sale_price, 2) }} ر.س</span>
+                                    <span class="text-3xl lg:text-4xl font-bold text-orange-600"><?php echo e(number_format($product->sale_price, 2)); ?> ر.س</span>
                                     <span class="bg-red-100 text-red-800 text-sm font-bold px-3 py-1 rounded-full">
-                                        خصم {{ number_format((($product->price - $product->sale_price) / $product->price) * 100, 0) }}%
+                                        خصم <?php echo e(number_format((($product->price - $product->sale_price) / $product->price) * 100, 0)); ?>%
                                     </span>
                                 </div>
                                 <div class="flex items-center gap-3">
-                                    <span class="text-lg text-gray-500 line-through">{{ number_format($product->price, 2) }} ر.س</span>
+                                    <span class="text-lg text-gray-500 line-through"><?php echo e(number_format($product->price, 2)); ?> ر.س</span>
                                     <span class="text-green-600 font-medium">
-                                        وفرت {{ number_format($product->price - $product->sale_price, 2) }} ر.س
+                                        وفرت <?php echo e(number_format($product->price - $product->sale_price, 2)); ?> ر.س
                                     </span>
                                 </div>
                             </div>
-                        @else
+                        <?php else: ?>
                             <div class="flex items-center justify-between">
-                                <span class="text-3xl lg:text-4xl font-bold text-gray-900">{{ number_format($product->price, 2) }} ر.س</span>
+                                <span class="text-3xl lg:text-4xl font-bold text-gray-900"><?php echo e(number_format($product->price, 2)); ?> ر.س</span>
                                 <span class="text-sm text-gray-500">السعر شامل الضريبة</span>
                             </div>
-                        @endif
+                        <?php endif; ?>
                     </div>
 
                     <!-- Stock & Availability -->
                     <div class="mb-8">
-                        @if($product->stock_quantity > 0)
+                        <?php if($product->stock_quantity > 0): ?>
                             <div class="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-xl">
                                 <i class="fas fa-check-circle text-green-600 text-xl"></i>
                                 <div>
                                     <p class="font-semibold text-green-800">متوفر في المخزن</p>
-                                    <p class="text-sm text-green-600">{{ $product->stock_quantity }} قطعة متاحة</p>
+                                    <p class="text-sm text-green-600"><?php echo e($product->stock_quantity); ?> قطعة متاحة</p>
                                 </div>
                             </div>
-                        @else
+                        <?php else: ?>
                             <div class="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-xl">
                                 <i class="fas fa-times-circle text-red-600 text-xl"></i>
                                 <div>
@@ -183,11 +184,11 @@
                                     <p class="text-sm text-red-600">سيتم إشعارك عند التوفر</p>
                                 </div>
                             </div>
-                        @endif
+                        <?php endif; ?>
                     </div>
 
                     <!-- Quantity & Add to Cart -->
-                    @if($product->stock_quantity > 0)
+                    <?php if($product->stock_quantity > 0): ?>
                         <div class="mb-8 p-6 bg-white rounded-xl border">
                             <div class="flex items-center gap-4 mb-6">
                                 <label class="text-lg font-semibold text-gray-700">الكمية:</label>
@@ -195,7 +196,7 @@
                                     <button type="button" class="quantity-btn-minus px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors border-r border-gray-200">
                                         <i class="fas fa-minus text-gray-600"></i>
                                     </button>
-                                    <input type="number" id="quantity" value="1" min="1" max="{{ $product->stock_quantity }}" 
+                                    <input type="number" id="quantity" value="1" min="1" max="<?php echo e($product->stock_quantity); ?>" 
                                            class="w-20 text-center py-3 border-0 focus:ring-0 focus:outline-none text-lg font-semibold">
                                     <button type="button" class="quantity-btn-plus px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors border-l border-gray-200">
                                         <i class="fas fa-plus text-gray-600"></i>
@@ -204,7 +205,7 @@
                             </div>
 
                             <div class="space-y-4">
-                                <button data-product-id="{{ $product->id }}" 
+                                <button data-product-id="<?php echo e($product->id); ?>" 
                                         class="add-to-cart-main w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-4 px-6 rounded-xl font-bold text-lg hover:from-orange-600 hover:to-orange-700 transition-all duration-300 transform hover:scale-105 shadow-lg add-to-cart-btn">
                                     <i class="fas fa-shopping-cart ml-2"></i>
                                     <span class="btn-text">أضف إلى السلة</span>
@@ -213,15 +214,15 @@
                                     </span>
                                 </button>
                                 
-                                <button data-product-id="{{ $product->id }}" 
-                                        class="add-to-wishlist-btn w-full border-2 py-4 px-6 rounded-xl font-bold text-lg transition-all duration-300 {{ $isInWishlist ? 'border-red-500 text-red-500 bg-red-50' : 'border-orange-500 text-orange-500 hover:bg-orange-50' }}"
-                                        title="{{ $isInWishlist ? 'إزالة من المفضلة' : 'أضف إلى المفضلة' }}">
-                                    <i class="fas fa-heart ml-2 {{ $isInWishlist ? 'text-red-500' : '' }}"></i>
-                                    <span class="wishlist-text">{{ $isInWishlist ? 'في المفضلة' : 'أضف إلى المفضلة' }}</span>
+                                <button data-product-id="<?php echo e($product->id); ?>" 
+                                        class="add-to-wishlist-btn w-full border-2 py-4 px-6 rounded-xl font-bold text-lg transition-all duration-300 <?php echo e($isInWishlist ? 'border-red-500 text-red-500 bg-red-50' : 'border-orange-500 text-orange-500 hover:bg-orange-50'); ?>"
+                                        title="<?php echo e($isInWishlist ? 'إزالة من المفضلة' : 'أضف إلى المفضلة'); ?>">
+                                    <i class="fas fa-heart ml-2 <?php echo e($isInWishlist ? 'text-red-500' : ''); ?>"></i>
+                                    <span class="wishlist-text"><?php echo e($isInWishlist ? 'في المفضلة' : 'أضف إلى المفضلة'); ?></span>
                                 </button>
                             </div>
                         </div>
-                    @endif
+                    <?php endif; ?>
 
                     <!-- Product Features -->
                     <div class="mb-8 p-6 bg-white rounded-xl border">
@@ -264,7 +265,7 @@
                     </button>
                     <button class="tab-button py-4 px-2 border-b-2 font-medium text-sm transition-colors duration-200 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                             id="reviews-tab">
-                        التقييمات @if($product->reviews_count > 0)({{ $product->reviews_count }})@endif
+                        التقييمات <?php if($product->reviews_count > 0): ?>(<?php echo e($product->reviews_count); ?>)<?php endif; ?>
                     </button>
                 </nav>
             </div>
@@ -274,16 +275,17 @@
                 <!-- Description Tab -->
                 <div id="description-content" class="tab-content active" dir="rtl">
                     <div class="prose prose-lg max-w-none">
-                        @if($product->description)
+                        <?php if($product->description): ?>
                             <div class="text-gray-700 leading-relaxed text-lg">
-                                {!! nl2br(e($product->description)) !!}
+                                <?php echo nl2br(e($product->description)); ?>
+
                             </div>
-                        @else
+                        <?php else: ?>
                             <div class="text-center py-12">
                                 <i class="fas fa-file-alt text-gray-300 text-6xl mb-4"></i>
                                 <p class="text-gray-500 text-lg">لا يوجد وصف متاح لهذا المنتج</p>
                             </div>
-                        @endif
+                        <?php endif; ?>
                     </div>
                 </div>
 
@@ -293,43 +295,43 @@
                         <div class="space-y-4">
                             <div class="flex justify-between py-3 border-b border-gray-200">
                                 <span class="font-semibold text-gray-900">رقم المنتج:</span>
-                                <span class="text-gray-700">{{ $product->sku }}</span>
+                                <span class="text-gray-700"><?php echo e($product->sku); ?></span>
                             </div>
                             <div class="flex justify-between py-3 border-b border-gray-200">
                                 <span class="font-semibold text-gray-900">الفئة:</span>
-                                <span class="text-gray-700">{{ $product->category->name }}</span>
+                                <span class="text-gray-700"><?php echo e($product->category->name); ?></span>
                             </div>
-                            @if($product->brand)
+                            <?php if($product->brand): ?>
                                 <div class="flex justify-between py-3 border-b border-gray-200">
                                     <span class="font-semibold text-gray-900">العلامة التجارية:</span>
-                                    <span class="text-gray-700">{{ $product->brand->name }}</span>
+                                    <span class="text-gray-700"><?php echo e($product->brand->name); ?></span>
                                 </div>
-                            @endif
+                            <?php endif; ?>
                             <div class="flex justify-between py-3 border-b border-gray-200">
                                 <span class="font-semibold text-gray-900">الوزن:</span>
-                                <span class="text-gray-700">{{ $product->formatted_weight }}</span>
+                                <span class="text-gray-700"><?php echo e($product->formatted_weight); ?></span>
                             </div>
                             <div class="flex justify-between py-3 border-b border-gray-200">
                                 <span class="font-semibold text-gray-900">الأبعاد:</span>
-                                <span class="text-gray-700">{{ $product->formatted_dimensions }}</span>
+                                <span class="text-gray-700"><?php echo e($product->formatted_dimensions); ?></span>
                             </div>
                         </div>
                         <div class="space-y-4">
                             <div class="flex justify-between py-3 border-b border-gray-200">
                                 <span class="font-semibold text-gray-900">المواد:</span>
-                                <span class="text-gray-700">{{ $product->formatted_materials }}</span>
+                                <span class="text-gray-700"><?php echo e($product->formatted_materials); ?></span>
                             </div>
                             <div class="flex justify-between py-3 border-b border-gray-200">
                                 <span class="font-semibold text-gray-900">بلد المنشأ:</span>
-                                <span class="text-gray-700">{{ $product->formatted_country }}</span>
+                                <span class="text-gray-700"><?php echo e($product->formatted_country); ?></span>
                             </div>
                             <div class="flex justify-between py-3 border-b border-gray-200">
                                 <span class="font-semibold text-gray-900">الضمان:</span>
-                                <span class="text-gray-700">{{ $product->formatted_warranty }}</span>
+                                <span class="text-gray-700"><?php echo e($product->formatted_warranty); ?></span>
                             </div>
                             <div class="flex justify-between py-3 border-b border-gray-200">
                                 <span class="font-semibold text-gray-900">الكمية المتاحة:</span>
-                                <span class="text-gray-700">{{ $product->stock_quantity }} قطعة</span>
+                                <span class="text-gray-700"><?php echo e($product->stock_quantity); ?> قطعة</span>
                             </div>
                         </div>
                     </div>
@@ -338,40 +340,40 @@
                     <div class="mt-8">
                         <h4 class="text-lg font-bold text-gray-900 mb-4">مواصفات إضافية</h4>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            @if($product->suitable_age)
+                            <?php if($product->suitable_age): ?>
                                 <div class="flex justify-between py-3 border-b border-gray-200">
                                     <span class="font-semibold text-gray-900">العمر المناسب:</span>
-                                    <span class="text-gray-700">{{ $product->formatted_suitable_age }}</span>
+                                    <span class="text-gray-700"><?php echo e($product->formatted_suitable_age); ?></span>
                                 </div>
-                            @endif
+                            <?php endif; ?>
                             
-                            @if($product->pieces_count)
+                            <?php if($product->pieces_count): ?>
                                 <div class="flex justify-between py-3 border-b border-gray-200">
                                     <span class="font-semibold text-gray-900">عدد القطع:</span>
-                                    <span class="text-gray-700">{{ $product->formatted_pieces_count }}</span>
+                                    <span class="text-gray-700"><?php echo e($product->formatted_pieces_count); ?></span>
                                 </div>
-                            @endif
+                            <?php endif; ?>
                             
-                            @if($product->standards)
+                            <?php if($product->standards): ?>
                                 <div class="flex justify-between py-3 border-b border-gray-200">
                                     <span class="font-semibold text-gray-900">المعايير:</span>
-                                    <span class="text-gray-700">{{ $product->formatted_standards }}</span>
+                                    <span class="text-gray-700"><?php echo e($product->formatted_standards); ?></span>
                                 </div>
-                            @endif
+                            <?php endif; ?>
                             
-                            @if($product->battery_type)
+                            <?php if($product->battery_type): ?>
                                 <div class="flex justify-between py-3 border-b border-gray-200">
                                     <span class="font-semibold text-gray-900">نوع البطارية:</span>
-                                    <span class="text-gray-700">{{ $product->formatted_battery_type }}</span>
+                                    <span class="text-gray-700"><?php echo e($product->formatted_battery_type); ?></span>
                                 </div>
-                            @endif
+                            <?php endif; ?>
                             
-                            @if(!is_null($product->washable))
+                            <?php if(!is_null($product->washable)): ?>
                                 <div class="flex justify-between py-3 border-b border-gray-200">
                                     <span class="font-semibold text-gray-900">قابل للغسل:</span>
-                                    <span class="text-gray-700">{{ $product->formatted_washable }}</span>
+                                    <span class="text-gray-700"><?php echo e($product->formatted_washable); ?></span>
                                 </div>
-                            @endif
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
@@ -384,46 +386,46 @@
                             <div class="flex items-center justify-between mb-4">
                                 <div>
                                     <h3 class="text-2xl font-bold text-gray-900 mb-2">تقييم العملاء</h3>
-                                    @if($product->reviews_count > 0)
+                                    <?php if($product->reviews_count > 0): ?>
                                         <div class="flex items-center gap-2">
                                             <div class="flex text-yellow-400">
-                                                @foreach(range(1, 5) as $productStar)
-                                                    @if($productStar <= floor($product->average_rating))
+                                                <?php $__currentLoopData = range(1, 5); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $productStar): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                    <?php if($productStar <= floor($product->average_rating)): ?>
                                                         <i class="fas fa-star"></i>
-                                                    @elseif($productStar <= ceil($product->average_rating))
+                                                    <?php elseif($productStar <= ceil($product->average_rating)): ?>
                                                         <i class="fas fa-star-half-alt"></i>
-                                                    @else
+                                                    <?php else: ?>
                                                         <i class="far fa-star"></i>
-                                                    @endif
-                                                @endforeach
+                                                    <?php endif; ?>
+                                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                             </div>
-                                            <span class="text-lg font-semibold text-gray-700">{{ number_format($product->average_rating, 1) }} من 5</span>
-                                            <span class="text-gray-500">({{ $product->reviews_count }} {{ $product->reviews_count == 1 ? 'تقييم' : 'تقييمات' }})</span>
+                                            <span class="text-lg font-semibold text-gray-700"><?php echo e(number_format($product->average_rating, 1)); ?> من 5</span>
+                                            <span class="text-gray-500">(<?php echo e($product->reviews_count); ?> <?php echo e($product->reviews_count == 1 ? 'تقييم' : 'تقييمات'); ?>)</span>
                                         </div>
                                         
                                         <!-- Rating Breakdown -->
                                         <div class="mt-4 space-y-2">
-                                            @foreach(range(5, 1) as $rating)
-                                                @php
+                                            <?php $__currentLoopData = range(5, 1); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $rating): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                <?php
                                                     $count = $product->rating_breakdown[$rating] ?? 0;
                                                     $percentage = $product->reviews_count > 0 ? ($count / $product->reviews_count) * 100 : 0;
-                                                @endphp
+                                                ?>
                                                 <div class="flex items-center gap-2 text-sm">
-                                                    <span class="w-8">{{ $rating }} ★</span>
+                                                    <span class="w-8"><?php echo e($rating); ?> ★</span>
                                                     <div class="flex-1 bg-gray-200 rounded-full h-2">
-                                                        <div class="bg-yellow-400 h-2 rounded-full transition-all duration-300 rating-bar" data-width="{{ $percentage }}"></div>
+                                                        <div class="bg-yellow-400 h-2 rounded-full transition-all duration-300 rating-bar" data-width="<?php echo e($percentage); ?>"></div>
                                                     </div>
-                                                    <span class="text-gray-600 w-8">{{ $count }}</span>
+                                                    <span class="text-gray-600 w-8"><?php echo e($count); ?></span>
                                                 </div>
-                                            @endforeach
+                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                         </div>
-                                    @else
+                                    <?php else: ?>
                                         <div class="text-center py-8">
                                             <i class="fas fa-star text-gray-300 text-4xl mb-4"></i>
                                             <p class="text-gray-500">لا توجد تقييمات بعد</p>
                                             <p class="text-sm text-gray-400">كن أول من يقيم هذا المنتج</p>
                                         </div>
-                                    @endif
+                                    <?php endif; ?>
                                 </div>
                                 <button class="bg-orange-500 text-white px-6 py-3 rounded-xl font-semibold hover:bg-orange-600 transition-colors">
                                     اكتب تقييم
@@ -432,40 +434,42 @@
                         </div>
 
                         <!-- Individual Reviews -->
-                        @if($product->approvedReviews->count() > 0)
+                        <?php if($product->approvedReviews->count() > 0): ?>
                             <div class="space-y-6">
-                                @foreach($product->approvedReviews as $review)
-                                    <div class="border-b border-gray-200 pb-6 {{ $loop->last ? 'border-b-0 pb-0' : '' }}">
+                                <?php $__currentLoopData = $product->approvedReviews; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $review): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <div class="border-b border-gray-200 pb-6 <?php echo e($loop->last ? 'border-b-0 pb-0' : ''); ?>">
                                         <div class="flex items-center justify-between mb-3">
                                             <div class="flex items-center gap-3">
                                                 <div class="w-10 h-10 bg-gradient-to-r from-orange-500 to-orange-600 rounded-full flex items-center justify-center text-white font-bold">
-                                                    {{ $review->author_initial }}
+                                                    <?php echo e($review->author_initial); ?>
+
                                                 </div>
                                                 <div>
-                                                    <p class="font-semibold text-gray-900">{{ $review->user->name }}</p>
+                                                    <p class="font-semibold text-gray-900"><?php echo e($review->user->name); ?></p>
                                                     <div class="flex text-yellow-400 text-sm">
-                                                        {!! $review->star_rating !!}
+                                                        <?php echo $review->star_rating; ?>
+
                                                     </div>
                                                 </div>
                                             </div>
-                                            <span class="text-sm text-gray-500">{{ $review->time_ago }}</span>
+                                            <span class="text-sm text-gray-500"><?php echo e($review->time_ago); ?></span>
                                         </div>
-                                        <p class="text-gray-700 leading-relaxed">{{ $review->comment }}</p>
+                                        <p class="text-gray-700 leading-relaxed"><?php echo e($review->comment); ?></p>
                                     </div>
-                                @endforeach
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             </div>
-                        @endif
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
         </div>
         <!-- Professional Related Products Section -->
-        @if($relatedProducts->count() > 0)
+        <?php if($relatedProducts->count() > 0): ?>
             <div class="bg-white rounded-xl shadow-lg overflow-hidden">
                 <div class="border-b border-gray-200 p-6">
                     <div class="flex items-center justify-between" dir="rtl">
                         <h2 class="text-2xl font-bold text-gray-900">منتجات ذات صلة</h2>
-                        <a href="{{ route('products.category', $product->category->slug) }}" 
+                        <a href="<?php echo e(route('products.category', $product->category->slug)); ?>" 
                            class="text-orange-500 hover:text-orange-600 font-medium transition-colors">
                             عرض المزيد <i class="fas fa-arrow-left mr-2"></i>
                         </a>
@@ -474,29 +478,29 @@
                 
                 <div class="p-6">
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                        @foreach($relatedProducts as $relatedProduct)
+                        <?php $__currentLoopData = $relatedProducts; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $relatedProduct): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                             <div class="group bg-gray-50 rounded-xl overflow-hidden hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
                                 <div class="relative aspect-square overflow-hidden">
-                                    @if($relatedProduct->images->first())
-                                        <img src="{{ $relatedProduct->images->first()->image_path }}" 
-                                             alt="{{ $relatedProduct->name }}" 
+                                    <?php if($relatedProduct->images->first()): ?>
+                                        <img src="<?php echo e($relatedProduct->images->first()->image_path); ?>" 
+                                             alt="<?php echo e($relatedProduct->name); ?>" 
                                              class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
-                                    @else
+                                    <?php else: ?>
                                         <div class="w-full h-full bg-gray-200 flex items-center justify-center">
                                             <i class="fas fa-image text-gray-400 text-4xl"></i>
                                         </div>
-                                    @endif
+                                    <?php endif; ?>
                                     
                                     <!-- Sale Badge -->
-                                    @if($relatedProduct->sale_price)
+                                    <?php if($relatedProduct->sale_price): ?>
                                         <div class="absolute top-3 right-3 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-bold">
-                                            خصم {{ number_format((($relatedProduct->price - $relatedProduct->sale_price) / $relatedProduct->price) * 100, 0) }}%
+                                            خصم <?php echo e(number_format((($relatedProduct->price - $relatedProduct->sale_price) / $relatedProduct->price) * 100, 0)); ?>%
                                         </div>
-                                    @endif
+                                    <?php endif; ?>
                                     
                                     <!-- Quick View Button -->
                                     <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300 flex items-center justify-center">
-                                        <a href="{{ route('products.show', $relatedProduct->id) }}" 
+                                        <a href="<?php echo e(route('products.show', $relatedProduct->id)); ?>" 
                                            class="bg-white text-gray-900 px-4 py-2 rounded-lg font-medium opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300 shadow-lg">
                                             عرض سريع
                                         </a>
@@ -505,46 +509,47 @@
                                 
                                 <div class="p-4" dir="rtl">
                                     <h3 class="font-semibold text-lg mb-2 text-gray-800 group-hover:text-orange-600 transition-colors line-clamp-2">
-                                        {{ $relatedProduct->name }}
+                                        <?php echo e($relatedProduct->name); ?>
+
                                     </h3>
                                     
-                                    @if($relatedProduct->brand)
-                                        <p class="text-sm text-gray-500 mb-3">{{ $relatedProduct->brand->name }}</p>
-                                    @endif
+                                    <?php if($relatedProduct->brand): ?>
+                                        <p class="text-sm text-gray-500 mb-3"><?php echo e($relatedProduct->brand->name); ?></p>
+                                    <?php endif; ?>
                                     
                                     <div class="flex items-center justify-between">
                                         <div>
-                                            @if($relatedProduct->sale_price)
+                                            <?php if($relatedProduct->sale_price): ?>
                                                 <div class="space-y-1">
-                                                    <span class="text-lg font-bold text-orange-600">{{ number_format($relatedProduct->sale_price, 2) }} ر.س</span>
+                                                    <span class="text-lg font-bold text-orange-600"><?php echo e(number_format($relatedProduct->sale_price, 2)); ?> ر.س</span>
                                                     <br>
-                                                    <span class="text-sm text-gray-500 line-through">{{ number_format($relatedProduct->price, 2) }} ر.س</span>
+                                                    <span class="text-sm text-gray-500 line-through"><?php echo e(number_format($relatedProduct->price, 2)); ?> ر.س</span>
                                                 </div>
-                                            @else
-                                                <span class="text-lg font-bold text-gray-800">{{ number_format($relatedProduct->price, 2) }} ر.س</span>
-                                            @endif
+                                            <?php else: ?>
+                                                <span class="text-lg font-bold text-gray-800"><?php echo e(number_format($relatedProduct->price, 2)); ?> ر.س</span>
+                                            <?php endif; ?>
                                         </div>
                                         
-                                        @if($relatedProduct->stock_quantity > 0)
-                                            <button data-product-id="{{ $relatedProduct->id }}" 
+                                        <?php if($relatedProduct->stock_quantity > 0): ?>
+                                            <button data-product-id="<?php echo e($relatedProduct->id); ?>" 
                                                     class="add-to-cart-quick bg-orange-500 text-white p-2 rounded-lg hover:bg-orange-600 transition-colors shadow-md">
                                                 <i class="fas fa-shopping-cart"></i>
                                             </button>
-                                        @else
+                                        <?php else: ?>
                                             <span class="text-xs text-red-500 font-medium">غير متوفر</span>
-                                        @endif
+                                        <?php endif; ?>
                                     </div>
                                 </div>
                             </div>
-                        @endforeach
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     </div>
                 </div>
             </div>
-        @endif
+        <?php endif; ?>
     </main>
 </div>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
 // Professional Product Page JavaScript
 function changeMainImage(imageUrl, thumbnailElement) {
@@ -593,7 +598,7 @@ function addToCartWithQuantity(productId) {
     if (loadingText) loadingText.classList.remove('hidden');
     button.disabled = true;
     
-    fetch('{{ route("cart.add", ":productId") }}'.replace(':productId', productId), {
+    fetch('<?php echo e(route("cart.add", ":productId")); ?>'.replace(':productId', productId), {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -623,7 +628,7 @@ function addToCartWithQuantity(productId) {
 }
 
 function addToCartQuick(productId) {
-    fetch('{{ route("cart.add", ":productId") }}'.replace(':productId', productId), {
+    fetch('<?php echo e(route("cart.add", ":productId")); ?>'.replace(':productId', productId), {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -730,11 +735,11 @@ function addToWishlist(productId, button) {
     }
 
     // Check if user is authenticated
-    const isAuthenticated = {{ auth()->check() ? 'true' : 'false' }};
+    const isAuthenticated = <?php echo e(auth()->check() ? 'true' : 'false'); ?>;
     if (!isAuthenticated) {
         showNotification('يجب تسجيل الدخول أولاً لإضافة المنتجات إلى قائمة الأمنيات', 'error');
         setTimeout(() => {
-            window.location.href = '{{ route("login") }}';
+            window.location.href = '<?php echo e(route("login")); ?>';
         }, 2000);
         return;
     }
@@ -908,5 +913,7 @@ function productPage() {
     };
 }
 </script>
-@endpush
-@endsection
+<?php $__env->stopPush(); ?>
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.main', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH C:\wamp64\www\Malak_E_commers\malak_outlet\resources\views/products/show.blade.php ENDPATH**/ ?>

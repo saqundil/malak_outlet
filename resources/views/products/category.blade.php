@@ -144,8 +144,8 @@ function addToCart(productId) {
                 cartBadge.classList.remove('hidden');
             } else if (data.cart_count > 0) {
                 // Create cart badge if it doesn't exist
-                const cartLink = document.querySelector('a[href="/cart"]');
-                if (cartLink) {
+                const cartLink = document.querySelector('a[href*="cart"]');
+                if (cartLink && cartLink.querySelector('svg')) {
                     const badge = document.createElement('span');
                     badge.id = 'cart-count';
                     badge.className = 'absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center';

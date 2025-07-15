@@ -9,6 +9,7 @@ use App\Models\ProductImage;
 use App\Models\Category;
 use App\Models\Brand;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 
 class ArabicProductSeeder extends Seeder
 {
@@ -19,8 +20,15 @@ class ArabicProductSeeder extends Seeder
     {
         // Clear existing product data
         $this->command->info('Clearing existing product data...');
+        
+        // Disable foreign key checks temporarily
+        DB::statement('SET FOREIGN_KEY_CHECKS=0');
+        
         ProductImage::truncate();
         Product::truncate();
+        
+        // Re-enable foreign key checks
+        DB::statement('SET FOREIGN_KEY_CHECKS=1');
         
         // Get categories and brands
         $categories = Category::all();
@@ -269,16 +277,14 @@ class ArabicProductSeeder extends Seeder
         $this->command->info('Arabic products seeded successfully!');
     }
 
-    /**
-     * Create sample images for a product
-     */
     private function createProductImages(Product $product): void
     {
+        // Create local placeholder images paths
         $sampleImages = [
-            'https://via.placeholder.com/800x600/FF6B6B/FFFFFF?text=' . urlencode('صورة المنتج'),
-            'https://via.placeholder.com/800x600/4ECDC4/FFFFFF?text=' . urlencode('صورة 2'),
-            'https://via.placeholder.com/800x600/45B7D1/FFFFFF?text=' . urlencode('صورة 3'),
-            'https://via.placeholder.com/800x600/96CEB4/FFFFFF?text=' . urlencode('صورة 4'),
+            '/images/placeholder-1.svg',
+            '/images/placeholder-2.svg', 
+            '/images/placeholder-3.svg',
+            '/images/placeholder-4.svg',
         ];
 
         // Create 2-4 random images for each product
@@ -286,8 +292,7 @@ class ArabicProductSeeder extends Seeder
         for ($i = 0; $i < $imageCount; $i++) {
             ProductImage::create([
                 'product_id' => $product->id,
-                'image_url' => $sampleImages[$i],
-                'alt_text' => $product->name . ' - صورة ' . ($i + 1),
+                'image_path' => $sampleImages[$i],
                 'is_primary' => $i === 0,
             ]);
         }

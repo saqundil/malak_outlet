@@ -43,7 +43,7 @@
                 <!-- Company Info -->
                 <div class="lg:col-span-2">
                     <div class="flex items-center mb-6">
-                        <img src="{{ asset('images/malak.png') }}" alt="MalakOutlet Logo" class="w-16 h-16 ml-4" />
+                        <img src="<?php echo e(asset('images/malak.png')); ?>" alt="MalakOutlet Logo" class="w-16 h-16 ml-4" />
                         <div>
                             <h3 class="text-2xl font-bold text-white">MalakOutlet</h3>
                             <p class="text-orange-400 text-sm">متجر الألعاب الأول في الأردن</p>
@@ -110,7 +110,7 @@
                     </h3>
                     <ul class="space-y-3">
                         <li>
-                            <a href="{{ route('about') }}" class="text-gray-300 hover:text-orange-400 transition-colors duration-200 flex items-center group">
+                            <a href="<?php echo e(route('about')); ?>" class="text-gray-300 hover:text-orange-400 transition-colors duration-200 flex items-center group">
                                 <svg class="w-4 h-4 ml-2 text-orange-400 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                                 </svg>
@@ -118,7 +118,7 @@
                             </a>
                         </li>
                         <li>
-                            <a href="{{ route('privacy') }}" class="text-gray-300 hover:text-orange-400 transition-colors duration-200 flex items-center group">
+                            <a href="<?php echo e(route('privacy')); ?>" class="text-gray-300 hover:text-orange-400 transition-colors duration-200 flex items-center group">
                                 <svg class="w-4 h-4 ml-2 text-orange-400 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                                 </svg>
@@ -126,7 +126,7 @@
                             </a>
                         </li>
                         <li>
-                            <a href="{{ route('terms') }}" class="text-gray-300 hover:text-orange-400 transition-colors duration-200 flex items-center group">
+                            <a href="<?php echo e(route('terms')); ?>" class="text-gray-300 hover:text-orange-400 transition-colors duration-200 flex items-center group">
                                 <svg class="w-4 h-4 ml-2 text-orange-400 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                                 </svg>
@@ -134,7 +134,7 @@
                             </a>
                         </li>
                         <li>
-                            <a href="{{ route('returns') }}" class="text-gray-300 hover:text-orange-400 transition-colors duration-200 flex items-center group">
+                            <a href="<?php echo e(route('returns')); ?>" class="text-gray-300 hover:text-orange-400 transition-colors duration-200 flex items-center group">
                                 <svg class="w-4 h-4 ml-2 text-orange-400 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                                 </svg>
@@ -142,7 +142,7 @@
                             </a>
                         </li>
                         <li>
-                            <a href="{{ route('faq') }}" class="text-gray-300 hover:text-orange-400 transition-colors duration-200 flex items-center group">
+                            <a href="<?php echo e(route('faq')); ?>" class="text-gray-300 hover:text-orange-400 transition-colors duration-200 flex items-center group">
                                 <svg class="w-4 h-4 ml-2 text-orange-400 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                                 </svg>
@@ -150,7 +150,7 @@
                             </a>
                         </li>
                         <li>
-                            <a href="{{ route('contact') }}" class="text-gray-300 hover:text-orange-400 transition-colors duration-200 flex items-center group">
+                            <a href="<?php echo e(route('contact')); ?>" class="text-gray-300 hover:text-orange-400 transition-colors duration-200 flex items-center group">
                                 <svg class="w-4 h-4 ml-2 text-orange-400 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                                 </svg>
@@ -169,16 +169,17 @@
                         الفئات الرئيسية
                     </h3>
                     <ul class="space-y-3">
-                        @foreach(App\Models\Category::where('is_active', true)->take(5)->get() as $category)
+                        <?php $__currentLoopData = App\Models\Category::where('is_active', true)->take(5)->get(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $category): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <li>
-                            <a href="{{ route('products.category', $category->slug) }}" class="text-gray-300 hover:text-orange-400 transition-colors duration-200 flex items-center group">
+                            <a href="<?php echo e(route('products.category', $category->slug)); ?>" class="text-gray-300 hover:text-orange-400 transition-colors duration-200 flex items-center group">
                                 <svg class="w-4 h-4 ml-2 text-orange-400 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                                 </svg>
-                                {{ $category->name }}
+                                <?php echo e($category->name); ?>
+
                             </a>
                         </li>
-                        @endforeach
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     </ul>
                 </div>
             </div>
@@ -256,4 +257,4 @@
             </div>
         </div>
     </div>
-</footer>
+</footer><?php /**PATH C:\wamp64\www\Malak_E_commers\malak_outlet\resources\views/components/footer.blade.php ENDPATH**/ ?>

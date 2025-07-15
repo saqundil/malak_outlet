@@ -208,21 +208,21 @@ return new class extends Migration
             $sampleImages = [
                 [
                     'product_id' => $productId,
-                    'image_path' => 'https://via.placeholder.com/800x600/FF6B6B/FFFFFF?text=' . urlencode('صورة المنتج'),
+                    'image_path' => '/images/placeholder-1.svg',
                     'is_primary' => true,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ],
                 [
                     'product_id' => $productId,
-                    'image_path' => 'https://via.placeholder.com/800x600/4ECDC4/FFFFFF?text=' . urlencode('صورة 2'),
+                    'image_path' => '/images/placeholder-2.svg',
                     'is_primary' => false,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ],
                 [
                     'product_id' => $productId,
-                    'image_path' => 'https://via.placeholder.com/800x600/45B7D1/FFFFFF?text=' . urlencode('صورة 3'),
+                    'image_path' => '/images/placeholder-3.svg',
                     'is_primary' => false,
                     'created_at' => now(),
                     'updated_at' => now(),
