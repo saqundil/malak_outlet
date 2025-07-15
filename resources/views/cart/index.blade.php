@@ -159,7 +159,7 @@
 function updateQuantity(productId, quantity) {
     if (quantity < 1) return;
     
-    fetch(`/cart/update/${productId}`, {
+    fetch('{{ route("cart.update", ":productId") }}'.replace(':productId', productId), {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -177,7 +177,7 @@ function updateQuantity(productId, quantity) {
 
 function removeFromCart(productId) {
     if (confirm('هل أنت متأكد من حذف هذا المنتج؟')) {
-        fetch(`/cart/remove/${productId}`, {
+        fetch('{{ route("cart.remove", ":productId") }}'.replace(':productId', productId), {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
@@ -195,7 +195,7 @@ function removeFromCart(productId) {
 
 function clearCart() {
     if (confirm('هل أنت متأكد من مسح السلة بالكامل؟')) {
-        fetch('{{ url("/cart/clear") }}', {
+        fetch('{{ route("cart.clear") }}', {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',

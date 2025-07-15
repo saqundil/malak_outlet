@@ -439,7 +439,7 @@ function editOrder(orderId) {
 function viewOrderDetails(orderId) {
     showLoadingToast('جاري تحميل تفاصيل الطلب...');
     
-    fetch(`/orders/${orderId}`, {
+    fetch('{{ route("orders.show", ":orderId") }}'.replace(':orderId', orderId), {
         method: 'GET',
         headers: {
             'Accept': 'application/json',
@@ -559,7 +559,7 @@ function confirmCancelOrder(orderId) {
     }
 
     // Make AJAX request to cancel order
-    fetch(`{{ url('/orders') }}/${orderId}/cancel`, {
+    fetch('{{ route("orders.cancel", ":orderId") }}'.replace(':orderId', orderId), {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -615,7 +615,7 @@ function saveOrderEdit(orderId) {
     
     showLoadingToast('جاري حفظ التعديلات...');
     
-    fetch(`/orders/${orderId}`, {
+    fetch('{{ route("orders.update", ":orderId") }}'.replace(':orderId', orderId), {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json',

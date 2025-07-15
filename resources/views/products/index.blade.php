@@ -350,7 +350,7 @@ function addToCart(productId) {
     loadingText.classList.remove('hidden');
     button.disabled = true;
     
-    fetch(`/cart/add/${productId}`, {
+    fetch('{{ route("cart.add", ":productId") }}'.replace(':productId', productId), {
         method: 'POST',
         headers: {
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),

@@ -41,7 +41,8 @@ function searchBox() {
             this.isLoading = true;
             
             try {
-                const response = await fetch(`/api/search-suggestions?q=${encodeURIComponent(this.query)}`);
+                const baseUrl = window.APP_URL || '';
+                const response = await fetch(`${baseUrl}/api/search-suggestions?q=${encodeURIComponent(this.query)}`);
                 const data = await response.json();
                 
                 if (data.success) {
@@ -135,7 +136,8 @@ function mobileSearchBox() {
             this.isLoading = true;
             
             try {
-                const response = await fetch(`/api/search-suggestions?q=${encodeURIComponent(this.query)}`);
+                const baseUrl = window.APP_URL || '';
+                const response = await fetch(`${baseUrl}/api/search-suggestions?q=${encodeURIComponent(this.query)}`);
                 const data = await response.json();
                 
                 if (data.success) {

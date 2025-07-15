@@ -242,7 +242,7 @@ function addToCart(productId, button) {
     button.disabled = true;
     button.textContent = 'جاري الإضافة...';
     
-    fetch('{{ url("/cart/add") }}/' + productId, {
+    fetch('{{ route("cart.add", ":productId") }}'.replace(':productId', productId), {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

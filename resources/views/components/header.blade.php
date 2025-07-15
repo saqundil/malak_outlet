@@ -345,3 +345,9 @@
 </div>
 
 <script src="{{ asset('js/search.js') }}"></script>
+
+<script>
+// Set global variables for JavaScript
+window.APP_URL = '{{ url('/') }}';
+window.API_SEARCH_URL = '{{ route('api.search.suggestions') }}';
+</script>
