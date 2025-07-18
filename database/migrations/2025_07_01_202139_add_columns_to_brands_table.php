@@ -12,9 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('brands', function (Blueprint $table) {
-            $table->string('slug')->unique()->after('name');
-            $table->text('description')->nullable()->after('slug');
-            $table->string('image_path')->nullable()->change();
+            // Skip this migration since we're using the simplified structure
+            // The brands table now only has: id, name, image, timestamps
         });
     }
 

@@ -50,6 +50,11 @@ class Product extends Model
         return $this->hasMany(ProductSize::class);
     }
 
+    public function orderItems(): HasMany
+    {
+        return $this->hasMany(OrderItem::class);
+    }
+
     public function availableSizes(): HasMany
     {
         return $this->hasMany(ProductSize::class)->available();

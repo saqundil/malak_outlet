@@ -11,8 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Skip this migration since we're using simplified brands table
-        // Brands table now only has: id, name, image, timestamps
+        Schema::table('product_sizes', function (Blueprint $table) {
+            $table->string('description')->nullable()->after('size');
+        });
     }
 
     /**
@@ -20,6 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        // Skip since we're using simplified structure
+        Schema::table('product_sizes', function (Blueprint $table) {
+            $table->dropColumn(['description']);
+        });
     }
 };

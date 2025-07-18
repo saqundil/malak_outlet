@@ -11,10 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('brands', function (Blueprint $table) {
-            $table->unsignedBigInteger('category_id')->nullable()->after('slug');
-            $table->foreign('category_id')->references('id')->on('categories')->onDelete('set null');
-        });
+        // Skip this migration - category_id not needed in simplified brands structure
+        // Schema::table('brands', function (Blueprint $table) {
+        //     $table->unsignedBigInteger('category_id')->nullable()->after('image');
+        //     $table->foreign('category_id')->references('id')->on('categories')->onDelete('set null');
+        // });
     }
 
     /**
@@ -22,9 +23,10 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('brands', function (Blueprint $table) {
-            $table->dropForeign(['category_id']);
-            $table->dropColumn('category_id');
-        });
+        // Skip this migration - category_id not needed in simplified brands structure
+        // Schema::table('brands', function (Blueprint $table) {
+        //     $table->dropForeign(['category_id']);
+        //     $table->dropColumn('category_id');
+        // });
     }
 };

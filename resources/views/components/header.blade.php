@@ -121,7 +121,16 @@
                     </svg>
                     @php
                         $cart = json_decode(request()->cookie('cart', '[]'), true);
-                        $cartCount = array_sum($cart);
+                        $cartCount = 0;
+                        if (is_array($cart)) {
+                            foreach ($cart as $item) {
+                                if (is_array($item) && isset($item['quantity'])) {
+                                    $cartCount += (int) $item['quantity'];
+                                } elseif (is_numeric($item)) {
+                                    $cartCount += (int) $item;
+                                }
+                            }
+                        }
                     @endphp
                     @if($cartCount > 0)
                         <span class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center" id="cart-count">
@@ -234,7 +243,7 @@
                     <h3 class="text-lg font-bold text-gray-800 mb-4 text-right">جميع الفئات</h3>
                     <div class="grid grid-cols-2 gap-3">
                         @php
-                            $categoriesForDropdown = \App\Models\Category::with('brands')->get();
+                            $categoriesForDropdown = \App\Models\Category::all();
                             $categoryIcons = [
                                 'electronics' => '📱',
                                 'clothing' => '👕', 
@@ -256,9 +265,6 @@
                                     <div class="font-medium text-gray-800 group-hover:text-orange-600">{{ $category->name }}</div>
                                     <div class="text-xs text-gray-500">
                                         {{ $category->products_count ?? 0 }} منتج
-                                        @if($category->brands->count() > 0)
-                                            • {{ $category->brands->count() }} علامة تجارية
-                                        @endif
                                     </div>
                                 </div>
                             </a>
@@ -349,10 +355,12 @@
     </div>
 </div>
 
+<script src="{{ asset('js/app-utils.js') }}"></script>
 <script src="{{ asset('js/search.js') }}"></script>
 
 <script>
 // Set global variables for JavaScript
 window.APP_URL = '{{ url('/') }}';
 window.API_SEARCH_URL = '{{ route('api.search.suggestions') }}';
+window.isAuthenticated = {{ auth()->check() ? 'true' : 'false' }};
 </script>

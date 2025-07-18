@@ -13,6 +13,7 @@ class ProductSize extends Model
         'product_id',
         'size',
         'size_type',
+        'description',
         'stock_quantity',
         'additional_price',
         'is_available',

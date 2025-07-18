@@ -1,0 +1,1 @@
+<?php /**PATH C:\wamp64\www\Malak_E_commers\malak_outlet\resources\views////components/footer.blade.php ENDPATH**/ ?>

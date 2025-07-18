@@ -189,9 +189,9 @@
 
                     <!-- Product Sizes -->
                     <?php if($product->sizes && $product->sizes->count() > 0): ?>
-                        <div class="mb-8 p-6 bg-white rounded-xl border">
+                        <div class="mb-8 p-6 bg-white rounded-xl border" x-data="{ selectedSize: null, showSizeGuide: false }">
                             <label class="text-lg font-semibold text-gray-700 mb-4 block">الحجم المتاح:</label>
-                            <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3" x-data="{ selectedSize: null }">
+                            <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
                                 <?php $__currentLoopData = $product->availableSizes; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $size): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                     <button 
                                         type="button" 
@@ -208,8 +208,35 @@
                                             <div class="text-xs text-red-500 mt-1"><?php echo e($size->stock_quantity); ?> متبقي</div>
                                         <?php endif; ?>
                                         
+                                        <!-- Stock status -->
+                                        <?php if($size->stock_quantity == 0): ?>
+                                            <div class="absolute inset-0 bg-gray-200 bg-opacity-75 rounded-xl flex items-center justify-center">
+                                                <span class="text-gray-600 text-xs font-medium">نفذ المخزون</span>
+                                            </div>
+                                        <?php elseif($size->stock_quantity <= 3): ?>
+                                            <div class="absolute top-1 left-1 bg-red-500 text-white rounded-full text-xs px-2 py-1">
+                                                <?php echo e($size->stock_quantity); ?>
+
+                                            </div>
+                                        <?php elseif($size->stock_quantity <= 10): ?>
+                                            <div class="absolute top-1 left-1 bg-yellow-500 text-white rounded-full text-xs px-2 py-1">
+                                                <?php echo e($size->stock_quantity); ?>
+
+                                            </div>
+                                        <?php endif; ?>
+                                        
+                                        <!-- Popular size indicator -->
+                                        <?php if($size->is_popular ?? false): ?>
+                                            <div class="absolute -top-1 -left-1 bg-gradient-to-r from-yellow-400 to-yellow-500 text-white rounded-full text-xs px-2 py-1 font-bold shadow-lg">
+                                                <i class="fas fa-star mr-1"></i>شائع
+                                            </div>
+                                        <?php endif; ?>
+                                        
                                         <!-- Selection indicator -->
                                         <div x-show="selectedSize === <?php echo e($size->id); ?>" 
+                                             x-transition:enter="transition ease-out duration-200"
+                                             x-transition:enter-start="opacity-0 scale-95"
+                                             x-transition:enter-end="opacity-100 scale-100"
                                              class="absolute -top-2 -right-2 w-5 h-5 bg-orange-500 rounded-full flex items-center justify-center">
                                             <i class="fas fa-check text-white text-xs"></i>
                                         </div>
@@ -219,10 +246,67 @@
                             
                             <!-- Size Guide Link -->
                             <div class="mt-4 text-center">
-                                <button type="button" class="text-orange-500 hover:text-orange-600 underline text-sm">
+                                <button type="button" class="text-orange-500 hover:text-orange-600 underline text-sm" @click="showSizeGuide = true">
                                     <i class="fas fa-ruler ml-1"></i>دليل المقاسات
                                 </button>
                             </div>
+
+                            <!-- Selected Size Summary -->
+                            <div x-show="selectedSize" 
+                                 x-transition:enter="transition ease-out duration-200"
+                                 x-transition:enter-start="opacity-0 transform translate-y-2"
+                                 x-transition:enter-end="opacity-100 transform translate-y-0"
+                                 class="mb-4 p-4 bg-green-50 border border-green-200 rounded-xl">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-3">
+                                        <i class="fas fa-check-circle text-green-600"></i>
+                                        <span class="text-green-800 font-medium">تم اختيار الحجم:</span>
+                                        <span x-text="document.querySelector('[data-size-id=\"' + selectedSize + '\"]')?.innerText.split('\n')[0] || ''" 
+                                              class="bg-green-100 text-green-800 px-2 py-1 rounded-lg text-sm font-bold"></span>
+                                    </div>
+                                    <button @click="selectedSize = null" class="text-green-600 hover:text-green-800 text-sm">
+                                        <i class="fas fa-times"></i> تغيير
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Size Selection Alert -->
+                            <div x-show="!selectedSize && Object.keys($data).includes('selectedSize')" 
+                                 x-transition:enter="transition ease-out duration-200"
+                                 x-transition:enter-start="opacity-0 transform scale-95"
+                                 x-transition:enter-end="opacity-100 transform scale-100"
+                                 class="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-xl">
+                                <div class="flex items-center gap-2 text-yellow-800">
+                                    <i class="fas fa-exclamation-triangle text-yellow-500"></i>
+                                    <span class="text-sm font-medium">يرجى اختيار الحجم المطلوب قبل الإضافة للسلة</span>
+                                </div>
+                            </div>
+
+                            <!-- Size Information Panel -->
+                            <template x-if="selectedSize">
+                                <div class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                                    <h4 class="font-semibold text-blue-800 mb-2">تفاصيل الحجم المختار</h4>
+                                    <div class="space-y-2 text-sm">
+                                        <div class="flex justify-between">
+                                            <span class="text-blue-700">الحجم:</span>
+                                            <span x-text="document.querySelector('[data-size-id=\"' + selectedSize + '\"]')?.innerText.split('\n')[0] || ''" 
+                                                  class="font-bold text-blue-900"></span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="text-blue-700">الكمية المتاحة:</span>
+                                            <span x-text="document.querySelector('[data-size-id=\"' + selectedSize + '\"]')?.innerText.includes('متبقي') ? document.querySelector('[data-size-id=\"' + selectedSize + '\"]')?.innerText.match(/(\d+) متبقي/)?.[1] || 'متوفر' : 'متوفر'" 
+                                                  class="font-bold text-blue-900"></span>
+                                        </div>
+                                        <template x-if="document.querySelector('[data-size-id=\"' + selectedSize + '\"]')?.getAttribute('data-additional-price') > 0">
+                                            <div class="flex justify-between border-t border-blue-200 pt-2">
+                                                <span class="text-blue-700">السعر الإضافي:</span>
+                                                <span x-text="'+' + document.querySelector('[data-size-id=\"' + selectedSize + '\"]')?.getAttribute('data-additional-price') + ' د.أ'" 
+                                                      class="font-bold text-blue-900"></span>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                            </template>
                         </div>
                     <?php endif; ?>
 
@@ -588,6 +672,93 @@
     </main>
 </div>
 
+<!-- Size Guide Modal -->
+<div x-show="showSizeGuide" 
+     x-transition:enter="transition ease-out duration-300"
+     x-transition:enter-start="opacity-0"
+     x-transition:enter-end="opacity-100"
+     x-transition:leave="transition ease-in duration-200"
+     x-transition:leave-start="opacity-100"
+     x-transition:leave-end="opacity-0"
+     class="fixed inset-0 z-50 overflow-y-auto"
+     x-cloak>
+    <div class="flex items-center justify-center min-h-screen px-4">
+        <div class="fixed inset-0 bg-black opacity-50" @click="showSizeGuide = false"></div>
+        
+        <div class="relative bg-white rounded-2xl max-w-2xl w-full p-8 shadow-2xl">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-2xl font-bold text-gray-900">دليل المقاسات</h3>
+                <button @click="showSizeGuide = false" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <div class="space-y-6" dir="rtl">
+                <!-- Shoes Size Guide -->
+                <div>
+                    <h4 class="text-lg font-semibold text-gray-800 mb-4">مقاسات الأحذية</h4>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm border-collapse border border-gray-300">
+                            <thead>
+                                <tr class="bg-orange-50">
+                                    <th class="border border-gray-300 px-3 py-2">المقاس الأوروبي</th>
+                                    <th class="border border-gray-300 px-3 py-2">طول القدم (سم)</th>
+                                    <th class="border border-gray-300 px-3 py-2">المقاس الأمريكي</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td class="border border-gray-300 px-3 py-2 text-center">38</td><td class="border border-gray-300 px-3 py-2 text-center">24.0</td><td class="border border-gray-300 px-3 py-2 text-center">6</td></tr>
+                                <tr><td class="border border-gray-300 px-3 py-2 text-center">39</td><td class="border border-gray-300 px-3 py-2 text-center">24.7</td><td class="border border-gray-300 px-3 py-2 text-center">6.5</td></tr>
+                                <tr><td class="border border-gray-300 px-3 py-2 text-center">40</td><td class="border border-gray-300 px-3 py-2 text-center">25.3</td><td class="border border-gray-300 px-3 py-2 text-center">7</td></tr>
+                                <tr><td class="border border-gray-300 px-3 py-2 text-center">41</td><td class="border border-gray-300 px-3 py-2 text-center">26.0</td><td class="border border-gray-300 px-3 py-2 text-center">8</td></tr>
+                                <tr><td class="border border-gray-300 px-3 py-2 text-center">42</td><td class="border border-gray-300 px-3 py-2 text-center">26.7</td><td class="border border-gray-300 px-3 py-2 text-center">8.5</td></tr>
+                                <tr><td class="border border-gray-300 px-3 py-2 text-center">43</td><td class="border border-gray-300 px-3 py-2 text-center">27.3</td><td class="border border-gray-300 px-3 py-2 text-center">9</td></tr>
+                                <tr><td class="border border-gray-300 px-3 py-2 text-center">44</td><td class="border border-gray-300 px-3 py-2 text-center">28.0</td><td class="border border-gray-300 px-3 py-2 text-center">10</td></tr>
+                                <tr><td class="border border-gray-300 px-3 py-2 text-center">45</td><td class="border border-gray-300 px-3 py-2 text-center">28.7</td><td class="border border-gray-300 px-3 py-2 text-center">11</td></tr>
+                                <tr><td class="border border-gray-300 px-3 py-2 text-center">46</td><td class="border border-gray-300 px-3 py-2 text-center">29.3</td><td class="border border-gray-300 px-3 py-2 text-center">12</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- How to measure -->
+                <div>
+                    <h4 class="text-lg font-semibold text-gray-800 mb-4">كيفية قياس قدمك</h4>
+                    <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                        <ol class="list-decimal list-inside space-y-2 text-gray-700">
+                            <li>ضع قدمك على ورقة وأنت واقف</li>
+                            <li>ضع علامة عند أطول نقطة في قدمك</li>
+                            <li>اقس المسافة من الكعب إلى العلامة</li>
+                            <li>قارن النتيجة مع الجدول أعلاه</li>
+                            <li>ننصح بإضافة 0.5 سم للراحة</li>
+                        </ol>
+                    </div>
+                </div>
+                
+                <!-- Tips -->
+                <div>
+                    <h4 class="text-lg font-semibold text-gray-800 mb-4">نصائح مهمة</h4>
+                    <div class="bg-orange-50 border border-orange-200 rounded-xl p-4">
+                        <ul class="list-disc list-inside space-y-2 text-gray-700">
+                            <li>قس قدمك في نهاية اليوم عندما تكون في أكبر حجم لها</li>
+                            <li>إذا كان هناك اختلاف بين القدمين، اختر المقاس الأكبر</li>
+                            <li>المقاسات قد تختلف قليلاً بين العلامات التجارية</li>
+                            <li>يمكنك التواصل معنا لمساعدتك في اختيار المقاس المناسب</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-6 text-center">
+                <button @click="showSizeGuide = false" class="bg-orange-500 text-white px-6 py-3 rounded-xl font-medium hover:bg-orange-600 transition-colors">
+                    فهمت، شكراً
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+<?php $__env->stopSection(); ?>
 <?php $__env->startPush('scripts'); ?>
 <script>
 // Professional Product Page JavaScript
@@ -1015,6 +1186,4 @@ function productPage() {
 }
 </script>
 <?php $__env->stopPush(); ?>
-<?php $__env->stopSection(); ?>
-
 <?php echo $__env->make('layouts.main', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH C:\wamp64\www\Malak_E_commers\malak_outlet\resources\views/products/show.blade.php ENDPATH**/ ?>

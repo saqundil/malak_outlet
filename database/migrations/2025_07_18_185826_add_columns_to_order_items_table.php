@@ -11,8 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('order_items', function (Blueprint $table) {
-            $table->id();
+        Schema::table('order_items', function (Blueprint $table) {
             $table->foreignId('order_id')->constrained()->onDelete('cascade');
             $table->foreignId('product_id')->constrained()->onDelete('cascade');
             $table->string('product_name'); // Store product name at time of order
@@ -20,7 +19,6 @@ return new class extends Migration
             $table->integer('quantity');
             $table->string('size')->nullable(); // Store size if applicable
             $table->decimal('total', 10, 2); // price * quantity
-            $table->timestamps();
 
             // Add indexes for better performance
             $table->index(['order_id', 'product_id']);
@@ -32,6 +30,19 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('order_items');
+        Schema::table('order_items', function (Blueprint $table) {
+            $table->dropForeign(['order_id']);
+            $table->dropForeign(['product_id']);
+            $table->dropColumn([
+                'order_id',
+                'product_id', 
+                'product_name',
+                'price',
+                'quantity',
+                'size',
+                'total'
+            ]);
+            $table->dropIndex(['order_id', 'product_id']);
+        });
     }
 };

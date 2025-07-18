@@ -750,6 +750,8 @@
         </div>
     </div>
 
+
+@endsection
 @push('scripts')
 <script>
 // Professional Product Page JavaScript
@@ -1177,4 +1179,3 @@ function productPage() {
 }
 </script>
 @endpush
-@endsection

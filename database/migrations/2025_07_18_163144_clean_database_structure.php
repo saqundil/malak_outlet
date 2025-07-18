@@ -11,8 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Skip this migration since we're using simplified brands table
-        // Brands table now only has: id, name, image, timestamps
+        Schema::create('temp', function (Blueprint $table) {
+            $table->id();
+            $table->timestamps();
+        });
     }
 
     /**
@@ -20,6 +22,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        // Skip since we're using simplified structure
+        Schema::dropIfExists('temp');
     }
 };

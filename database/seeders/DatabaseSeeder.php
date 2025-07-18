@@ -25,12 +25,16 @@ class DatabaseSeeder extends Seeder
             'email' => 'test@example.com',
         ]);
 
-        // Seed all tables in order
+                // Seed all tables in order
+                // Core seeders
         $this->call([
             CategorySeeder::class,
-            BrandSeeder::class,
-            ProductSeeder::class,
-            ProductImageSeeder::class,
+            SimplifiedBrandSeeder::class,
+            SimpleProductSeeder::class,
+            ExpandedProductSeeder::class,
+            SubcategoryProductSeeder::class,
+            MassiveProductSeeder::class,
+            SeasonalProductSeeder::class,
         ]);
     }
 }

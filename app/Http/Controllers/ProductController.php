@@ -14,7 +14,7 @@ class ProductController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Product::with(['category', 'brand', 'images']);
+        $query = Product::with(['category', 'brand', 'images', 'sizes']);
         
         // Get all categories and brands for filter options
         $categories = Category::get();
@@ -120,7 +120,25 @@ class ProductController extends Controller
 
     public function show($id)
     {
-        $product = Product::with(['category', 'brand', 'images', 'approvedReviews'])->findOrFail($id);
+        $product = Product::with([
+            'category', 
+            'brand', 
+            'images', 
+            'approvedReviews',
+            'sizes' => function($query) {
+                $query->orderByRaw('CASE 
+                    WHEN size REGEXP "^[0-9]+$" THEN CAST(size AS UNSIGNED)
+                    ELSE 999 
+                END, size');
+            },
+            'availableSizes' => function($query) {
+                $query->orderByRaw('CASE 
+                    WHEN size REGEXP "^[0-9]+$" THEN CAST(size AS UNSIGNED)
+                    ELSE 999 
+                END, size');
+            }
+        ])->findOrFail($id);
+        
         $relatedProducts = Product::with(['category', 'brand', 'images'])
             ->where('category_id', $product->category_id)
             ->where('id', '!=', $product->id)
@@ -150,7 +168,7 @@ class ProductController extends Controller
     public function search(Request $request)
     {
         $query = $request->input('q');
-        $products = Product::with(['category', 'brand', 'images'])
+        $products = Product::with(['category', 'brand', 'images', 'sizes'])
             ->where(function($q) use ($query) {
                 $q->where('name', 'like', "%{$query}%")
                   ->orWhere('description', 'like', "%{$query}%")
@@ -177,7 +195,7 @@ class ProductController extends Controller
             ]);
         }
 
-        $suggestions = Product::with(['category', 'brand', 'images'])
+        $suggestions = Product::with(['category', 'brand', 'images', 'sizes'])
             ->where(function($q) use ($query) {
                 $q->where('name', 'like', "{$query}%")  // Starts with query (highest priority)
                   ->orWhere('name', 'like', "%{$query}%") // Contains query
@@ -209,7 +227,7 @@ class ProductController extends Controller
     {
         $category = Category::where('slug', $slug)->firstOrFail();
         
-        $query = Product::with(['category', 'brand', 'images'])
+        $query = Product::with(['category', 'brand', 'images', 'sizes'])
             ->where('category_id', $category->id)
             ->where('is_active', true);
             

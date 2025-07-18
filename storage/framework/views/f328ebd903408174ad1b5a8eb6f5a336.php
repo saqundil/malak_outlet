@@ -122,7 +122,16 @@
                     </svg>
                     <?php
                         $cart = json_decode(request()->cookie('cart', '[]'), true);
-                        $cartCount = array_sum($cart);
+                        $cartCount = 0;
+                        if (is_array($cart)) {
+                            foreach ($cart as $item) {
+                                if (is_array($item) && isset($item['quantity'])) {
+                                    $cartCount += (int) $item['quantity'];
+                                } elseif (is_numeric($item)) {
+                                    $cartCount += (int) $item;
+                                }
+                            }
+                        }
                     ?>
                     <?php if($cartCount > 0): ?>
                         <span class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center" id="cart-count">
@@ -237,7 +246,7 @@
                     <h3 class="text-lg font-bold text-gray-800 mb-4 text-right">جميع الفئات</h3>
                     <div class="grid grid-cols-2 gap-3">
                         <?php
-                            $categoriesForDropdown = \App\Models\Category::with('brands')->get();
+                            $categoriesForDropdown = \App\Models\Category::all();
                             $categoryIcons = [
                                 'electronics' => '📱',
                                 'clothing' => '👕', 
@@ -259,9 +268,6 @@
                                     <div class="font-medium text-gray-800 group-hover:text-orange-600"><?php echo e($category->name); ?></div>
                                     <div class="text-xs text-gray-500">
                                         <?php echo e($category->products_count ?? 0); ?> منتج
-                                        <?php if($category->brands->count() > 0): ?>
-                                            • <?php echo e($category->brands->count()); ?> علامة تجارية
-                                        <?php endif; ?>
                                     </div>
                                 </div>
                             </a>
@@ -352,10 +358,12 @@
     </div>
 </div>
 
+<script src="<?php echo e(asset('js/app-utils.js')); ?>"></script>
 <script src="<?php echo e(asset('js/search.js')); ?>"></script>
 
 <script>
 // Set global variables for JavaScript
 window.APP_URL = '<?php echo e(url('/')); ?>';
 window.API_SEARCH_URL = '<?php echo e(route('api.search.suggestions')); ?>';
+window.isAuthenticated = <?php echo e(auth()->check() ? 'true' : 'false'); ?>;
 </script><?php /**PATH C:\wamp64\www\Malak_E_commers\malak_outlet\resources\views/components/header.blade.php ENDPATH**/ ?>

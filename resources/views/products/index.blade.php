@@ -126,11 +126,12 @@
                                 </div>
                             </div>
 
-                            <!-- Sizes Filter -->
+                            <!-- Sizes Filter (Only show if there are products with sizes) -->
+                            @if(!empty($availableSizes))
                             <div class="mb-6">
                                 <h4 class="text-md font-medium text-gray-700 mb-3">
                                     <i class="fas fa-ruler-horizontal ml-1 text-orange-500"></i>
-                                    الأحجام المتاحة
+                                    مقاسات الأحذية المتاحة
                                 </h4>
                                 <div class="grid grid-cols-3 gap-2">
                                     @foreach($availableSizes as $size => $count)
@@ -139,7 +140,7 @@
                                                    {{ in_array($size, request('sizes', [])) ? 'checked' : '' }}>
                                             <span class="size-button w-full text-center py-2 px-2 text-xs font-medium border border-gray-300 rounded-lg transition-all duration-200 hover:border-orange-300
                                                   {{ in_array($size, request('sizes', [])) ? 'bg-orange-500 text-white border-orange-500' : 'bg-white text-gray-700' }}">
-                                                <div>{{ $size }}</div>
+                                                <div class="font-bold">{{ $size }}</div>
                                                 <div class="text-xs opacity-75">({{ $count }})</div>
                                             </span>
                                         </label>
@@ -150,10 +151,11 @@
                                 <div class="mt-3 text-center">
                                     <div class="inline-flex items-center text-xs text-gray-500">
                                         <i class="fas fa-star text-yellow-400 ml-1"></i>
-                                        <span>الأحجام الشائعة: 41، 42، 43</span>
+                                        <span>المقاسات الشائعة للأطفال: 32، 33، 34، 35</span>
                                     </div>
                                 </div>
                             </div>
+                            @endif
 
                             <!-- Filter Buttons -->
                             <div class="space-y-3">
@@ -253,13 +255,40 @@
                                         @endif
                                     </div>
                                     
+                                    <!-- Show sizes available for shoes -->
+                                    @if($product->sizes && $product->sizes->count() > 0)
+                                        <div class="mb-3">
+                                            <div class="flex flex-wrap gap-1">
+                                                @foreach($product->sizes->take(4) as $size)
+                                                    <span class="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded">{{ $size->size }}</span>
+                                                @endforeach
+                                                @if($product->sizes->count() > 4)
+                                                    <span class="text-gray-500 text-xs">+{{ $product->sizes->count() - 4 }}</span>
+                                                @endif
+                                            </div>
+                                            <p class="text-xs text-orange-600 mt-1">
+                                                <i class="fas fa-shoe-prints ml-1"></i>
+                                                متوفر بمقاسات متعددة
+                                            </p>
+                                        </div>
+                                    @endif
+                                    
                                     <div class="flex items-center justify-between gap-2">
                                         @if($product->stock_quantity > 0)
-                                            <button onclick="addToCart({{ $product->id }})" 
-                                                    class="add-to-cart-btn bg-orange-500 text-white px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm hover:bg-orange-600 transition duration-300 flex-shrink-0">
-                                                <span class="btn-text">أضف للسلة</span>
-                                                <span class="loading-text hidden">جاري...</span>
-                                            </button>
+                                            @if($product->sizes && $product->sizes->count() > 0)
+                                                <!-- Shoes with sizes - redirect to product page -->
+                                                <a href="{{ route('products.show', $product->id) }}" 
+                                                   class="bg-orange-500 text-white px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm hover:bg-orange-600 transition duration-300 flex-shrink-0 text-center">
+                                                    اختر المقاس
+                                                </a>
+                                            @else
+                                                <!-- Regular products without sizes -->
+                                                <button onclick="addToCart({{ $product->id }})" 
+                                                        class="add-to-cart-btn bg-orange-500 text-white px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm hover:bg-orange-600 transition duration-300 flex-shrink-0">
+                                                    <span class="btn-text">أضف للسلة</span>
+                                                    <span class="loading-text hidden">جاري...</span>
+                                                </button>
+                                            @endif
                                         @else
                                             <span class="text-xs text-red-500 bg-red-50 px-2 py-1 rounded flex-shrink-0">غير متوفر</span>
                                         @endif
