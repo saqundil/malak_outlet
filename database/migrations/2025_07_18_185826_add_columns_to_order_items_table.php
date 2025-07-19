@@ -12,16 +12,16 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('order_items', function (Blueprint $table) {
-            $table->foreignId('order_id')->constrained()->onDelete('cascade');
-            $table->foreignId('product_id')->constrained()->onDelete('cascade');
-            $table->string('product_name'); // Store product name at time of order
-            $table->decimal('price', 10, 2); // Store price at time of order
-            $table->integer('quantity');
-            $table->string('size')->nullable(); // Store size if applicable
-            $table->decimal('total', 10, 2); // price * quantity
+            // $table->foreignId('order_id')->constrained()->onDelete('cascade');
+            // $table->foreignId('product_id')->constrained()->onDelete('cascade');
+            // $table->string('product_name'); // Store product name at time of order
+            // $table->decimal('price', 10, 2); // Store price at time of order
+            // $table->integer('quantity');
+            // $table->string('size')->nullable(); // Store size if applicable
+            // $table->decimal('total', 10, 2); // price * quantity
 
             // Add indexes for better performance
-            $table->index(['order_id', 'product_id']);
+        //   /  $table->index(['order_id', 'product_id']);
         });
     }
 

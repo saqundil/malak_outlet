@@ -123,20 +123,6 @@
     
     <?php echo $__env->yieldPushContent('scripts'); ?>
     
-    <script>
-        // Global error handler for better debugging
-        window.addEventListener('error', function(e) {
-            console.error('Global error:', e.error);
-            console.error('At line:', e.lineno, 'column:', e.colno);
-            console.error('In file:', e.filename);
-        });
-        
-        // Check if Alpine.js is loaded
-        document.addEventListener('DOMContentLoaded', function() {
-            if (typeof Alpine === 'undefined') {
-                console.warn('Alpine.js is not loaded properly');
-            }
-        });
-    </script>
+    
 </body>
 </html><?php /**PATH C:\wamp64\www\Malak_E_commers\malak_outlet\resources\views/layouts/main.blade.php ENDPATH**/ ?>
