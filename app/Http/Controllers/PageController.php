@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Services\SettingsService;
 
 class PageController extends Controller
 {
@@ -44,7 +45,10 @@ class PageController extends Controller
 
     public function contact()
     {
-        // Return the 'Contact Us' page view
-        return view('contact');
+        // Get dynamic contact information from settings
+        $contactInfo = SettingsService::getContactInfo();
+        $businessHours = SettingsService::getBusinessHours();
+        
+        return view('contact', compact('contactInfo', 'businessHours'));
     }
 }

@@ -22,6 +22,7 @@
         showPassword: false, 
         showPasswordConfirm: false,
         passwordStrength: 0,
+        termsAccepted: false,
         checkPasswordStrength() {
             const password = this.$refs.password.value;
             let strength = 0;
@@ -30,9 +31,111 @@
             if (/[0-9]/.test(password)) strength++;
             if (/[^A-Za-z0-9]/.test(password)) strength++;
             this.passwordStrength = strength;
+        },
+        showTermsAlert(event) {
+            event.preventDefault();
+            Swal.fire({
+                title: 'الشروط والأحكام',
+                html: `
+                    <div style='text-align: right; direction: rtl; font-family: Arial, sans-serif;'>
+                        <p style='margin-bottom: 15px; color: #555;'>هل تريد قراءة الشروط والأحكام كاملة؟</p>
+                        <div style='background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 15px 0; border-right: 4px solid #f97316;'>
+                            <strong>ملخص سريع:</strong><br>
+                            • استخدام الموقع للأغراض القانونية فقط<br>
+                            • احترام حقوق الملكية الفكرية<br>
+                            • عدم مشاركة بيانات الحساب<br>
+                            • الالتزام بسياسات الدفع والإرجاع
+                        </div>
+                    </div>
+                `,
+                icon: 'info',
+                showCancelButton: true,
+                confirmButtonText: 'قراءة النص كاملاً',
+                cancelButtonText: 'إغلاق',
+                confirmButtonColor: '#f97316',
+                cancelButtonColor: '#6c757d',
+                customClass: {
+                    popup: 'swal-rtl'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.open('<?php echo e(route('legal.terms')); ?>', '_blank');
+                }
+            });
+        },
+        showPrivacyAlert(event) {
+            event.preventDefault();
+            Swal.fire({
+                title: 'سياسة الخصوصية',
+                html: `
+                    <div style='text-align: right; direction: rtl; font-family: Arial, sans-serif;'>
+                        <p style='margin-bottom: 15px; color: #555;'>هل تريد قراءة سياسة الخصوصية كاملة؟</p>
+                        <div style='background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 15px 0; border-right: 4px solid #3b82f6;'>
+                            <strong>ملخص سريع:</strong><br>
+                            • حماية البيانات الشخصية<br>
+                            • عدم مشاركة المعلومات مع أطراف ثالثة<br>
+                            • استخدام ملفات تعريف الارتباط لتحسين التجربة<br>
+                            • حق الوصول وتعديل البيانات
+                        </div>
+                    </div>
+                `,
+                icon: 'info',
+                showCancelButton: true,
+                confirmButtonText: 'قراءة النص كاملاً',
+                cancelButtonText: 'إغلاق',
+                confirmButtonColor: '#3b82f6',
+                cancelButtonColor: '#6c757d',
+                customClass: {
+                    popup: 'swal-rtl'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.open('<?php echo e(route('legal.privacy')); ?>', '_blank');
+                }
+            });
+        },
+        validateAndSubmit(event) {
+            if (!this.termsAccepted) {
+                event.preventDefault();
+                Swal.fire({
+                    title: 'تنبيه!',
+                    html: `
+                        <div style='text-align: center; direction: rtl; font-family: Arial, sans-serif;'>
+                            <div style='font-size: 48px; margin-bottom: 15px;'>⚠️</div>
+                            <p style='font-size: 16px; color: #666; margin-bottom: 20px;'>
+                                يجب الموافقة على الشروط والأحكام وسياسة الخصوصية للمتابعة
+                            </p>
+                            <div style='background: #fff3cd; padding: 15px; border-radius: 8px; margin: 15px 0; border: 1px solid #ffeaa7;'>
+                                <strong style='color: #856404;'>نحن نحمي خصوصيتك:</strong><br>
+                                <span style='color: #856404; font-size: 14px;'>
+                                    بياناتك آمنة ولن نشاركها مع أي طرف ثالث
+                                </span>
+                            </div>
+                        </div>
+                    `,
+                    icon: 'warning',
+                    confirmButtonText: 'فهمت، سأوافق',
+                    confirmButtonColor: '#f97316',
+                    customClass: {
+                        popup: 'swal-rtl'
+                    }
+                }).then(() => {
+                    // Focus on the checkbox
+                    document.getElementById('terms-checkbox').focus();
+                    // Add a gentle shake animation to the checkbox container
+                    const checkboxContainer = document.querySelector('.checkbox-container');
+                    checkboxContainer.style.animation = 'gentle-shake 0.5s ease-in-out';
+                    setTimeout(() => {
+                        checkboxContainer.style.animation = '';
+                    }, 500);
+                });
+                return false;
+            }
+            this.loading = true;
+            return true;
         }
     }" 
-    @submit="loading = true">
+    @submit="validateAndSubmit($event)">
         <?php echo csrf_field(); ?>
 
         <!-- Name Field -->
@@ -224,7 +327,7 @@ unset($__errorArgs, $__bag); ?>
         <!-- Terms and Conditions -->
         <div class="checkbox-container">
             <label class="checkbox-label">
-                <input type="checkbox" class="checkbox-input" required>
+                <input type="checkbox" class="checkbox-input" id="terms-checkbox" x-model="termsAccepted" required>
                 <div class="checkbox-custom">
                     <svg class="checkbox-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
@@ -232,9 +335,9 @@ unset($__errorArgs, $__bag); ?>
                 </div>
                 <span class="checkbox-text">
                     أوافق على
-                    <a href="<?php echo e(route('legal.terms')); ?>" class="terms-link" target="_blank">الشروط والأحكام</a>
+                    <a href="<?php echo e(route('legal.terms')); ?>" class="terms-link" target="_blank" @click="showTermsAlert">الشروط والأحكام</a>
                     و
-                    <a href="<?php echo e(route('legal.privacy')); ?>" class="terms-link" target="_blank">سياسة الخصوصية</a>
+                    <a href="<?php echo e(route('legal.privacy')); ?>" class="terms-link" target="_blank" @click="showPrivacyAlert">سياسة الخصوصية</a>
                 </span>
             </label>
         </div>
@@ -242,9 +345,17 @@ unset($__errorArgs, $__bag); ?>
         <!-- Submit Button -->
         <button type="submit" 
                 class="btn-gradient btn-register" 
-                :disabled="loading"
-                :class="{ 'loading': loading }">
-            <span x-show="!loading" class="btn-text">إنشاء حساب</span>
+                :disabled="loading || !termsAccepted"
+                :class="{ 'loading': loading, 'disabled': !termsAccepted }">
+            <span x-show="!loading" class="btn-text">
+                <span x-show="termsAccepted">إنشاء حساب</span>
+                <span x-show="!termsAccepted" class="flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.134 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                    </svg>
+                    يرجى الموافقة على الشروط
+                </span>
+            </span>
             <span x-show="loading" class="btn-loading">
                 <svg class="spinner" viewBox="0 0 24 24">
                     <circle class="spinner-circle" cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="4"></circle>
@@ -581,6 +692,19 @@ unset($__errorArgs, $__bag); ?>
     transform: none;
 }
 
+.btn-gradient.disabled {
+    background: linear-gradient(135deg, #9ca3af, #6b7280);
+    opacity: 0.8;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.btn-gradient.disabled:hover {
+    background: linear-gradient(135deg, #9ca3af, #6b7280);
+    transform: none;
+    box-shadow: 0 4px 15px rgba(156, 163, 175, 0.4);
+}
+
 .btn-gradient.loading {
     pointer-events: none;
 }
@@ -700,7 +824,209 @@ unset($__errorArgs, $__bag); ?>
         font-size: 0.85rem;
     }
 }
+
+/* SweetAlert Custom Styles */
+.swal-rtl {
+    direction: rtl !important;
+    text-align: right !important;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+}
+
+.swal-rtl .swal2-title {
+    font-weight: 700 !important;
+    color: #1f2937 !important;
+}
+
+.swal-rtl .swal2-html-container {
+    text-align: right !important;
+    direction: rtl !important;
+}
+
+.swal-rtl .swal2-confirm {
+    margin-left: 0 !important;
+    margin-right: 10px !important;
+}
+
+.swal-rtl .swal2-cancel {
+    margin-right: 0 !important;
+    margin-left: 10px !important;
+}
+
+/* Gentle shake animation for checkbox */
+@keyframes gentle-shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+/* Enhanced checkbox hover effect */
+.checkbox-container:hover .checkbox-custom {
+    border-color: rgba(255, 255, 255, 0.5);
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+}
+
+/* Terms link enhanced styling */
+.terms-link {
+    color: #ffffff;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    position: relative;
+    padding: 2px 4px;
+    border-radius: 4px;
+}
+
+.terms-link:hover {
+    color: #f97316;
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-1px);
+}
 </style>
+
+<!-- SweetAlert2 CDN -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+// Additional SweetAlert configurations
+document.addEventListener('DOMContentLoaded', function() {
+    // Set default SweetAlert configurations
+    const Toast = Swal.mixin({
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+        didOpen: (toast) => {
+            toast.addEventListener('mouseenter', Swal.stopTimer)
+            toast.addEventListener('mouseleave', Swal.resumeTimer)
+        }
+    });
+
+    // Show success message when registration is successful
+    <?php if(session('success')): ?>
+        Toast.fire({
+            icon: 'success',
+            title: '<?php echo e(session('success')); ?>',
+            customClass: {
+                popup: 'swal-rtl'
+            }
+        });
+    <?php endif; ?>
+
+    // Show error messages from session
+    <?php if(session('error')): ?>
+        Swal.fire({
+            title: 'خطأ!',
+            text: '<?php echo e(session('error')); ?>',
+            icon: 'error',
+            confirmButtonText: 'حسناً',
+            confirmButtonColor: '#ef4444',
+            customClass: {
+                popup: 'swal-rtl'
+            }
+        });
+    <?php endif; ?>
+
+    // Enhanced form validation
+    const form = document.querySelector('form');
+    const inputs = form.querySelectorAll('input[required]');
+    
+    inputs.forEach(input => {
+        input.addEventListener('invalid', function(e) {
+            e.preventDefault();
+            
+            let message = '';
+            const fieldName = this.placeholder || this.name;
+            
+            if (this.validity.valueMissing) {
+                message = `يرجى ملء حقل ${fieldName}`;
+            } else if (this.validity.typeMismatch && this.type === 'email') {
+                message = 'يرجى إدخال بريد إلكتروني صحيح';
+            } else if (this.validity.tooShort) {
+                message = `${fieldName} قصير جداً`;
+            }
+            
+            Toast.fire({
+                icon: 'warning',
+                title: message,
+                customClass: {
+                    popup: 'swal-rtl'
+                }
+            });
+            
+            // Focus on the invalid input
+            this.focus();
+        });
+    });
+
+    // Password confirmation validation
+    const passwordConfirm = document.getElementById('password_confirmation');
+    const password = document.getElementById('password');
+    
+    if (passwordConfirm && password) {
+        passwordConfirm.addEventListener('blur', function() {
+            if (this.value && this.value !== password.value) {
+                Toast.fire({
+                    icon: 'warning',
+                    title: 'كلمات المرور غير متطابقة',
+                    customClass: {
+                        popup: 'swal-rtl'
+                    }
+                });
+            }
+        });
+    }
+
+    // Terms and conditions checkbox enhancement
+    const termsCheckbox = document.getElementById('terms-checkbox');
+    if (termsCheckbox) {
+        termsCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                Toast.fire({
+                    icon: 'success',
+                    title: 'شكراً لموافقتك على الشروط والأحكام',
+                    customClass: {
+                        popup: 'swal-rtl'
+                    }
+                });
+            }
+        });
+    }
+});
+
+// Show registration success with celebration
+function showRegistrationSuccess() {
+    Swal.fire({
+        title: 'تم إنشاء حسابك بنجاح! 🎉',
+        html: `
+            <div style='text-align: center; direction: rtl; font-family: Arial, sans-serif;'>
+                <div style='font-size: 64px; margin-bottom: 20px;'>🎊</div>
+                <p style='font-size: 18px; color: #10b981; margin-bottom: 15px;'>
+                    مرحباً بك في متجر ملاك!
+                </p>
+                <p style='color: #666; margin-bottom: 20px;'>
+                    يمكنك الآن تسجيل الدخول والاستمتاع بتجربة تسوق مميزة
+                </p>
+                <div style='background: #f0fdf4; padding: 15px; border-radius: 8px; border: 1px solid #bbf7d0;'>
+                    <span style='color: #166534; font-size: 14px;'>
+                        🎁 احصل على خصم 10% على أول طلبية!
+                    </span>
+                </div>
+            </div>
+        `,
+        icon: 'success',
+        confirmButtonText: 'ابدأ التسوق الآن',
+        confirmButtonColor: '#10b981',
+        customClass: {
+            popup: 'swal-rtl'
+        },
+        showClass: {
+            popup: 'animate__animated animate__jackInTheBox'
+        }
+    }).then(() => {
+        window.location.href = '<?php echo e(route('login')); ?>';
+    });
+}
+</script>
  <?php echo $__env->renderComponent(); ?>
 <?php endif; ?>
 <?php if (isset($__attributesOriginal69dc84650370d1d4dc1b42d016d7226b)): ?>

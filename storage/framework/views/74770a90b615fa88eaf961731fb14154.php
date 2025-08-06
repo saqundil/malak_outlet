@@ -213,7 +213,7 @@
         <!-- Card 1 -->
         <div class="bg-gray-50 rounded-lg overflow-hidden shadow-sm flex flex-col md:flex-row w-full">
             <div class="flex-1 flex items-center justify-center p-4">
-                <img src="<?php echo e(asset('images/shop2.png')); ?>" alt="أحذية عالمية" class="max-w-full max-h-48 object-contain">
+                <img src="<?php echo e(asset('images/pngegg.png')); ?>" alt="أحذية عالمية" class="max-w-full max-h-48 object-contain">
             </div>
             <div class="p-5 md:p-8 flex-1">
                 <span class="inline-block py-1 px-3 bg-orange-50 text-orange-500 rounded-full font-bold mb-2 md:mb-4 text-xs md:text-sm">وصل حديثًا</span>
@@ -225,7 +225,7 @@
         <!-- Card 2 -->
         <div class="bg-gray-50 rounded-lg overflow-hidden shadow-sm flex flex-col md:flex-row w-full mt-5 md:mt-0">
             <div class="flex-1 flex items-center justify-center p-4">
-                <img src="<?php echo e(asset('images/shop2.png')); ?>" alt="ألعاب تعليمية" class="max-w-full max-h-48 object-contain">
+                <img src="<?php echo e(asset('images/baby.png')); ?>" alt="ألعاب تعليمية" class="max-w-full max-h-48 object-contain">
             </div>
             <div class="p-5 md:p-8 flex-1">
                 <span class="inline-block py-1 px-3 bg-orange-50 text-orange-500 rounded-full font-bold mb-2 md:mb-4 text-xs md:text-sm">الأكثر رواجاً</span>

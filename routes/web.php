@@ -9,6 +9,7 @@ use App\Http\Controllers\PageController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\Admin\SettingsController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -81,6 +82,14 @@ Route::get('/terms', [PageController::class, 'terms'])->name('terms');
 Route::get('/returns', [PageController::class, 'returns'])->name('returns');
 Route::get('/faq', [PageController::class, 'faq'])->name('faq');
 Route::get('/contact', [PageController::class, 'contact'])->name('contact');
+
+// Admin routes (should be protected with admin middleware in production)
+Route::prefix('admin')->name('admin.')->group(function () {
+    Route::get('/settings/contact', [SettingsController::class, 'contact'])->name('settings.contact');
+    Route::put('/settings/contact', [SettingsController::class, 'updateContact'])->name('settings.contact.update');
+    Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
+    Route::put('/settings', [SettingsController::class, 'update'])->name('settings.update');
+});
 
 // Legal pages
 Route::get('/legal/terms', function () {
