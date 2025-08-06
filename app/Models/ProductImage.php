@@ -2,17 +2,34 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class ProductImage extends Model
 {
     use HasFactory;
-    protected $fillable = ['product_id', 'image_path', 'is_primary'];
 
+    protected $fillable = [
+        'product_id',
+        'image_path',
+        'is_primary',
+        'is_deleted',
+        'edit_by',
+    ];
+
+    /**
+     * العلاقة مع المنتج
+     */
     public function product()
-{
-    return $this->belongsTo(Product::class);
-}
+    {
+        return $this->belongsTo(Product::class);
+    }
 
+    /**
+     * المستخدم الذي عدّل
+     */
+    public function editor()
+    {
+        return $this->belongsTo(User::class, 'edit_by');
+    }
 }

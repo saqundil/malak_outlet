@@ -2,96 +2,122 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Category extends Model
 {
     use HasFactory;
-    protected $fillable = ['name', 'slug', 'description', 'is_active', 'parent_id', 'image'];
 
-    protected $casts = [
-        'is_active' => 'boolean',
+    protected $fillable = [
+        'name',
+        'slug',
+        'description',
+        'is_active',
+        'parent_id',
+        'image',
+        'is_deleted',
+        'edit_by',
     ];
 
-    // Scope for active categories
-    public function scopeActive($query)
-    {
-        return $query->where('is_active', true);
-    }
-
-    // Scope for main categories (no parent)
-    public function scopeMain($query)
-    {
-        return $query->whereNull('parent_id');
-    }
-
-    // Scope for subcategories (has parent)
-    public function scopeSubcategories($query)
-    {
-        return $query->whereNotNull('parent_id');
-    }
-
-    // Relationship: Parent category
+    /**
+     * الفئة الرئيسية (الأب)
+     */
     public function parent()
     {
         return $this->belongsTo(Category::class, 'parent_id');
     }
 
-    // Relationship: Child categories
+    /**
+     * الفئات الفرعية (الأبناء)
+     */
     public function children()
     {
         return $this->hasMany(Category::class, 'parent_id');
     }
 
-    // Relationship: All descendants (recursive)
-    public function descendants()
+    /**
+     * المستخدم الذي عدّل
+     */
+    public function editor()
     {
-        return $this->children()->with('descendants');
+        return $this->belongsTo(User::class, 'edit_by');
     }
 
-    // Relationship: All ancestors (going up the tree)
-    public function ancestors()
-    {
-        $ancestors = collect();
-        $parent = $this->parent;
-        
-        while ($parent) {
-            $ancestors->push($parent);
-            $parent = $parent->parent;
-        }
-        
-        return $ancestors;
-    }
-
-    // Check if this category is a root category (no parent)
-    public function isRoot()
-    {
-        return is_null($this->parent_id);
-    }
-
-    // Check if this category has children
-    public function hasChildren()
-    {
-        return $this->children()->count() > 0;
-    }
-
-    // Get the depth level of this category in the tree
-    public function getDepthLevel()
-    {
-        return $this->ancestors()->count();
-    }
-
-    // Get breadcrumb path
-    public function getBreadcrumb()
-    {
-        $breadcrumb = $this->ancestors()->reverse();
-        $breadcrumb->push($this);
-        return $breadcrumb;
-    }
-
+    /**
+     * المنتجات في هذه الفئة
+     */
     public function products()
     {
         return $this->hasMany(Product::class);
     }
+
+    /**
+     * المنتجات النشطة في هذه الفئة
+     */
+    public function activeProducts()
+    {
+        return $this->hasMany(Product::class)->active();
+    }
+
+    // Scopes
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true)->where('is_deleted', false);
+    }
+
+    public function scopeMain($query)
+    {
+        return $query->whereNull('parent_id');
+    }
+
+    public function scopeChildren($query)
+    {
+        return $query->whereNotNull('parent_id');
+    }
+
+    // Helper methods
+    public function isParent()
+    {
+        return $this->children()->count() > 0;
+    }
+
+    public function hasChildren()
+    {
+        return $this->isParent();
+    }
+
+    public function isChild()
+    {
+        return !is_null($this->parent_id);
+    }
+
+    public function getDescendants()
+    {
+        $descendants = collect();
+        foreach ($this->children as $child) {
+            $descendants->push($child);
+            $descendants = $descendants->merge($child->getDescendants());
+        }
+        return $descendants;
+    }
+
+    public function getBreadcrumb()
+    {
+        $breadcrumb = collect();
+        $current = $this;
+        
+        while ($current) {
+            $breadcrumb->prepend($current);
+            $current = $current->parent;
+        }
+        
+        return $breadcrumb;
+    }
+
+    public function discounts()
+    {
+        return $this->belongsToMany(Discount::class, 'discount_category');
+    }
+    
 }

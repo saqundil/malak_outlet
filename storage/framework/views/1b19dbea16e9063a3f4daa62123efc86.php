@@ -14,157 +14,230 @@
         </div>
 
             <div class="lg:grid lg:grid-cols-4 lg:gap-6 xl:gap-8">
-                <!-- Filters Sidebar -->
+                <!-- Modern Filters Sidebar -->
                 <div class="hidden lg:block lg:col-span-1">
-                    <div class="bg-white rounded-lg shadow-md p-4 lg:p-6 sticky top-4">
-                        <h3 class="text-lg font-semibold text-gray-900 mb-4">تصفية النتائج</h3>
+                    <div class="bg-white rounded-xl shadow-lg p-6 sticky top-4 border border-gray-100">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-xl font-bold text-gray-900">التصفية</h3>
+                            <button onclick="clearFilters()" class="text-sm text-orange-500 hover:text-orange-600 font-medium">
+                                مسح الكل
+                            </button>
+                        </div>
                         
                         <form method="GET" action="<?php echo e(route('products.index')); ?>" id="filterForm">
+                            <!-- Search Box -->
+                            <div class="mb-6">
+                                <div class="relative">
+                                    <input type="text" name="search" placeholder="ابحث في المنتجات..." 
+                                           value="<?php echo e(request('search')); ?>"
+                                           class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-sm">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                        </svg>
+                                    </div>
+                                </div>
+                            </div>
+
                             <!-- Categories Filter -->
                             <div class="mb-6">
-                                <h4 class="text-md font-medium text-gray-700 mb-3">التصنيفات</h4>
-                                <div class="space-y-2">
-                                    <label class="flex items-center">
-                                        <input type="radio" name="category" value="" class="ml-2" 
-                                               <?php echo e(request('category') == '' ? 'checked' : ''); ?>>
-                                        <span class="text-sm text-gray-600">جميع التصنيفات</span>
-                                    </label>
+                                <button type="button" onclick="toggleSection('categories')" class="w-full text-left">
+                                    <h4 class="text-lg font-semibold text-gray-800 mb-4 flex items-center justify-between hover:text-orange-600 transition-colors">
+                                        <div class="flex items-center">
+                                            <svg class="w-5 h-5 ml-2 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                                            </svg>
+                                            التصنيفات
+                                        </div>
+                                        <svg id="categories-arrow" class="w-5 h-5 text-gray-400 transform transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                        </svg>
+                                    </h4>
+                                </button>
+                                <div id="categories-content" class="space-y-3 hidden">
                                     <?php $__currentLoopData = $categories; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $category): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                    <label class="flex items-center">
-                                        <input type="radio" name="category" value="<?php echo e($category->id); ?>" class="ml-2"
-                                               <?php echo e(request('category') == $category->id ? 'checked' : ''); ?>>
-                                        <span class="text-sm text-gray-600"><?php echo e($category->name); ?></span>
-                                    </label>
+                                    <!-- Main Category -->
+                                    <div class="category-group">
+                                        <div class="flex items-center justify-between bg-orange-50 rounded-lg p-3 border border-orange-100">
+                                            <label class="flex items-center group cursor-pointer flex-1">
+                                                <input type="checkbox" name="category[]" value="<?php echo e($category->id); ?>" 
+                                                       class="w-4 h-4 text-orange-500 border-gray-300 rounded focus:ring-orange-500"
+                                                       <?php echo e(in_array($category->id, (array)request('category', [])) ? 'checked' : ''); ?>>
+                                                <span class="mr-3 text-sm font-bold text-orange-700 group-hover:text-orange-800 transition-colors"><?php echo e($category->name); ?></span>
+                                                <span class="mr-auto text-xs text-orange-600 bg-orange-200 px-2 py-1 rounded-full font-medium"><?php echo e($category->products_count); ?></span>
+                                            </label>
+                                            <?php if($category->children->count() > 0): ?>
+                                            <button type="button" onclick="toggleSubcategories('<?php echo e($category->id); ?>')" class="mr-2 p-1 hover:bg-orange-200 rounded transition-colors">
+                                                <svg id="arrow-<?php echo e($category->id); ?>" class="w-4 h-4 text-orange-600 transform transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                                </svg>
+                                            </button>
+                                            <?php endif; ?>
+                                        </div>
+                                        
+                                        <!-- Subcategories -->
+                                        <?php if($category->children->count() > 0): ?>
+                                            <div id="subcategories-<?php echo e($category->id); ?>" class="mr-6 space-y-2 mt-2 hidden">
+                                                <?php $__currentLoopData = $category->children; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $subcategory): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                <label class="flex items-center group cursor-pointer hover:bg-gray-50 rounded-lg p-2 transition-colors">
+                                                    <input type="checkbox" name="category[]" value="<?php echo e($subcategory->id); ?>" 
+                                                           class="w-4 h-4 text-orange-500 border-gray-300 rounded focus:ring-orange-500"
+                                                           <?php echo e(in_array($subcategory->id, (array)request('category', [])) ? 'checked' : ''); ?>>
+                                                    <span class="mr-3 text-sm text-gray-600 group-hover:text-orange-600 transition-colors flex items-center">
+                                                        <svg class="w-3 h-3 ml-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                                        </svg>
+                                                        <?php echo e($subcategory->name); ?>
+
+                                                    </span>
+                                                    <span class="mr-auto text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full"><?php echo e($subcategory->products_count); ?></span>
+                                                </label>
+                                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
                                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                 </div>
                             </div>
 
                             <!-- Brands Filter -->
+                            <?php if($brands->count() > 0): ?>
                             <div class="mb-6">
-                                <h4 class="text-md font-medium text-gray-700 mb-3">العلامات التجارية</h4>
-                                <div class="space-y-2">
-                                    <label class="flex items-center">
-                                        <input type="radio" name="brand" value="" class="ml-2"
-                                               <?php echo e(request('brand') == '' ? 'checked' : ''); ?>>
-                                        <span class="text-sm text-gray-600">جميع العلامات</span>
-                                    </label>
+                                <button type="button" onclick="toggleSection('brands')" class="w-full text-left">
+                                    <h4 class="text-lg font-semibold text-gray-800 mb-4 flex items-center justify-between hover:text-orange-600 transition-colors">
+                                        <div class="flex items-center">
+                                            <svg class="w-5 h-5 ml-2 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                                            </svg>
+                                            العلامات التجارية
+                                        </div>
+                                        <svg id="brands-arrow" class="w-5 h-5 text-gray-400 transform transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                        </svg>
+                                    </h4>
+                                </button>
+                                <div id="brands-content" class="space-y-3 hidden">
                                     <?php $__currentLoopData = $brands; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $brand): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                    <label class="flex items-center">
-                                        <input type="radio" name="brand" value="<?php echo e($brand->id); ?>" class="ml-2"
-                                               <?php echo e(request('brand') == $brand->id ? 'checked' : ''); ?>>
-                                        <span class="text-sm text-gray-600"><?php echo e($brand->name); ?></span>
+                                    <label class="flex items-center group cursor-pointer">
+                                        <input type="checkbox" name="brand[]" value="<?php echo e($brand->id); ?>" 
+                                               class="w-4 h-4 text-orange-500 border-gray-300 rounded focus:ring-orange-500"
+                                               <?php echo e(in_array($brand->id, (array)request('brand', [])) ? 'checked' : ''); ?>>
+                                        <span class="mr-3 text-sm text-gray-700 group-hover:text-orange-600 transition-colors"><?php echo e($brand->name); ?></span>
+                                        <span class="mr-auto text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full"><?php echo e($brand->products_count); ?></span>
                                     </label>
                                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                 </div>
                             </div>
+                            <?php endif; ?>
 
                             <!-- Price Range -->
                             <div class="mb-6">
-                                <h4 class="text-md font-medium text-gray-700 mb-3">النطاق السعري</h4>
-                                <div class="space-y-3">
-                                    <div>
-                                        <label class="block text-xs text-gray-500 mb-1">من (د.أ)</label>
-                                        <input type="number" name="min_price" placeholder="0" 
-                                               value="<?php echo e(request('min_price')); ?>"
-                                               class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <button type="button" onclick="toggleSection('price')" class="w-full text-left">
+                                    <h4 class="text-lg font-semibold text-gray-800 mb-4 flex items-center justify-between hover:text-orange-600 transition-colors">
+                                        <div class="flex items-center">
+                                            <svg class="w-5 h-5 ml-2 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                                            </svg>
+                                            النطاق السعري
+                                        </div>
+                                        <svg id="price-arrow" class="w-5 h-5 text-gray-400 transform transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                        </svg>
+                                    </h4>
+                                </button>
+                                <div id="price-content" class="bg-gray-50 rounded-lg p-4 hidden">
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label class="block text-xs text-gray-600 mb-2">من</label>
+                                            <input type="number" name="min_price" placeholder="0" 
+                                                   value="<?php echo e(request('min_price')); ?>"
+                                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500">
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs text-gray-600 mb-2">إلى</label>
+                                            <input type="number" name="max_price" placeholder="1000" 
+                                                   value="<?php echo e(request('max_price')); ?>"
+                                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500">
+                                        </div>
                                     </div>
-                                    <div>
-                                        <label class="block text-xs text-gray-500 mb-1">إلى (د.أ)</label>
-                                        <input type="number" name="max_price" placeholder="1000" 
-                                               value="<?php echo e(request('max_price')); ?>"
-                                               class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Age Group -->
-                            <div class="mb-6">
-                                <h4 class="text-md font-medium text-gray-700 mb-3">الفئة العمرية</h4>
-                                <div class="space-y-2">
-                                    <label class="flex items-center">
-                                        <input type="radio" name="age" value="" class="ml-2"
-                                               <?php echo e(request('age') == '' ? 'checked' : ''); ?>>
-                                        <span class="text-sm text-gray-600">جميع الأعمار</span>
-                                    </label>
-                                    <label class="flex items-center">
-                                        <input type="radio" name="age" value="0-2" class="ml-2"
-                                               <?php echo e(request('age') == '0-2' ? 'checked' : ''); ?>>
-                                        <span class="text-sm text-gray-600">0-2 سنة</span>
-                                    </label>
-                                    <label class="flex items-center">
-                                        <input type="radio" name="age" value="3-5" class="ml-2"
-                                               <?php echo e(request('age') == '3-5' ? 'checked' : ''); ?>>
-                                        <span class="text-sm text-gray-600">3-5 سنوات</span>
-                                    </label>
-                                    <label class="flex items-center">
-                                        <input type="radio" name="age" value="6-8" class="ml-2"
-                                               <?php echo e(request('age') == '6-8' ? 'checked' : ''); ?>>
-                                        <span class="text-sm text-gray-600">6-8 سنوات</span>
-                                    </label>
-                                    <label class="flex items-center">
-                                        <input type="radio" name="age" value="9+" class="ml-2"
-                                               <?php echo e(request('age') == '9+' ? 'checked' : ''); ?>>
-                                        <span class="text-sm text-gray-600">9+ سنوات</span>
-                                    </label>
+                                    <div class="mt-3 text-xs text-gray-500 text-center">د.أ</div>
                                 </div>
                             </div>
 
                             <!-- Special Options -->
                             <div class="mb-6">
-                                <h4 class="text-md font-medium text-gray-700 mb-3">خيارات خاصة</h4>
-                                <div class="space-y-2">
-                                    <label class="flex items-center">
-                                        <input type="checkbox" name="featured" value="1" class="ml-2"
+                                <button type="button" onclick="toggleSection('special')" class="w-full text-left">
+                                    <h4 class="text-lg font-semibold text-gray-800 mb-4 flex items-center justify-between hover:text-orange-600 transition-colors">
+                                        <div class="flex items-center">
+                                            <svg class="w-5 h-5 ml-2 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path>
+                                            </svg>
+                                            خيارات خاصة
+                                        </div>
+                                        <svg id="special-arrow" class="w-5 h-5 text-gray-400 transform transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                        </svg>
+                                    </h4>
+                                </button>
+                                <div id="special-content" class="space-y-3 hidden">
+                                    <label class="flex items-center group cursor-pointer">
+                                        <input type="checkbox" name="featured" value="1" 
+                                               class="w-4 h-4 text-orange-500 border-gray-300 rounded focus:ring-orange-500"
                                                <?php echo e(request('featured') ? 'checked' : ''); ?>>
-                                        <span class="text-sm text-gray-600">منتجات مميزة</span>
+                                        <span class="mr-3 text-sm text-gray-700 group-hover:text-orange-600 transition-colors">منتجات مميزة</span>
                                     </label>
-                                    <label class="flex items-center">
-                                        <input type="checkbox" name="in_stock" value="1" class="ml-2"
+                                    <label class="flex items-center group cursor-pointer">
+                                        <input type="checkbox" name="in_stock" value="1" 
+                                               class="w-4 h-4 text-orange-500 border-gray-300 rounded focus:ring-orange-500"
                                                <?php echo e(request('in_stock') ? 'checked' : ''); ?>>
-                                        <span class="text-sm text-gray-600">متوفر في المخزن</span>
+                                        <span class="mr-3 text-sm text-gray-700 group-hover:text-orange-600 transition-colors">متوفر في المخزن</span>
+                                    </label>
+                                    <label class="flex items-center group cursor-pointer">
+                                        <input type="checkbox" name="on_sale" value="1" 
+                                               class="w-4 h-4 text-orange-500 border-gray-300 rounded focus:ring-orange-500"
+                                               <?php echo e(request('on_sale') ? 'checked' : ''); ?>>
+                                        <span class="mr-3 text-sm text-gray-700 group-hover:text-orange-600 transition-colors">منتجات بخصم</span>
                                     </label>
                                 </div>
                             </div>
 
-                            <!-- Sizes Filter (Only show if there are products with sizes) -->
+                            <!-- Sizes Filter -->
                             <?php if(!empty($availableSizes)): ?>
                             <div class="mb-6">
-                                <h4 class="text-md font-medium text-gray-700 mb-3">
-                                    <i class="fas fa-ruler-horizontal ml-1 text-orange-500"></i>
-                                    مقاسات الأحذية المتاحة
-                                </h4>
-                                <div class="grid grid-cols-3 gap-2">
+                                <button type="button" onclick="toggleSection('sizes')" class="w-full text-left">
+                                    <h4 class="text-lg font-semibold text-gray-800 mb-4 flex items-center justify-between hover:text-orange-600 transition-colors">
+                                        <div class="flex items-center">
+                                            <svg class="w-5 h-5 ml-2 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zM21 5a2 2 0 00-2-2h-4a2 2 0 00-2 2v12a4 4 0 004 4h4a2 2 0 002-2V5z"></path>
+                                            </svg>
+                                            المقاسات
+                                        </div>
+                                        <svg id="sizes-arrow" class="w-5 h-5 text-gray-400 transform transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                        </svg>
+                                    </h4>
+                                </button>
+                                <div id="sizes-content" class="grid grid-cols-4 gap-2 hidden">
                                     <?php $__currentLoopData = $availableSizes; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $size => $count): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                        <label class="flex items-center justify-center cursor-pointer">
-                                            <input type="checkbox" name="sizes[]" value="<?php echo e($size); ?>" class="hidden size-checkbox"
+                                        <label class="relative cursor-pointer">
+                                            <input type="checkbox" name="sizes[]" value="<?php echo e($size); ?>" class="sr-only size-checkbox"
                                                    <?php echo e(in_array($size, request('sizes', [])) ? 'checked' : ''); ?>>
-                                            <span class="size-button w-full text-center py-2 px-2 text-xs font-medium border border-gray-300 rounded-lg transition-all duration-200 hover:border-orange-300
-                                                  <?php echo e(in_array($size, request('sizes', [])) ? 'bg-orange-500 text-white border-orange-500' : 'bg-white text-gray-700'); ?>">
+                                            <div class="size-button w-full text-center py-2 px-1 text-xs font-medium border-2 rounded-lg transition-all duration-200 hover:border-orange-300
+                                                  <?php echo e(in_array($size, request('sizes', [])) ? 'bg-orange-500 text-white border-orange-500' : 'bg-white text-gray-700 border-gray-300'); ?>">
                                                 <div class="font-bold"><?php echo e($size); ?></div>
                                                 <div class="text-xs opacity-75">(<?php echo e($count); ?>)</div>
-                                            </span>
+                                            </div>
                                         </label>
                                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                                </div>
-                                
-                                <!-- Popular sizes indicator -->
-                                <div class="mt-3 text-center">
-                                    <div class="inline-flex items-center text-xs text-gray-500">
-                                        <i class="fas fa-star text-yellow-400 ml-1"></i>
-                                        <span>المقاسات الشائعة للأطفال: 32، 33، 34، 35</span>
-                                    </div>
                                 </div>
                             </div>
                             <?php endif; ?>
 
-                            <!-- Filter Buttons -->
+                            <!-- Apply Filters Button -->
                             <div class="space-y-3">
-                                <button type="submit" class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition duration-200">
+                                <button type="submit" class="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-3 px-4 rounded-lg font-semibold hover:from-orange-600 hover:to-orange-700 transition duration-200 transform hover:scale-105 shadow-lg">
                                     تطبيق التصفية
                                 </button>
-                                <a href="<?php echo e(route('products.index')); ?>" class="w-full bg-gray-200 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-300 transition duration-200 text-center block">
-                                    إعادة تعيين
-                                </a>
                             </div>
                         </form>
                     </div>
@@ -182,19 +255,42 @@
                         </button>
                     </div>
 
-                    <!-- Sort Options -->
-                    <div class="bg-white rounded-lg shadow-md p-4 mb-4 lg:mb-6">
+                    <!-- Modern Sort Options -->
+                    <div class="bg-white rounded-xl shadow-lg p-4 mb-6 border border-gray-100">
                         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-3 sm:space-y-0">
                             <div class="flex items-center space-x-4 space-x-reverse">
-                                <span class="text-sm text-gray-600">ترتيب حسب:</span>
-                                <select name="sort" onchange="this.form.submit()" form="filterForm" class="border border-gray-300 rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                    <option value="newest" <?php echo e(request('sort') == 'newest' ? 'selected' : ''); ?>>الأحدث</option>
-                                    <option value="price_low" <?php echo e(request('sort') == 'price_low' ? 'selected' : ''); ?>>السعر: من الأقل للأعلى</option>
-                                    <option value="price_high" <?php echo e(request('sort') == 'price_high' ? 'selected' : ''); ?>>السعر: من الأعلى للأقل</option>
-                                    <option value="name" <?php echo e(request('sort') == 'name' ? 'selected' : ''); ?>>الاسم</option>
-                                </select>
+                                <span class="text-sm font-medium text-gray-700">ترتيب حسب:</span>
+                                <div class="relative">
+                                    <select name="sort" onchange="this.form.submit()" form="filterForm" 
+                                            class="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500">
+                                        <option value="newest" <?php echo e(request('sort') == 'newest' ? 'selected' : ''); ?>>الأحدث</option>
+                                        <option value="price_low" <?php echo e(request('sort') == 'price_low' ? 'selected' : ''); ?>>السعر: من الأقل للأعلى</option>
+                                        <option value="price_high" <?php echo e(request('sort') == 'price_high' ? 'selected' : ''); ?>>السعر: من الأعلى للأقل</option>
+                                        <option value="name" <?php echo e(request('sort') == 'name' ? 'selected' : ''); ?>>الاسم</option>
+                                        <option value="popularity" <?php echo e(request('sort') == 'popularity' ? 'selected' : ''); ?>>الأكثر شعبية</option>
+                                    </select>
+                                    <div class="absolute inset-y-0 left-0 flex items-center pl-2 pointer-events-none">
+                                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                        </svg>
+                                    </div>
+                                </div>
                             </div>
-                            <span class="text-sm text-gray-600"><?php echo e($products->total()); ?> منتج</span>
+                            <div class="flex items-center space-x-3 space-x-reverse">
+                                <span class="text-sm text-gray-600"><?php echo e($products->total()); ?> منتج</span>
+                                <div class="flex items-center space-x-2 space-x-reverse">
+                                    <button onclick="toggleViewMode('grid')" id="grid-view" class="view-toggle p-2 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors active">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
+                                        </svg>
+                                    </button>
+                                    <button onclick="toggleViewMode('list')" id="list-view" class="view-toggle p-2 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -203,7 +299,7 @@
                     <?php $__currentLoopData = $products; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $product): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition duration-300 group">
                             <div class="relative">
-                                <a href="<?php echo e(route('products.show', $product->id)); ?>">
+                                <a href="<?php echo e(route('products.show', $product->slug)); ?>">
                                     <?php if($product->images->first()): ?>
                                         <img src="<?php echo e($product->images->first()->image_url); ?>" 
                                              alt="<?php echo e($product->name); ?>" 
@@ -224,11 +320,11 @@
                                 <?php endif; ?>
                                 
                                 <div class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition duration-300">
-                                    <button class="bg-white p-2 rounded-full shadow-lg hover:bg-gray-100 text-gray-600 add-to-wishlist-btn <?php echo e(in_array($product->id, $wishlistProductIds) ? 'is-in-wishlist text-red-500' : ''); ?>"
-                                            data-product-id="<?php echo e($product->id); ?>"
-                                            title="<?php echo e(in_array($product->id, $wishlistProductIds) ? 'موجود في قائمة الأمنيات' : 'إضافة إلى قائمة الأمنيات'); ?>">
+                                    <button class="bg-white p-2 rounded-full shadow-lg hover:bg-gray-100 text-gray-600 add-to-wishlist-btn <?php echo e(in_array($product->slug, $wishlistProductIds) ? 'is-in-wishlist text-red-500' : ''); ?>"
+                                            data-product-id="<?php echo e($product->slug); ?>"
+                                            title="<?php echo e(in_array($product->slug, $wishlistProductIds) ? 'موجود في قائمة الأمنيات' : 'إضافة إلى قائمة الأمنيات'); ?>">
                                         <svg class="w-4 h-4" 
-                                             fill="<?php echo e(in_array($product->id, $wishlistProductIds) ? 'currentColor' : 'none'); ?>" 
+                                             fill="<?php echo e(in_array($product->slug, $wishlistProductIds) ? 'currentColor' : 'none'); ?>" 
                                              stroke="currentColor" 
                                              viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
@@ -239,7 +335,7 @@
                             
                             <div class="p-3 sm:p-4">
                                 <div class="text-right">
-                                    <a href="<?php echo e(route('products.show', $product->id)); ?>">
+                                    <a href="<?php echo e(route('products.show', $product->slug)); ?>">
                                         <h3 class="font-semibold text-base sm:text-lg mb-1 text-gray-800 hover:text-orange-600 transition duration-200 line-clamp-2"><?php echo e($product->name); ?></h3>
                                     </a>
                                     <?php if($product->brand): ?>
@@ -273,27 +369,25 @@
                                         </div>
                                     <?php endif; ?>
                                     
-                                    <div class="flex items-center justify-between gap-2">
-                                        <?php if($product->stock_quantity > 0): ?>
-                                            <?php if($product->sizes && $product->sizes->count() > 0): ?>
-                                                <!-- Shoes with sizes - redirect to product page -->
-                                                <a href="<?php echo e(route('products.show', $product->id)); ?>" 
-                                                   class="bg-orange-500 text-white px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm hover:bg-orange-600 transition duration-300 flex-shrink-0 text-center">
-                                                    اختر المقاس
-                                                </a>
-                                            <?php else: ?>
-                                                <!-- Regular products without sizes -->
-                                                <button onclick="addToCart(<?php echo e($product->id); ?>)" 
-                                                        class="add-to-cart-btn bg-orange-500 text-white px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm hover:bg-orange-600 transition duration-300 flex-shrink-0">
-                                                    <span class="btn-text">أضف للسلة</span>
-                                                    <span class="loading-text hidden">جاري...</span>
-                                                </button>
-                                            <?php endif; ?>
-                                        <?php else: ?>
-                                            <span class="text-xs text-red-500 bg-red-50 px-2 py-1 rounded flex-shrink-0">غير متوفر</span>
-                                        <?php endif; ?>
-                                        
-                                        <a href="<?php echo e(route('products.show', $product->id)); ?>" 
+                    <div class="flex items-center justify-between gap-2">
+                        <?php if($product->quantity > 0 && $product->status == 'in_stock'): ?>
+                            <?php if($product->sizes && $product->sizes->count() > 0): ?>
+                                <!-- Shoes with sizes - redirect to product page -->
+                                <a href="<?php echo e(route('products.show', $product->slug)); ?>" 
+                                   class="bg-orange-500 text-white px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm hover:bg-orange-600 transition duration-300 flex-shrink-0 text-center">
+                                    اختر المقاس
+                                </a>
+                            <?php else: ?>
+                                <!-- Regular products without sizes -->
+                                <button onclick="addToCart(<?php echo e($product->slug); ?>)" 
+                                        class="add-to-cart-btn bg-orange-500 text-white px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm hover:bg-orange-600 transition duration-300 flex-shrink-0">
+                                    <span class="btn-text">أضف للسلة</span>
+                                    <span class="loading-text hidden">جاري...</span>
+                                </button>
+                            <?php endif; ?>
+                        <?php else: ?>
+                            <span class="text-xs text-red-500 bg-red-50 px-2 py-1 rounded flex-shrink-0">غير متوفر</span>
+                        <?php endif; ?>                                        <a href="<?php echo e(route('products.show', $product->slug)); ?>" 
                                            class="text-orange-500 hover:text-orange-600 text-xs sm:text-sm font-medium flex-shrink-0">
                                             عرض التفاصيل
                                         </a>
@@ -325,63 +419,160 @@
 <div id="mobileFilters" class="fixed inset-0 z-50 hidden">
     <div class="fixed inset-0 bg-black bg-opacity-50" onclick="toggleMobileFilters()"></div>
     <div class="fixed right-0 top-0 h-full w-80 max-w-full bg-white shadow-lg transform translate-x-full transition-transform duration-300" id="mobileFiltersPanel">
-        <div class="flex justify-between items-center p-4 border-b">
-            <h3 class="text-lg font-semibold">تصفية النتائج</h3>
-            <button onclick="toggleMobileFilters()" class="text-gray-500 hover:text-gray-700">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="flex justify-between items-center p-4 border-b border-gray-200">
+            <h3 class="text-lg font-bold text-gray-900">تصفية المنتجات</h3>
+            <button onclick="toggleMobileFilters()" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                 </svg>
             </button>
         </div>
-        <div class="p-4 overflow-y-auto h-full pb-20">
-            <!-- Copy of the filter form for mobile -->
-            <form method="GET" action="<?php echo e(route('products.index')); ?>">
-                <!-- Mobile version of all filters (same as desktop) -->
-                <!-- Categories -->
-                <div class="mb-6">
-                    <h4 class="text-md font-medium text-gray-700 mb-3">التصنيفات</h4>
-                    <div class="space-y-2">
-                        <label class="flex items-center">
-                            <input type="radio" name="category" value="" class="ml-2" 
-                                   <?php echo e(request('category') == '' ? 'checked' : ''); ?>>
-                            <span class="text-sm text-gray-600">جميع التصنيفات</span>
-                        </label>
-                        <?php $__currentLoopData = $categories; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $category): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                        <label class="flex items-center">
-                            <input type="radio" name="category" value="<?php echo e($category->id); ?>" class="ml-2"
-                                   <?php echo e(request('category') == $category->id ? 'checked' : ''); ?>>
-                            <span class="text-sm text-gray-600"><?php echo e($category->name); ?></span>
-                        </label>
-                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+        <div class="flex flex-col h-full">
+            <div class="flex-1 overflow-y-auto p-4">
+                <form method="GET" action="<?php echo e(route('products.index')); ?>" id="mobileFilterForm">
+                    <!-- Mobile Search -->
+                    <div class="mb-6">
+                        <div class="relative">
+                            <input type="text" name="search" value="<?php echo e(request('search')); ?>" 
+                                   placeholder="ابحث عن منتج..." 
+                                   class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                </svg>
+                            </div>
+                        </div>
                     </div>
-                </div>
-                
-                <!-- Brands -->
-                <div class="mb-6">
-                    <h4 class="text-md font-medium text-gray-700 mb-3">العلامات التجارية</h4>
-                    <div class="space-y-2">
-                        <label class="flex items-center">
-                            <input type="radio" name="brand" value="" class="ml-2"
-                                   <?php echo e(request('brand') == '' ? 'checked' : ''); ?>>
-                            <span class="text-sm text-gray-600">جميع العلامات</span>
-                        </label>
-                        <?php $__currentLoopData = $brands; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $brand): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                        <label class="flex items-center">
-                            <input type="radio" name="brand" value="<?php echo e($brand->id); ?>" class="ml-2"
-                                   <?php echo e(request('brand') == $brand->id ? 'checked' : ''); ?>>
-                            <span class="text-sm text-gray-600"><?php echo e($brand->name); ?></span>
-                        </label>
-                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+
+                    <!-- Mobile Categories -->
+                    <div class="mb-6">
+                        <button type="button" onclick="toggleMobileSection('mobile-categories')" class="w-full text-left">
+                            <div class="flex items-center space-x-3 space-x-reverse mb-4">
+                                <div class="p-2 bg-gradient-to-r from-orange-500 to-pink-500 rounded-lg">
+                                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14-7H3m16 14H3"></path>
+                                    </svg>
+                                </div>
+                                <h4 class="text-lg font-bold text-gray-900">التصنيفات</h4>
+                                <svg id="mobile-categories-arrow" class="w-5 h-5 text-gray-400 transform transition-transform duration-200 mr-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </div>
+                        </button>
+                        <div id="mobile-categories-content" class="space-y-3 hidden">
+                            <?php $__currentLoopData = $categories; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $category): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <!-- Mobile Main Category -->
+                            <label class="flex items-center p-3 bg-orange-50 hover:bg-orange-100 rounded-xl transition-colors cursor-pointer border border-orange-100">
+                                <input type="checkbox" name="category[]" value="<?php echo e($category->id); ?>" 
+                                       <?php echo e(in_array($category->id, (array)request('category', [])) ? 'checked' : ''); ?>
+
+                                       class="w-4 h-4 text-orange-500 border-gray-300 rounded focus:ring-orange-500 focus:ring-2">
+                                <span class="mr-3 text-orange-700 font-bold"><?php echo e($category->name); ?></span>
+                                <span class="mr-auto text-sm text-orange-600 bg-orange-200 px-2 py-1 rounded-full font-medium"><?php echo e($category->products_count); ?></span>
+                            </label>
+                            
+                            <!-- Mobile Subcategories -->
+                            <?php if($category->children->count() > 0): ?>
+                                <div class="mr-6 space-y-2">
+                                    <?php $__currentLoopData = $category->children; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $subcategory): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <label class="flex items-center p-2 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer">
+                                        <input type="checkbox" name="category[]" value="<?php echo e($subcategory->id); ?>" 
+                                               <?php echo e(in_array($subcategory->id, (array)request('category', [])) ? 'checked' : ''); ?>
+
+                                               class="w-4 h-4 text-orange-500 border-gray-300 rounded focus:ring-orange-500 focus:ring-2">
+                                        <span class="mr-3 text-gray-600 font-medium flex items-center">
+                                            <svg class="w-3 h-3 ml-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                            </svg>
+                                            <?php echo e($subcategory->name); ?>
+
+                                        </span>
+                                        <span class="mr-auto text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded-full"><?php echo e($subcategory->products_count); ?></span>
+                                    </label>
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                </div>
+                            <?php endif; ?>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                        </div>
                     </div>
-                </div>
-                
-                <!-- Apply button for mobile -->
-                <div class="mt-6">
-                    <button type="submit" class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition duration-200">
-                        تطبيق التصفية
+
+                    <!-- Mobile Brands -->
+                    <?php if($brands->count() > 0): ?>
+                    <div class="mb-6">
+                        <button type="button" onclick="toggleMobileSection('mobile-brands')" class="w-full text-left">
+                            <div class="flex items-center space-x-3 space-x-reverse mb-4">
+                                <div class="p-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg">
+                                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                                    </svg>
+                                </div>
+                                <h4 class="text-lg font-bold text-gray-900">العلامات التجارية</h4>
+                                <svg id="mobile-brands-arrow" class="w-5 h-5 text-gray-400 transform transition-transform duration-200 mr-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </div>
+                        </button>
+                        <div id="mobile-brands-content" class="space-y-3 hidden">
+                            <?php $__currentLoopData = $brands; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $brand): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <label class="flex items-center p-3 hover:bg-gray-50 rounded-xl transition-colors cursor-pointer">
+                                <input type="checkbox" name="brand[]" value="<?php echo e($brand->id); ?>" 
+                                       <?php echo e(in_array($brand->id, (array)request('brand', [])) ? 'checked' : ''); ?>
+
+                                       class="w-4 h-4 text-orange-500 border-gray-300 rounded focus:ring-orange-500 focus:ring-2">
+                                <span class="mr-3 text-gray-700 font-medium"><?php echo e($brand->name); ?></span>
+                                <span class="mr-auto text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded-full"><?php echo e($brand->products_count); ?></span>
+                            </label>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                        </div>
+                    </div>
+                    <?php endif; ?>
+
+                    <!-- Mobile Price Range -->
+                    <div class="mb-6">
+                        <button type="button" onclick="toggleMobileSection('mobile-price')" class="w-full text-left">
+                            <div class="flex items-center space-x-3 space-x-reverse mb-4">
+                                <div class="p-2 bg-gradient-to-r from-green-500 to-teal-500 rounded-lg">
+                                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                                    </svg>
+                                </div>
+                                <h4 class="text-lg font-bold text-gray-900">نطاق السعر</h4>
+                                <svg id="mobile-price-arrow" class="w-5 h-5 text-gray-400 transform transition-transform duration-200 mr-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </div>
+                        </button>
+                        <div id="mobile-price-content" class="grid grid-cols-2 gap-3 hidden">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">السعر الأدنى</label>
+                                <input type="number" name="min_price" value="<?php echo e(request('min_price')); ?>" 
+                                       placeholder="0" min="0" 
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">السعر الأعلى</label>
+                                <input type="number" name="max_price" value="<?php echo e(request('max_price')); ?>" 
+                                       placeholder="1000" min="0" 
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500">
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Mobile Filter Actions -->
+            <div class="border-t border-gray-200 p-4">
+                <div class="grid grid-cols-2 gap-3">
+                    <button type="button" onclick="clearFilters()" 
+                            class="w-full py-3 px-4 border border-gray-300 rounded-xl text-gray-700 font-medium hover:bg-gray-50 transition-colors">
+                        مسح الكل
+                    </button>
+                    <button type="submit" form="mobileFilterForm" 
+                            class="w-full py-3 px-4 bg-gradient-to-r from-orange-500 to-pink-500 text-white font-bold rounded-xl hover:from-orange-600 hover:to-pink-600 transition-all transform hover:scale-105 shadow-lg">
+                        تطبيق
                     </button>
                 </div>
-            </form>
+            </div>
         </div>
     </div>
 </div>
@@ -618,7 +809,92 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
+// Clear all filters function
+function clearFilters() {
+    window.location.href = '<?php echo e(route("products.index")); ?>';
+}
+
+// Toggle filter sections
+function toggleSection(sectionName) {
+    const content = document.getElementById(sectionName + '-content');
+    const arrow = document.getElementById(sectionName + '-arrow');
+    
+    if (content.classList.contains('hidden')) {
+        content.classList.remove('hidden');
+        arrow.classList.add('rotate-180');
+    } else {
+        content.classList.add('hidden');
+        arrow.classList.remove('rotate-180');
+    }
+}
+
+// Toggle mobile filter sections
+function toggleMobileSection(sectionName) {
+    const content = document.getElementById(sectionName + '-content');
+    const arrow = document.getElementById(sectionName + '-arrow');
+    
+    if (content.classList.contains('hidden')) {
+        content.classList.remove('hidden');
+        arrow.classList.add('rotate-180');
+    } else {
+        content.classList.add('hidden');
+        arrow.classList.remove('rotate-180');
+    }
+}
+
+// Toggle subcategories
+function toggleSubcategories(categoryId) {
+    const content = document.getElementById('subcategories-' + categoryId);
+    const arrow = document.getElementById('arrow-' + categoryId);
+    
+    if (content.classList.contains('hidden')) {
+        content.classList.remove('hidden');
+        arrow.classList.add('rotate-180');
+    } else {
+        content.classList.add('hidden');
+        arrow.classList.remove('rotate-180');
+    }
+}
+
+// View mode toggle functionality
+function toggleViewMode(mode) {
+    const gridView = document.getElementById('grid-view');
+    const listView = document.getElementById('list-view');
+    const productGrid = document.querySelector('.grid');
+    
+    if (mode === 'grid') {
+        gridView.classList.add('active', 'bg-orange-500', 'text-white');
+        gridView.classList.remove('border-gray-300', 'hover:bg-gray-50');
+        listView.classList.remove('active', 'bg-orange-500', 'text-white');
+        listView.classList.add('border-gray-300', 'hover:bg-gray-50');
+        
+        // Update grid layout
+        productGrid.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6';
+    } else {
+        listView.classList.add('active', 'bg-orange-500', 'text-white');
+        listView.classList.remove('border-gray-300', 'hover:bg-gray-50');
+        gridView.classList.remove('active', 'bg-orange-500', 'text-white');
+        gridView.classList.add('border-gray-300', 'hover:bg-gray-50');
+        
+        // Update grid layout for list view
+        productGrid.className = 'grid grid-cols-1 gap-4';
+    }
+    
+    // Store preference in localStorage
+    localStorage.setItem('viewMode', mode);
+}
+
+// Load saved view mode on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const savedViewMode = localStorage.getItem('viewMode') || 'grid';
+    toggleViewMode(savedViewMode);
+});
 </script>
 <?php $__env->stopSection(); ?>
+
+
+
+
 
 <?php echo $__env->make('layouts.main', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH C:\wamp64\www\Malak_E_commers\malak_outlet\resources\views/products/index.blade.php ENDPATH**/ ?>

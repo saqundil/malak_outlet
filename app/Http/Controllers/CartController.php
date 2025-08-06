@@ -60,25 +60,40 @@ class CartController extends Controller
         return view('cart.index', compact('cartItems', 'total'));
     }
 
-    public function add(Request $request, $productId)
+    public function add(Request $request, $productIdentifier)
     {
-        $product = Product::findOrFail($productId);
+        // Try to find product by ID first, then by slug
+        $product = null;
+        if (is_numeric($productIdentifier)) {
+            $product = Product::find($productIdentifier);
+        }
+        
+        if (!$product) {
+            $product = Product::where('slug', $productIdentifier)->first();
+        }
+        
+        if (!$product) {
+            return response()->json([
+                'success' => false,
+                'message' => 'المنتج غير موجود'
+            ], 404);
+        }
         $quantity = $request->input('quantity', 1);
         $sizeId = $request->input('size_id');
 
         $cart = $this->getCartFromCookie();
         
         // Create unique cart key including size
-        $cartKey = $productId;
+        $cartKey = $product->id;
         if ($sizeId) {
-            $cartKey = $productId . '_size_' . $sizeId;
+            $cartKey = $product->id . '_size_' . $sizeId;
         }
         
         if (isset($cart[$cartKey])) {
             $cart[$cartKey]['quantity'] += $quantity;
         } else {
             $cart[$cartKey] = [
-                'product_id' => $productId,
+                'product_id' => $product->id,
                 'quantity' => $quantity,
                 'size_id' => $sizeId
             ];

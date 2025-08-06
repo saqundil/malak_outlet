@@ -121,8 +121,14 @@
     <!-- Footer Component -->
     <?php echo $__env->make('components.footer', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
     
+    <!-- Cart Helper Script -->
+    <script src="<?php echo e(asset('js/cart-helper.js')); ?>"></script>
     <?php echo $__env->yieldPushContent('scripts'); ?>
     
     
 </body>
-</html><?php /**PATH C:\wamp64\www\Malak_E_commers\malak_outlet\resources\views/layouts/main.blade.php ENDPATH**/ ?>
+</html>
+
+
+
+<?php /**PATH C:\wamp64\www\Malak_E_commers\malak_outlet\resources\views/layouts/main.blade.php ENDPATH**/ ?>

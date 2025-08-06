@@ -14,22 +14,22 @@ class CategoryController extends Controller
         $mainCategories = Category::main()
             ->active()
             ->with(['children' => function($query) {
-                $query->active()->withCount('products');
+                $query->active()->withCount('activeProducts');
             }])
-            ->withCount('products')
+            ->withCount('activeProducts')
             ->get();
             
         return view('categories.index', compact('mainCategories'));
     }
 
-    public function show($id)
+    public function show($slug)
     {
-        $category = Category::active()->findOrFail($id);
+        $category = Category::active()->where('slug', $slug)->firstOrFail();
         
         // Get products for this category and all its subcategories
-        $categoryIds = [$id];
+        $categoryIds = [$category->id];
         if ($category->hasChildren()) {
-            $categoryIds = array_merge($categoryIds, $category->descendants()->pluck('id')->toArray());
+            $categoryIds = array_merge($categoryIds, $category->getDescendants()->pluck('id')->toArray());
         }
         
         $products = Product::whereIn('category_id', $categoryIds)
@@ -41,7 +41,7 @@ class CategoryController extends Controller
         $breadcrumb = $category->getBreadcrumb();
         
         // Get subcategories if this is a main category
-        $subcategories = $category->children()->active()->withCount('products')->get();
+        $subcategories = $category->children()->active()->withCount('activeProducts')->get();
             
         return view('categories.show', compact('category', 'products', 'breadcrumb', 'subcategories'));
     }

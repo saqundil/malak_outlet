@@ -35,17 +35,27 @@ class FavoriteController extends Controller
 
         $productId = $productId ?? $request->product_id;
 
+        // Find product by ID or slug
+        if (is_numeric($productId)) {
+            $product = Product::find($productId);
+        } else {
+            $product = Product::where('slug', $productId)->first();
+        }
+
         // Check if product exists
-        if (!Product::find($productId)) {
+        if (!$product) {
             return response()->json([
                 'success' => false,
                 'message' => 'المنتج غير موجود'
             ], 404);
         }
 
+        // Use the actual product ID for the favorite record
+        $actualProductId = $product->id;
+
         $favorite = Favorite::firstOrCreate([
             'user_id' => Auth::id(),
-            'product_id' => $productId
+            'product_id' => $actualProductId
         ]);
 
         $wasRecentlyCreated = $favorite->wasRecentlyCreated;
@@ -63,16 +73,26 @@ class FavoriteController extends Controller
 
     public function destroy($productId)
     {
+        // Find product by ID or slug
+        if (is_numeric($productId)) {
+            $product = Product::find($productId);
+        } else {
+            $product = Product::where('slug', $productId)->first();
+        }
+
         // Check if product exists
-        if (!Product::find($productId)) {
+        if (!$product) {
             return response()->json([
                 'success' => false,
                 'message' => 'المنتج غير موجود'
             ], 404);
         }
 
+        // Use the actual product ID for the favorite record
+        $actualProductId = $product->id;
+
         $deleted = Favorite::where('user_id', Auth::id())
-            ->where('product_id', $productId)
+            ->where('product_id', $actualProductId)
             ->delete();
             
         // Get updated wishlist count

@@ -44,7 +44,7 @@
                     <select name="category" class="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-orange-500" onchange="this.form.submit()">
                         <option value="">جميع الفئات</option>
                         @foreach(\App\Models\Category::where('is_active', true)->get() as $category)
-                            <option value="{{ $category->id }}" {{ request('category') == $category->id ? 'selected' : '' }}>
+                            <option value="{{ $category->slug }}" {{ request('category') == $category->slug ? 'selected' : '' }}>
                                 {{ $category->name }}
                             </option>
                         @endforeach
@@ -87,7 +87,7 @@
             @foreach($products as $product)
                 <div class="group product-card bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden border border-gray-100 hover:border-orange-200 transform hover:-translate-y-2">
                     <div class="relative overflow-hidden">
-                        <a href="{{ route('products.show', $product->id) }}" class="block">
+                        <a href="{{ route('products.show', $product->slug) }}" class="block">
                             <div class="h-56 md:h-64 relative overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
                                 @if($product->images->first())
                                     <img src="{{ $product->images->first()->image_path }}" alt="{{ $product->name }}" 
@@ -121,7 +121,7 @@
                     </div>
                     
                     <div class="p-5">
-                        <a href="{{ route('products.show', $product->id) }}" class="block">
+                        <a href="{{ route('products.show', $product->slug) }}" class="block">
                             <!-- Category and Brand -->
                             <div class="flex items-center justify-between mb-3">
                                 @if($product->category)
@@ -169,7 +169,7 @@
                         
                         <!-- Action Button -->
                         <button class="add-to-cart-btn w-full btn-gradient text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl {{ $product->stock_quantity <= 0 ? 'opacity-50 cursor-not-allowed' : '' }}"
-                                data-product-id="{{ $product->id }}"
+                                data-product-id="{{ $product->slug }}"
                                 {{ $product->stock_quantity <= 0 ? 'disabled' : '' }}>
                             {{ $product->stock_quantity <= 0 ? 'نفذت الكمية' : 'أضف للسلة' }}
                         </button>
@@ -304,3 +304,7 @@ function showNotification(message, type = 'success') {
 }
 </script>
 @endsection
+
+
+
+

@@ -89,7 +89,7 @@
                     @foreach($products as $product)
                         <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition duration-300 group">
                             <div class="relative">
-                                <a href="{{ route('products.show', $product->id) }}">
+                                <a href="{{ route('products.show', $product->slug) }}">
                                     @if($product->images->first())
                                         <img src="{{ $product->images->first()->image_url }}" 
                                              alt="{{ $product->name }}" 
@@ -120,7 +120,7 @@
                             
                             <div class="p-4">
                                 <div class="text-right">
-                                    <a href="{{ route('products.show', $product->id) }}">
+                                    <a href="{{ route('products.show', $product->slug) }}">
                                         <h3 class="font-semibold text-lg mb-1 text-gray-800 hover:text-orange-600 transition duration-200">{{ $product->name }}</h3>
                                     </a>
                                     @if($product->brand)
@@ -137,8 +137,8 @@
                                     </div>
                                     
                                     <div class="flex items-center justify-between">
-                                        @if($product->stock_quantity > 0)
-                                            <button onclick="addToCart({{ $product->id }})" 
+                                        @if($product->quantity > 0 && $product->status == 'in_stock')
+                                            <button onclick="addToCart({{ $product->slug }})" 
                                                     class="add-to-cart-btn bg-orange-500 text-white px-3 py-2 rounded-lg text-sm hover:bg-orange-600 transition duration-300">
                                                 <span class="btn-text">أضف للسلة</span>
                                                 <span class="loading-text hidden">جاري...</span>
@@ -147,7 +147,7 @@
                                             <span class="text-xs text-red-500 bg-red-50 px-2 py-1 rounded">غير متوفر</span>
                                         @endif
                                         
-                                        <a href="{{ route('products.show', $product->id) }}" 
+                                        <a href="{{ route('products.show', $product->slug) }}" 
                                            class="text-orange-500 hover:text-orange-600 text-sm font-medium">
                                             عرض التفاصيل
                                         </a>
@@ -285,3 +285,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 @endsection
+
+
+
+

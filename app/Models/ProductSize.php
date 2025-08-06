@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class ProductSize extends Model
 {
@@ -17,16 +17,13 @@ class ProductSize extends Model
         'stock_quantity',
         'additional_price',
         'is_available',
-        'is_popular'
-    ];
-
-    protected $casts = [
-        'additional_price' => 'decimal:2',
-        'is_available' => 'boolean',
+        'is_popular',
+        'is_deleted',
+        'edit_by',
     ];
 
     /**
-     * العلاقة مع Product
+     * العلاقة مع المنتج
      */
     public function product()
     {
@@ -34,19 +31,10 @@ class ProductSize extends Model
     }
 
     /**
-     * Scope للأحجام المتاحة
+     * المستخدم الذي عدّل الحجم
      */
-    public function scopeAvailable($query)
+    public function editor()
     {
-        return $query->where('is_available', true)->where('stock_quantity', '>', 0);
-    }
-
-    /**
-     * احصل على السعر الإجمالي للحجم
-     */
-    public function getTotalPriceAttribute()
-    {
-        $basePrice = $this->product->sale_price ?? $this->product->price;
-        return $basePrice + $this->additional_price;
+        return $this->belongsTo(User::class, 'edit_by');
     }
 }

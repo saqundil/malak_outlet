@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\CartController;
 
 /*
 |--------------------------------------------------------------------------
@@ -21,3 +22,6 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 // Search suggestions API
 Route::get('/search-suggestions', [ProductController::class, 'searchSuggestions'])->name('api.search.suggestions');
+
+// Cart API endpoints
+Route::get('/cart/count', [CartController::class, 'getCount'])->name('api.cart.count');

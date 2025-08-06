@@ -22,4 +22,8 @@ $classes = ($active ?? false)
     <?php echo e($slot); ?>
 
 </a>
+
+
+
+
 <?php /**PATH C:\wamp64\www\Malak_E_commers\malak_outlet\resources\views/components/responsive-nav-link.blade.php ENDPATH**/ ?>

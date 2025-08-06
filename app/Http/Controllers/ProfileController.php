@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Http\Controllers\CartController;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -22,14 +23,16 @@ class ProfileController extends Controller
         $stats = [
             'total_orders' => $user->orders()->count(),
             'pending_orders' => $user->orders()->where('status', 'pending')->count(),
-            'completed_orders' => $user->orders()->where('status', 'completed')->count(),
-            'wishlist_count' => $user->wishlistItems()->count(),
-            'total_spent' => $user->orders()->where('status', 'completed')->sum('total_amount'),
+            'completed_orders' => $user->orders()->where('status', 'delivered')->count(),
+            'wishlist_count' => $user->favorites()->count(),
+            'total_spent' => $user->orders()->where('status', 'delivered')->sum('total_amount'),
         ];
         
-        // Get cart count from cookie
-        $cart = json_decode($request->cookie('cart', '[]'), true);
-        $stats['cart_count'] = array_sum($cart);
+        // Get cart count from cookies
+        $cartController = app(CartController::class);
+        $cartJson = request()->cookie('shopping_cart', '[]');
+        $cart = json_decode($cartJson, true) ?: [];
+        $stats['cart_count'] = array_sum(array_column($cart, 'quantity'));
         
         // Get recent orders (last 5)
         $recentOrders = $user->orders()

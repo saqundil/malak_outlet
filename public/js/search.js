@@ -84,11 +84,19 @@ function searchBox() {
             }, 200);
         },
         
-        // Handle form submission
+        // Handle form submission - redirect to products page with search
         submitSearch() {
             if (this.query.trim()) {
-                window.location.href = `/search?q=${encodeURIComponent(this.query)}`;
+                this.showSuggestions = false;
+                this.redirectToProductsPage();
             }
+        },
+
+        // Redirect to products page with search filter
+        redirectToProductsPage() {
+            const searchParams = new URLSearchParams();
+            searchParams.set('search', this.query.trim());
+            window.location.href = `/products?${searchParams.toString()}`;
         }
     }
 }
@@ -179,11 +187,24 @@ function mobileSearchBox() {
             }, 200);
         },
         
-        // Handle form submission
+        // Handle form submission - redirect to products page with search
         submitSearch() {
             if (this.query.trim()) {
-                window.location.href = `/search?q=${encodeURIComponent(this.query)}`;
+                this.showSuggestions = false;
+                this.redirectToProductsPage();
             }
+        },
+
+        // Redirect to products page with search filter
+        redirectToProductsPage() {
+            const searchParams = new URLSearchParams();
+            searchParams.set('search', this.query.trim());
+            window.location.href = `/products?${searchParams.toString()}`;
         }
     }
 }
+
+// Initialize search functionality when DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Search functionality initialized');
+});

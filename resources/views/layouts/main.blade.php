@@ -121,8 +121,13 @@
     <!-- Footer Component -->
     @include('components.footer')
     
+    <!-- Cart Helper Script -->
+    <script src="{{ asset('js/cart-helper.js') }}"></script>
     @stack('scripts')
     
     
 </body>
 </html>
+
+
+

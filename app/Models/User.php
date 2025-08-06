@@ -22,7 +22,8 @@ class User extends Authenticatable
         'email',
         'password',
         'phone',
-        'date_of_birth',
+        'is_admin',
+        ''
     ];
 
     /**
@@ -44,29 +45,25 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
         'date_of_birth' => 'date',
+        'is_admin' => 'boolean',
     ];
-
-    /**
-     * Get the user's wishlist items (favorites).
-     */
-    public function wishlistItems()
-    {
-        return $this->hasMany(Favorite::class);
-    }
-
-    /**
-     * Get the user's favorite products.
-     */
-    public function favoriteProducts()
-    {
-        return $this->belongsToMany(Product::class, 'favorites');
-    }
 
     /**
      * Get the user's orders.
      */
     public function orders()
     {
-        return $this->hasMany(\App\Models\Order::class);
+        return $this->hasMany(Order::class);
+    }
+    
+    public function favorites()
+    {
+        return $this->hasMany(Favorite::class);
+    }
+    
+    public function favoriteProducts()
+    {
+        return $this->belongsToMany(Product::class, 'favorites');
     }
 }
+

@@ -51,22 +51,27 @@ Route::middleware('auth')->group(function () {
     // Checkout routes
     Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
     Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
-    Route::get('/checkout/success', [CheckoutController::class, 'success'])->name('checkout.success');
+    Route::get('/checkout/success/{orderNumber}', [CheckoutController::class, 'success'])->name('checkout.success');
 });
 
 Route::get('/products', [ProductController::class, 'index'])->name('products.index');
 Route::get('/products/category/{slug}', [ProductController::class, 'category'])->name('products.category');
-Route::get('/products/{id}', [ProductController::class, 'show'])->name('products.show');
+Route::get('/products/{id}', [ProductController::class, 'showById'])->where('id', '[0-9]+')->name('products.show.id');
+Route::get('/products/{slug}', [ProductController::class, 'show'])->name('products.show');
 Route::get('/search', [ProductController::class, 'search'])->name('search');
 
+// API Routes for search suggestions
+Route::get('/api/search-suggestions', [ProductController::class, 'searchSuggestions'])->name('api.search.suggestions');
+Route::get('/api/search-results', [ProductController::class, 'searchResults'])->name('api.search.results');
+
 Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
-Route::get('/categories/{id}', [CategoryController::class, 'show'])->name('categories.show');
+Route::get('/categories/{slug}', [CategoryController::class, 'show'])->name('categories.show');
 
 Route::get('/cart', [CartController::class, 'index'])->name('cart');
-Route::post('/cart/add/{productId}', [CartController::class, 'add'])->name('cart.add');
+Route::post('/cart/add/{productIdentifier}', [CartController::class, 'add'])->name('cart.add');
 Route::post('/cart/update/{productId}', [CartController::class, 'update'])->name('cart.update');
 Route::delete('/cart/remove/{productId}', [CartController::class, 'remove'])->name('cart.remove');
-Route::delete('/cart/clear', [CartController::class, 'clear'])->name('cart.clear');
+Route::post('/cart/clear', [CartController::class, 'clear'])->name('cart.clear');
 Route::get('/cart/count', [CartController::class, 'getCount'])->name('cart.count');
 
 Route::get('/about', [PageController::class, 'about'])->name('about');
@@ -76,5 +81,14 @@ Route::get('/terms', [PageController::class, 'terms'])->name('terms');
 Route::get('/returns', [PageController::class, 'returns'])->name('returns');
 Route::get('/faq', [PageController::class, 'faq'])->name('faq');
 Route::get('/contact', [PageController::class, 'contact'])->name('contact');
+
+// Legal pages
+Route::get('/legal/terms', function () {
+    return view('legal.terms');
+})->name('legal.terms');
+
+Route::get('/legal/privacy', function () {
+    return view('legal.privacy');
+})->name('legal.privacy');
 
 require __DIR__.'/auth.php';

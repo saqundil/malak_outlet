@@ -292,7 +292,7 @@
                 @foreach($featuredProducts->take(8) as $product)
             <div class="group product-card bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden border border-gray-100 hover:border-orange-200 transform hover:-translate-y-2 relative card-shine">
                 <div class="relative overflow-hidden">
-                    <a href="{{ route('products.show', $product->id) }}" class="block">
+                    <a href="{{ route('products.show', $product->slug) }}" class="block">
                         <div class="h-56 md:h-64 relative overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
                             @if($product->images->first())
                                 <img src="{{ $product->images->first()->image_path }}" alt="{{ $product->name }}" 
@@ -343,7 +343,7 @@
                 </div>
                 
                 <div class="p-5">
-                    <a href="{{ route('products.show', $product->id) }}" class="block">
+                    <a href="{{ route('products.show', $product->slug) }}" class="block">
                         <!-- Category and Brand -->
                         <div class="flex items-center justify-between mb-3">
                             @if($product->category)
@@ -427,7 +427,7 @@
                     <!-- Action Buttons -->
                     <div class="flex space-x-3 space-x-reverse">
                         <button class="add-to-cart-btn flex-1 btn-gradient text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed {{ $product->stock_quantity <= 0 ? 'opacity-50 cursor-not-allowed' : '' }}"
-                                data-product-id="{{ $product->id }}"
+                                data-product-id="{{ $product->slug }}"
                                 {{ $product->stock_quantity <= 0 ? 'disabled' : '' }}>
                             <span class="btn-text flex items-center justify-center">
                                 <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -443,11 +443,11 @@
                             </span>
                         </button>
                         
-                        <button class="bg-gray-100 text-gray-600 p-3 rounded-lg hover:bg-orange-50 hover:text-orange-600 transition-colors duration-200 group add-to-wishlist-btn {{ in_array($product->id, $wishlistProductIds) ? 'is-in-wishlist text-red-500' : '' }}"
-                                data-product-id="{{ $product->id }}"
-                                title="{{ in_array($product->id, $wishlistProductIds) ? 'موجود في قائمة الأمنيات' : 'إضافة إلى قائمة الأمنيات' }}">
+                        <button class="bg-gray-100 text-gray-600 p-3 rounded-lg hover:bg-orange-50 hover:text-orange-600 transition-colors duration-200 group add-to-wishlist-btn {{ in_array($product->slug, $wishlistProductIds) ? 'is-in-wishlist text-red-500' : '' }}"
+                                data-product-id="{{ $product->slug }}"
+                                title="{{ in_array($product->slug, $wishlistProductIds) ? 'موجود في قائمة الأمنيات' : 'إضافة إلى قائمة الأمنيات' }}">
                             <svg class="w-5 h-5 group-hover:scale-110 transition-transform" 
-                                 fill="{{ in_array($product->id, $wishlistProductIds) ? 'currentColor' : 'none' }}" 
+                                 fill="{{ in_array($product->slug, $wishlistProductIds) ? 'currentColor' : 'none' }}" 
                                  stroke="currentColor" 
                                  viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
@@ -511,7 +511,7 @@
                 @foreach($latestProducts->take(10) as $product)
                     <div class="group bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 hover:border-orange-200 transform hover:-translate-y-1">
                         <div class="relative">
-                            <a href="{{ route('products.show', $product->id) }}" class="block">
+                            <a href="{{ route('products.show', $product->slug) }}" class="block">
                                 <div class="h-40 md:h-48 relative overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
                                     @if($product->images->first())
                                         <img src="{{ $product->images->first()->image_path }}" alt="{{ $product->name }}" 
@@ -535,7 +535,7 @@
                         </div>
                         
                         <div class="p-3">
-                            <a href="{{ route('products.show', $product->id) }}">
+                            <a href="{{ route('products.show', $product->slug) }}">
                                 <h3 class="text-sm font-bold text-gray-800 mb-2 line-clamp-2 group-hover:text-orange-600 transition-colors">
                                     {{ Str::limit($product->name, 40) }}
                                 </h3>
@@ -550,7 +550,7 @@
                                     @endif
                                     
                                     <button class="add-to-cart-btn bg-orange-500 text-white p-2 rounded-lg hover:bg-orange-600 transition-colors text-xs"
-                                            data-product-id="{{ $product->id }}">
+                                            data-product-id="{{ $product->slug }}">
                                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                                         </svg>
@@ -648,7 +648,7 @@
                         </div>
                         
                         <div class="relative">
-                            <a href="{{ route('products.show', $product->id) }}" class="block">
+                            <a href="{{ route('products.show', $product->slug) }}" class="block">
                                 <div class="h-56 relative overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
                                     @if($product->images->first())
                                         <img src="{{ $product->images->first()->image_path }}" alt="{{ $product->name }}" 
@@ -672,7 +672,7 @@
                         </div>
                         
                         <div class="p-4">
-                            <a href="{{ route('products.show', $product->id) }}">
+                            <a href="{{ route('products.show', $product->slug) }}">
                                 <h3 class="text-base font-bold text-gray-800 mb-3 line-clamp-2 group-hover:text-orange-600 transition-colors">
                                     {{ $product->name }}
                                 </h3>
@@ -708,7 +708,7 @@
                             
                             <!-- Action Button -->
                             <button class="add-to-cart-btn w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold py-2 px-4 rounded-lg hover:from-orange-600 hover:to-orange-700 transition-all duration-200"
-                                    data-product-id="{{ $product->id }}">
+                                    data-product-id="{{ $product->slug }}">
                                 <span class="btn-text">أضف للسلة</span>
                             </button>
                         </div>
@@ -743,7 +743,7 @@
                 @foreach($saleProducts->take(8) as $product)
                     <div class="group bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border border-red-100 hover:border-red-300 transform hover:-translate-y-2 relative">
                         <div class="relative">
-                            <a href="{{ route('products.show', $product->id) }}" class="block">
+                            <a href="{{ route('products.show', $product->slug) }}" class="block">
                                 <div class="h-56 relative overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
                                     @if($product->images->first())
                                         <img src="{{ $product->images->first()->image_path }}" alt="{{ $product->name }}" 
@@ -768,7 +768,7 @@
                         </div>
                         
                         <div class="p-4">
-                            <a href="{{ route('products.show', $product->id) }}">
+                            <a href="{{ route('products.show', $product->slug) }}">
                                 <h3 class="text-base font-bold text-gray-800 mb-3 line-clamp-2 group-hover:text-orange-600 transition-colors">
                                     {{ $product->name }}
                                 </h3>
@@ -787,7 +787,7 @@
                             
                             <!-- Action Button -->
                             <button class="add-to-cart-btn w-full bg-gradient-to-r from-red-500 to-red-600 text-white font-bold py-3 px-4 rounded-lg hover:from-red-600 hover:to-red-700 transition-all duration-200 shadow-lg"
-                                    data-product-id="{{ $product->id }}">
+                                    data-product-id="{{ $product->slug }}">
                                 <span class="btn-text flex items-center justify-center">
                                     <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 2.5M7 13l2.5 2.5m6 0L18 18H9m6 0a2 2 0 11-4 0m4 0a2 2 0 11-4 0m4 0h2a2 2 0 002-2V6a2 2 0 00-2-2H4a2 2 0 00-2 2v6a2 2 0 002 2z"></path>
@@ -1096,3 +1096,7 @@ function showNotification(message, type = 'success') {
 }
 </script>
 @endsection
+
+
+
+

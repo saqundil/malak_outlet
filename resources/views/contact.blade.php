@@ -5,14 +5,14 @@
 @section('content')
 <div class="min-h-screen bg-gray-50" dir="rtl">
     <!-- Header Section -->
-    <div class="bg-gradient-to-r from-green-600 to-teal-600 text-white py-16">
+    <div class="py-10">
         <div class="container mx-auto px-4 text-center">
             <h1 class="text-4xl md:text-5xl font-bold mb-4">اتصل بنا</h1>
             <p class="text-xl opacity-90">نحن هنا لمساعدتك في أي استفسار</p>
         </div>
     </div>
 
-    <div class="container mx-auto px-4 py-16">
+    <div class="container mx-auto px-4 py-10">
         <div class="max-w-6xl mx-auto">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
                 <!-- Contact Form -->
@@ -218,3 +218,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 @endsection
+
+
+
+

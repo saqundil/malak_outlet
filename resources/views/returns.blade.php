@@ -5,14 +5,14 @@
 @section('content')
 <div class="min-h-screen bg-gray-50" dir="rtl">
     <!-- Header Section -->
-    <div class="bg-gradient-to-r from-green-600 to-teal-600 text-white py-16">
+    <div class="py-10">
         <div class="container mx-auto px-4 text-center">
             <h1 class="text-4xl md:text-5xl font-bold mb-4">سياسة الإرجاع والاستبدال</h1>
             <p class="text-xl opacity-90">نسعى لضمان رضاك الكامل عن مشترياتك</p>
         </div>
     </div>
 
-    <div class="container mx-auto px-4 py-16">
+    <div class="container mx-auto px-4 py-10">
         <div class="max-w-4xl mx-auto">
             <!-- Quick Summary -->
             <div class="bg-white rounded-xl shadow-lg p-8 mb-8">
@@ -260,3 +260,7 @@
     </div>
 </div>
 @endsection
+
+
+
+

@@ -2,10 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Order extends Model
 {
@@ -28,98 +26,102 @@ class Order extends Model
         'delivered_at',
         'cancelled_at',
         'cancellation_reason',
+        'is_deleted',
+        'edit_by',
     ];
 
     protected $casts = [
-        'shipped_at' => 'datetime',
-        'delivered_at' => 'datetime',
-        'cancelled_at' => 'datetime',
         'subtotal' => 'decimal:2',
         'shipping_cost' => 'decimal:2',
         'tax_amount' => 'decimal:2',
         'total_amount' => 'decimal:2',
+        'shipped_at' => 'datetime',
+        'delivered_at' => 'datetime',
+        'cancelled_at' => 'datetime',
+        'is_deleted' => 'boolean',
     ];
 
     /**
-     * Generate unique order number
+     * العلاقة مع المستخدم
      */
-    public static function generateOrderNumber(): string
+    public function user()
     {
-        $prefix = 'ORD-' . date('Y') . '-';
-        $lastOrder = self::where('order_number', 'like', $prefix . '%')
-                         ->orderBy('id', 'desc')
-                         ->first();
-        
-        if ($lastOrder) {
-            $lastNumber = (int) substr($lastOrder->order_number, strlen($prefix));
-            $newNumber = str_pad($lastNumber + 1, 3, '0', STR_PAD_LEFT);
-        } else {
-            $newNumber = '001';
-        }
-        
-        return $prefix . $newNumber;
+        return $this->belongsTo(User::class);
     }
 
     /**
-     * Get status in Arabic
+     * المستخدم الذي عدّل الطلب
      */
-    public function getStatusArabicAttribute(): string
+    public function editor()
     {
-        $statuses = [
-            'pending' => 'قيد المراجعة',
-            'confirmed' => 'مؤكد',
-            'processing' => 'قيد التجهيز',
-            'shipped' => 'تم الشحن',
-            'delivered' => 'تم التسليم',
-            'cancelled' => 'ملغى',
-        ];
-
-        return $statuses[$this->status] ?? 'غير محدد';
+        return $this->belongsTo(User::class, 'edit_by');
     }
 
     /**
-     * Get status badge class
+     * العناصر المرتبطة بالطلب
      */
-    public function getStatusBadgeClassAttribute(): string
+    public function items()
     {
-        $classes = [
-            'pending' => 'bg-yellow-100 text-yellow-800',
-            'confirmed' => 'bg-blue-100 text-blue-800',
-            'processing' => 'bg-purple-100 text-purple-800',
-            'shipped' => 'bg-indigo-100 text-indigo-800',
-            'delivered' => 'bg-green-100 text-green-800',
-            'cancelled' => 'bg-red-100 text-red-800',
-        ];
+        return $this->hasMany(OrderItem::class);
+    }
 
-        return $classes[$this->status] ?? 'bg-gray-100 text-gray-800';
+    /**
+     * Generate a unique order number
+     */
+    public static function generateOrderNumber()
+    {
+        do {
+            $orderNumber = 'ORD-' . date('Y') . '-' . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
+        } while (self::where('order_number', $orderNumber)->exists());
+
+        return $orderNumber;
     }
 
     /**
      * Check if order can be cancelled
      */
-    public function canBeCancelled(): bool
+    public function canBeCancelled()
     {
-        return in_array($this->status, ['pending', 'confirmed']);
+        return in_array($this->status, ['pending', 'confirmed']) && !$this->is_deleted;
     }
 
     /**
      * Check if order can be edited
      */
-    public function canBeEdited(): bool
+    public function canBeEdited()
     {
-        return in_array($this->status, ['pending']);
+        return $this->status === 'pending' && !$this->is_deleted;
     }
 
     /**
-     * Relationships
+     * Get the order status in Arabic
      */
-    public function user(): BelongsTo
+    public function getStatusArabicAttribute()
     {
-        return $this->belongsTo(User::class);
+        $statuses = [
+            'pending' => 'في الانتظار',
+            'confirmed' => 'مؤكد',
+            'processing' => 'قيد التحضير',
+            'shipped' => 'تم الشحن',
+            'delivered' => 'تم التسليم',
+            'cancelled' => 'ملغي',
+        ];
+
+        return $statuses[$this->status] ?? $this->status;
     }
 
-    public function items(): HasMany
+    /**
+     * Get the payment status in Arabic
+     */
+    public function getPaymentStatusArabicAttribute()
     {
-        return $this->hasMany(OrderItem::class);
+        $statuses = [
+            'pending' => 'في الانتظار',
+            'paid' => 'مدفوع',
+            'failed' => 'فشل الدفع',
+            'refunded' => 'مسترد',
+        ];
+
+        return $statuses[$this->payment_status] ?? $this->payment_status;
     }
 }

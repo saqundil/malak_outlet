@@ -2,9 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class ProductReview extends Model
 {
@@ -15,79 +14,32 @@ class ProductReview extends Model
         'user_id',
         'rating',
         'comment',
-        'is_approved'
-    ];
-
-    protected $casts = [
-        'is_approved' => 'boolean',
-        'rating' => 'integer'
+        'is_approved',
+        'is_deleted',
+        'edit_by',
     ];
 
     /**
-     * Get the product that this review belongs to
+     * العلاقة مع المنتج
      */
-    public function product(): BelongsTo
+    public function product()
     {
         return $this->belongsTo(Product::class);
     }
 
     /**
-     * Get the user who wrote this review
+     * العلاقة مع المستخدم
      */
-    public function user(): BelongsTo
+    public function user()
     {
         return $this->belongsTo(User::class);
     }
 
     /**
-     * Scope to get only approved reviews
+     * المستخدم الذي عدّل التقييم
      */
-    public function scopeApproved($query)
+    public function editor()
     {
-        return $query->where('is_approved', true);
-    }
-
-    /**
-     * Get the review author's first name initial
-     */
-    public function getAuthorInitialAttribute(): string
-    {
-        return mb_substr($this->user->name, 0, 1);
-    }
-
-    /**
-     * Get formatted time ago
-     */
-    public function getTimeAgoAttribute(): string
-    {
-        $diffInDays = $this->created_at->diffInDays();
-        
-        if ($diffInDays == 0) {
-            return 'اليوم';
-        } elseif ($diffInDays == 1) {
-            return 'أمس';
-        } elseif ($diffInDays < 7) {
-            return "منذ {$diffInDays} أيام";
-        } elseif ($diffInDays < 30) {
-            $weeks = floor($diffInDays / 7);
-            return $weeks == 1 ? 'منذ أسبوع' : "منذ {$weeks} أسابيع";
-        } else {
-            $months = floor($diffInDays / 30);
-            return $months == 1 ? 'منذ شهر' : "منذ {$months} أشهر";
-        }
-    }
-
-    /**
-     * Get star rating as HTML
-     */
-    public function getStarRatingAttribute(): string
-    {
-        $fullStars = $this->rating;
-        $emptyStars = 5 - $fullStars;
-        
-        $stars = str_repeat('<i class="fas fa-star"></i>', $fullStars);
-        $stars .= str_repeat('<i class="far fa-star"></i>', $emptyStars);
-        
-        return $stars;
+        return $this->belongsTo(User::class, 'edit_by');
     }
 }

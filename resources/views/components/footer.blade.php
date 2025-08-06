@@ -4,35 +4,7 @@
         <div class="absolute inset-0" style="background-image: url('data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\"><circle cx=\"50\" cy=\"50\" r=\"2\" fill=\"white\"/></svg>'); background-size: 50px 50px;"></div>
     </div>
     
-    <!-- Newsletter Section -->
-    <div class="bg-gradient-to-r from-orange-500 to-orange-600 py-12 relative">
-        <div class="container mx-auto px-4 md:px-10 relative z-10">
-            <div class="flex flex-col lg:flex-row items-center justify-between">
-                <div class="text-center lg:text-right mb-6 lg:mb-0 lg:flex-1">
-                    <h2 class="text-2xl md:text-3xl font-bold text-white mb-3">
-                        🚀 ابق على اطلاع بآخر العروض!
-                    </h2>
-                    <p class="text-orange-100 text-lg">احصل على عروض حصرية ومنتجات جديدة مباشرة إلى بريدك الإلكتروني</p>
-                </div>
-                <div class="w-full lg:w-2/5">
-                    <form class="flex flex-col sm:flex-row gap-3">
-                        <input type="email" placeholder="أدخل بريدك الإلكتروني..." 
-                               class="flex-1 py-4 px-6 rounded-xl border-0 text-gray-800 placeholder-gray-500 outline-none focus:ring-4 focus:ring-orange-300 transition-all duration-200 text-right" />
-                        <button type="submit" class="bg-white text-orange-600 font-bold py-4 px-8 rounded-xl hover:bg-gray-100 transform hover:scale-105 transition-all duration-200 shadow-lg flex items-center justify-center">
-                            <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
-                            </svg>
-                            اشترك الآن
-                        </button>
-                    </form>
-                    <p class="text-orange-200 text-sm mt-3 text-center">لا تقلق، لن نرسل لك رسائل مزعجة</p>
-                </div>
-            </div>
-        </div>
-        <!-- Decorative Elements -->
-        <div class="absolute top-0 left-0 w-32 h-32 bg-white opacity-5 rounded-full -translate-x-16 -translate-y-16"></div>
-        <div class="absolute bottom-0 right-0 w-24 h-24 bg-white opacity-5 rounded-full translate-x-12 translate-y-12"></div>
-    </div>
+  
 
     <!-- Main Footer Content -->
     <div class="py-16 px-4 md:px-10 relative z-10">
@@ -45,7 +17,7 @@
                         <img src="{{ asset('images/malak.png') }}" alt="MalakOutlet Logo" class="w-16 h-16 ml-4" />
                         <div>
                             <h3 class="text-2xl font-bold text-white">MalakOutlet</h3>
-                            <p class="text-orange-400 text-sm">متجر الألعاب الأول في الأردن</p>
+                                                        <p class="text-orange-400 text-sm">متجر الألعاب الأول في الأردن</p>
                         </div>
                     </div>
                     <p class="text-gray-300 text-base leading-relaxed mb-6 max-w-md">
@@ -90,7 +62,6 @@
         </svg>
     </a>
 </div>
-
                 </div>
 
                 <!-- Quick Links -->
@@ -99,7 +70,7 @@
                         <svg class="w-6 h-6 ml-3 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
                         </svg>
-                        روابط مهمة
+                                                روابط مهمة
                     </h3>
                     <ul class="space-y-3">
                         <li>
@@ -162,9 +133,12 @@
                         الفئات الرئيسية
                     </h3>
                     <ul class="space-y-3">
-                        @foreach(App\Models\Category::where('is_active', true)->take(5)->get() as $category)
+                        @php
+                            $mainCategories = App\Models\Category::whereNull('parent_id')->where('is_active', true)->get();
+                        @endphp
+                        @foreach($mainCategories as $category)
                         <li>
-                            <a href="{{ route('products.category', $category->slug) }}" class="text-gray-300 hover:text-orange-400 transition-colors duration-200 flex items-center group">
+                            <a href="{{ route('products.index', ['category' => $category->id]) }}" class="text-gray-300 hover:text-orange-400 transition-colors duration-200 flex items-center group">
                                 <svg class="w-4 h-4 ml-2 text-orange-400 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                                 </svg>
@@ -172,55 +146,48 @@
                             </a>
                         </li>
                         @endforeach
+                        <li>
+                            <a href="{{ route('products.index') }}" class="text-gray-300 hover:text-orange-400 transition-colors duration-200 flex items-center group">
+                                <svg class="w-4 h-4 ml-2 text-orange-400 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                </svg>
+                                جميع المنتجات
+                            </a>
+                        </li>
                     </ul>
-                </div>
-            </div>
-
-            <!-- Contact Information -->
-            <div class="bg-gradient-to-r from-gray-800 to-gray-700 rounded-2xl p-8 mb-8">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="text-center md:text-right">
-                        <div class="bg-orange-500 w-16 h-16 rounded-full flex items-center justify-center mx-auto md:mx-0 mb-4">
-                            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                            </svg>
-                        </div>
-                        <h4 class="text-lg font-semibold text-white mb-2">العنوان</h4>
-                        <p class="text-gray-300">الأردن - عمان<br>شفابدران - دوار التطبيقية</p>
-                    </div>
-                    
-                    <div class="text-center md:text-right">
-                        <div class="bg-orange-500 w-16 h-16 rounded-full flex items-center justify-center mx-auto md:mx-0 mb-4">
-                            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
-                            </svg>
-                        </div>
-                        <h4 class="text-lg font-semibold text-white mb-2">الهاتف</h4>
-                        <p class="text-gray-300" dir="ltr">+962 79 004 35 81</p>
-                    </div>
-                    
-                    <div class="text-center md:text-right">
-                        <div class="bg-orange-500 w-16 h-16 rounded-full flex items-center justify-center mx-auto md:mx-0 mb-4">
-                            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-                            </svg>
-                        </div>
-                        <h4 class="text-lg font-semibold text-white mb-2">البريد الإلكتروني</h4>
-                        <p class="text-gray-300">info@MalakOutlet.com</p>
-                    </div>
                 </div>
             </div>
 
             <!-- Bottom Section -->
             <div class="border-t border-gray-700 pt-8">
-                <div class="flex flex-col md:flex-row justify-between items-center">
-                    <div class="text-center md:text-right mb-4 md:mb-0">
+                <div class="flex flex-col lg:flex-row justify-between items-center space-y-4 lg:space-y-0">
+                    <div class="text-center lg:text-right">
                         <p class="text-gray-400">© 2025 MalakOutlet. جميع الحقوق محفوظة.</p>
                         <p class="text-gray-500 text-sm mt-1">صُنع بـ ❤️ في الأردن</p>
                     </div>
                     
-                   
+                    <!-- Compact Contact Information -->
+                    <div class="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-6 md:space-x-reverse text-sm">
+                        <div class="flex items-center text-gray-400">
+                            <svg class="w-4 h-4 ml-2 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                            <span>عمان، الأردن</span>
+                        </div>
+                        <div class="flex items-center text-gray-400" dir="ltr">
+                            <svg class="w-4 h-4 ml-2 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+                            </svg>
+                            <span>+962 79 004 35 81</span>
+                        </div>
+                        <div class="flex items-center text-gray-400">
+                            <svg class="w-4 h-4 ml-2 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                            </svg>
+                            <span>info@MalakOutlet.com</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

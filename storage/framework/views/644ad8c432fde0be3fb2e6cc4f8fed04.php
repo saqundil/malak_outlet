@@ -82,7 +82,7 @@
  <div x-show="showSizeGuide" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0"
         x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200"
         x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 z-50 overflow-y-auto"
-        x-cloak>
+        x-cloak style="display: none;">
         <div class="flex items-center justify-center min-h-screen px-4">
             <div class="fixed inset-0 bg-black opacity-50" @click="showSizeGuide = false"></div>
 
@@ -225,14 +225,6 @@
                                     <?php echo e(number_format((($product->price - $product->sale_price) / $product->price) * 100, 0)); ?>%
                                 </div>
                             <?php endif; ?>
-
-                            <!-- Stock Badge -->
-                            <?php if($product->stock_quantity <= 5 && $product->stock_quantity > 0): ?>
-                                <div
-                                    class="absolute top-4 left-4 bg-orange-500 text-white px-3 py-1 rounded-full text-sm font-bold">
-                                    بقي <?php echo e($product->stock_quantity); ?> فقط!
-                                </div>
-                            <?php endif; ?>
                         </div>
 
                         <!-- Thumbnail Gallery -->
@@ -299,27 +291,6 @@
 
                                         د.أ</span>
                                     <span class="text-sm text-gray-500">السعر شامل الضريبة</span>
-                                </div>
-                            <?php endif; ?>
-                        </div>
-
-                        <!-- Stock & Availability -->
-                        <div class="mb-8">
-                            <?php if($product->stock_quantity > 0): ?>
-                                <div class="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-xl">
-                                    <i class="fas fa-check-circle text-green-600 text-xl"></i>
-                                    <div>
-                                        <p class="font-semibold text-green-800">متوفر في المخزن</p>
-                                        <p class="text-sm text-green-600"><?php echo e($product->stock_quantity); ?> قطعة متاحة</p>
-                                    </div>
-                                </div>
-                            <?php else: ?>
-                                <div class="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-xl">
-                                    <i class="fas fa-times-circle text-red-600 text-xl"></i>
-                                    <div>
-                                        <p class="font-semibold text-red-800">غير متوفر حالياً</p>
-                                        <p class="text-sm text-red-600">سيتم إشعارك عند التوفر</p>
-                                    </div>
                                 </div>
                             <?php endif; ?>
                         </div>
@@ -465,23 +436,23 @@
                             <div class="mb-8 p-6 bg-white rounded-xl border">
                                 <div class="flex items-center gap-4 mb-6">
                                     <label class="text-lg font-semibold text-gray-700">الكمية:</label>
-                                    <div class="flex items-center border-2 border-gray-200 rounded-xl overflow-hidden">
+                                    <div class="flex items-center border-2 border-gray-300 rounded-lg overflow-hidden bg-white">
                                         <button type="button"
-                                            class="quantity-btn-minus px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors border-r border-gray-200">
-                                            <i class="fas fa-minus text-gray-600"></i>
+                                            class="quantity-btn-minus px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors border-l border-gray-300 flex items-center justify-center">
+                                            <span class="text-gray-600 font-bold text-lg">-</span>
                                         </button>
                                         <input type="number" id="quantity" value="1" min="1"
                                             max="<?php echo e($product->stock_quantity); ?>"
-                                            class="w-20 text-center py-3 border-0 focus:ring-0 focus:outline-none text-lg font-semibold">
+                                            class="w-20 text-center py-3 border-0 focus:ring-0 focus:outline-none text-lg font-semibold bg-white">
                                         <button type="button"
-                                            class="quantity-btn-plus px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors border-l border-gray-200">
-                                            <i class="fas fa-plus text-gray-600"></i>
+                                            class="quantity-btn-plus px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors border-r border-gray-300 flex items-center justify-center">
+                                            <span class="text-gray-600 font-bold text-lg">+</span>
                                         </button>
                                     </div>
                                 </div>
 
                                 <div class="space-y-4">
-                                    <button data-product-id="<?php echo e($product->id); ?>"
+                                    <button data-product-id="<?php echo e($product->slug); ?>"
                                         class="add-to-cart-main w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-4 px-6 rounded-xl font-bold text-lg hover:from-orange-600 hover:to-orange-700 transition-all duration-300 transform hover:scale-105 shadow-lg add-to-cart-btn">
                                         <i class="fas fa-shopping-cart ml-2"></i>
                                         <span class="btn-text">أضف إلى السلة</span>
@@ -490,7 +461,7 @@
                                         </span>
                                     </button>
 
-                                    <button data-product-id="<?php echo e($product->id); ?>"
+                                    <button data-product-id="<?php echo e($product->slug); ?>"
                                         class="add-to-wishlist-btn w-full border-2 py-4 px-6 rounded-xl font-bold text-lg transition-all duration-300 <?php echo e($isInWishlist ? 'border-red-500 text-red-500 bg-red-50' : 'border-orange-500 text-orange-500 hover:bg-orange-50'); ?>"
                                         title="<?php echo e($isInWishlist ? 'إزالة من المفضلة' : 'أضف إلى المفضلة'); ?>">
                                         <i class="fas fa-heart ml-2 <?php echo e($isInWishlist ? 'text-red-500' : ''); ?>"></i>
@@ -608,10 +579,6 @@
                                 <div class="flex justify-between py-3 border-b border-gray-200">
                                     <span class="font-semibold text-gray-900">الضمان:</span>
                                     <span class="text-gray-700"><?php echo e($product->formatted_warranty); ?></span>
-                                </div>
-                                <div class="flex justify-between py-3 border-b border-gray-200">
-                                    <span class="font-semibold text-gray-900">الكمية المتاحة:</span>
-                                    <span class="text-gray-700"><?php echo e($product->stock_quantity); ?> قطعة</span>
                                 </div>
                             </div>
                         </div>
@@ -792,7 +759,7 @@
                                         <!-- Quick View Button -->
                                         <div
                                             class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300 flex items-center justify-center">
-                                            <a href="<?php echo e(route('products.show', $relatedProduct->id)); ?>"
+                                            <a href="<?php echo e(route('products.show', $product->slug)); ?>"
                                                 class="bg-white text-gray-900 px-4 py-2 rounded-lg font-medium opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300 shadow-lg">
                                                 عرض سريع
                                             </a>
@@ -833,7 +800,7 @@
                                             </div>
 
                                             <?php if($relatedProduct->stock_quantity > 0): ?>
-                                                <button data-product-id="<?php echo e($relatedProduct->id); ?>"
+                                                <button data-product-id="<?php echo e($relatedProduct->slug); ?>"
                                                     class="add-to-cart-quick bg-orange-500 text-white p-2 rounded-lg hover:bg-orange-600 transition-colors shadow-md">
                                                     <i class="fas fa-shopping-cart"></i>
                                                 </button>
@@ -1234,20 +1201,20 @@
                 // Main add to cart button
                 document.querySelector('.add-to-cart-main')?.addEventListener('click', function () {
                     const productId = this.getAttribute('data-product-id');
-                    addToCartWithQuantity(parseInt(productId));
+                    addToCartWithQuantity(productId);
                 });
 
                 // Main wishlist button
                 document.querySelector('.add-to-wishlist-btn')?.addEventListener('click', function () {
                     const productId = this.getAttribute('data-product-id');
-                    addToWishlist(parseInt(productId), this);
+                    addToWishlist(productId, this);
                 });
 
                 // Quick add to cart buttons
                 document.querySelectorAll('.add-to-cart-quick').forEach(button => {
                     button.addEventListener('click', function () {
                         const productId = this.getAttribute('data-product-id');
-                        addToCartQuick(parseInt(productId));
+                        addToCartQuick(productId);
                     });
                 });
 
@@ -1255,7 +1222,7 @@
                 document.querySelectorAll('.wishlist-btn').forEach(button => {
                     button.addEventListener('click', function () {
                         const productId = this.getAttribute('data-product-id');
-                        addToWishlist(parseInt(productId), this);
+                        addToWishlist(productId, this);
                     });
                 });
 
@@ -1286,4 +1253,8 @@
             }
         </script>
 <?php $__env->stopSection(); ?>
+
+
+
+
 <?php echo $__env->make('layouts.main', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH C:\wamp64\www\Malak_E_commers\malak_outlet\resources\views/products/show.blade.php ENDPATH**/ ?>

@@ -2,9 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class OrderItem extends Model
 {
@@ -13,28 +12,35 @@ class OrderItem extends Model
     protected $fillable = [
         'order_id',
         'product_id',
-        'product_name',
         'price',
         'quantity',
         'size',
         'total',
-    ];
-
-    protected $casts = [
-        'price' => 'decimal:2',
-        'total' => 'decimal:2',
+        'is_deleted',
+        'edit_by',
     ];
 
     /**
-     * Relationships
+     * العلاقة مع الطلب
      */
-    public function order(): BelongsTo
+    public function order()
     {
         return $this->belongsTo(Order::class);
     }
 
-    public function product(): BelongsTo
+    /**
+     * العلاقة مع المنتج
+     */
+    public function product()
     {
         return $this->belongsTo(Product::class);
+    }
+
+    /**
+     * المستخدم الذي عدّل العنصر
+     */
+    public function editor()
+    {
+        return $this->belongsTo(User::class, 'edit_by');
     }
 }

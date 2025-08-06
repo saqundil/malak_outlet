@@ -5,14 +5,14 @@
 @section('content')
 <div class="min-h-screen bg-gray-50" dir="rtl">
     <!-- Header Section -->
-    <div class="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-16">
+    <div class="py-10">
         <div class="container mx-auto px-4 text-center">
             <h1 class="text-4xl md:text-5xl font-bold mb-4">من نحن</h1>
             <p class="text-xl opacity-90">قصتنا ورؤيتنا في تقديم أفضل الألعاب للأطفال</p>
         </div>
     </div>
 
-    <div class="container mx-auto px-4 py-16">
+    <div class="container mx-auto px-4 py-10">
         <!-- Our Story -->
         <div class="max-w-4xl mx-auto">
             <div class="bg-white rounded-xl shadow-lg p-8 mb-12">
@@ -98,3 +98,7 @@
     </div>
 </div>
 @endsection
+
+
+
+

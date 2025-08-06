@@ -339,7 +339,7 @@
                                     @endif
                                 </p>
                             </div>
-                            <a href="{{ route('products.show', $product->id) }}" class="text-blue-600 hover:text-blue-800">
+                            <a href="{{ route('products.show', $product->slug) }}" class="text-blue-600 hover:text-blue-800">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                                 </svg>
@@ -395,3 +395,7 @@
     </div>
 </div>
 @endsection
+
+
+
+

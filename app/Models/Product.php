@@ -2,177 +2,180 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Product extends Model
 {
     use HasFactory;
-    
+
     protected $fillable = [
-        'name', 'slug', 'description', 'price', 'sale_price', 'sku', 'stock', 'stock_quantity', 
-        'category_id', 'brand_id', 'is_active', 'is_featured', 'weight', 'materials', 
-        'country_of_origin', 'warranty_period', 'dimensions',
-        'suitable_age', 'pieces_count', 'standards', 'battery_type', 'washable'
+        'name',
+        'slug',
+        'description',
+        'price',
+        'original_price',
+        'sku',
+        'quantity',
+        'category_id',
+        'brand_id',
+        'is_active',
+        'status',
+        'meta_title',
+        'meta_description',
+        'is_sized',
+        'is_deleted',
+        'edit_by',
     ];
 
-    protected $casts = [
-        'price' => 'decimal:2',
-        'sale_price' => 'decimal:2',
-        'is_active' => 'boolean',
-        'is_featured' => 'boolean'
-    ];
-
-    public function category(): BelongsTo
+    /**
+     * العلاقة مع الفئة (التصنيف)
+     */
+    public function category()
     {
         return $this->belongsTo(Category::class);
     }
 
-    public function brand(): BelongsTo
+    /**
+     * العلاقة مع الماركة
+     */
+    public function brand()
     {
         return $this->belongsTo(Brand::class);
     }
 
-    public function images(): HasMany
+    public function discounts()
+    {
+        return $this->belongsToMany(Discount::class, 'discount_product');
+    }
+    /**
+     * المستخدم الذي عدّل المنتج
+     */
+    public function editor()
+    {
+        return $this->belongsTo(User::class, 'edit_by');
+    }
+
+    /**
+     * العلاقة مع المفضلة
+     */
+    public function favoritedByUsers()
+    {
+        return $this->belongsToMany(User::class, 'favorites');
+    }
+
+    /**
+     * العلاقة مع التقييمات
+     */
+    public function reviews()
+    {
+        return $this->hasMany(ProductReview::class);
+    }
+    
+    /**
+     * التقييمات المعتمدة فقط
+     */
+    public function approvedReviews()
+    {
+        return $this->hasMany(ProductReview::class)->where('is_approved', true);
+    }
+    
+    /**
+     * العلاقة مع الأحجام
+     */
+    public function sizes()
+    {
+        return $this->hasMany(ProductSize::class);
+    }
+    
+    /**
+     * الأحجام المتاحة فقط
+     */
+    public function availableSizes()
+    {
+        return $this->hasMany(ProductSize::class)->where('is_available', true);
+    }
+
+    /**
+     * العلاقة مع الصور
+     */
+    public function images()
     {
         return $this->hasMany(ProductImage::class);
     }
 
-    public function reviews(): HasMany
+    /**
+     * الصورة الرئيسية
+     */
+    public function primaryImage()
     {
-        return $this->hasMany(ProductReview::class);
+        return $this->hasOne(ProductImage::class)->where('is_primary', true);
     }
 
-    public function sizes(): HasMany
+    /**
+     * العلاقة مع خصائص المنتج
+     */
+    public function attributes()
     {
-        return $this->hasMany(ProductSize::class);
+        return $this->hasMany(ProductAttribute::class);
     }
 
-    public function orderItems(): HasMany
+    /**
+     * العلاقة مع عناصر الطلبات
+     */
+    public function orderItems()
     {
         return $this->hasMany(OrderItem::class);
     }
 
-    public function availableSizes(): HasMany
+    // Scopes
+    public function scopeActive($query)
     {
-        return $this->hasMany(ProductSize::class)->available();
+        return $query->where('is_active', true)->where('is_deleted', false);
     }
 
-    public function approvedReviews(): HasMany
+    public function scopeInStock($query)
     {
-        return $this->hasMany(ProductReview::class)->approved()->with('user')->latest();
+        return $query->where('status', 'in_stock')->where('quantity', '>', 0);
     }
 
-    /**
-     * Get average rating for the product
-     */
-    public function getAverageRatingAttribute(): float
+    public function scopeFeatured($query)
     {
-        return $this->reviews()->approved()->avg('rating') ?? 0;
+        return $query->where('is_featured', true);
     }
 
-    /**
-     * Get total reviews count
-     */
-    public function getReviewsCountAttribute(): int
+    // Accessors
+    public function getFormattedPriceAttribute()
     {
-        return $this->reviews()->approved()->count();
+        return number_format($this->price, 2) . ' ريال';
     }
 
-    /**
-     * Get rating breakdown (1-5 stars count)
-     */
-    public function getRatingBreakdownAttribute(): array
+    public function getFormattedOriginalPriceAttribute()
     {
-        $breakdown = [];
-        for ($i = 1; $i <= 5; $i++) {
-            $breakdown[$i] = $this->reviews()->approved()->where('rating', $i)->count();
+        return $this->original_price ? number_format($this->original_price, 2) . ' ريال' : null;
+    }
+
+    public function getDiscountPercentageAttribute()
+    {
+        if ($this->original_price && $this->original_price > $this->price) {
+            return round((($this->original_price - $this->price) / $this->original_price) * 100);
         }
-        return $breakdown;
+        return 0;
     }
 
-    /**
-     * Get formatted weight
-     */
-    public function getFormattedWeightAttribute(): string
+    public function getAverageRatingAttribute()
     {
-        return $this->weight ?? 'غير محدد';
+        return $this->approvedReviews()->avg('rating') ?? 0;
     }
 
-    /**
-     * Get formatted materials
-     */
-    public function getFormattedMaterialsAttribute(): string
+    public function getReviewsCountAttribute()
     {
-        return $this->materials ?? 'عالية الجودة';
+        return $this->approvedReviews()->count();
     }
 
-    /**
-     * Get formatted country of origin
-     */
-    public function getFormattedCountryAttribute(): string
+    // Accessor for backward compatibility with views using stock_quantity
+    public function getStockQuantityAttribute()
     {
-        return $this->country_of_origin ?? 'غير محدد';
-    }
-
-    /**
-     * Get formatted warranty period
-     */
-    public function getFormattedWarrantyAttribute(): string
-    {
-        return $this->warranty_period ?? 'سنة واحدة';
-    }
-
-    /**
-     * Get formatted dimensions
-     */
-    public function getFormattedDimensionsAttribute(): string
-    {
-        return $this->dimensions ?? 'غير محدد';
-    }
-
-    /**
-     * Get formatted suitable age
-     */
-    public function getFormattedSuitableAgeAttribute(): string
-    {
-        return $this->suitable_age ?? 'غير محدد';
-    }
-
-    /**
-     * Get formatted pieces count
-     */
-    public function getFormattedPiecesCountAttribute(): string
-    {
-        return $this->pieces_count ?? 'غير محدد';
-    }
-
-    /**
-     * Get formatted standards
-     */
-    public function getFormattedStandardsAttribute(): string
-    {
-        return $this->standards ?? 'غير محدد';
-    }
-
-    /**
-     * Get formatted battery type
-     */
-    public function getFormattedBatteryTypeAttribute(): string
-    {
-        return $this->battery_type ?? 'غير محدد';
-    }
-
-    /**
-     * Get formatted washable status
-     */
-    public function getFormattedWashableAttribute(): string
-    {
-        if (is_null($this->washable)) {
-            return 'غير محدد';
-        }
-        return $this->washable ? 'نعم' : 'لا';
+        return $this->quantity;
     }
 }

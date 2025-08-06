@@ -55,4 +55,8 @@ switch ($width) {
         </div>
     </div>
 </div>
+
+
+
+
 <?php /**PATH C:\wamp64\www\Malak_E_commers\malak_outlet\resources\views/components/dropdown.blade.php ENDPATH**/ ?>

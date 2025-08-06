@@ -35,7 +35,7 @@
                         <span class="text-sm text-gray-500">
                             {{ $category->products_count ?? 0 }} منتج
                         </span>
-                        <a href="{{ route('categories.show', $category->id) }}" 
+                        <a href="{{ route('categories.show', $category->slug) }}" 
                            class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-semibold">
                             عرض المنتجات
                         </a>
@@ -189,3 +189,7 @@
     </div>
 </div>
 @endsection
+
+
+
+

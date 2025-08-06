@@ -4,7 +4,7 @@
 
 @section('content')
     <!-- Header Section -->
-    <div class="bg-gradient-to-r from-pink-600 to-red-600 text-white py-12">
+    <div class="py-12">
         <div class="container mx-auto px-4 text-center">
             <h1 class="text-3xl md:text-4xl font-bold mb-2">قائمة الأمنيات</h1>
             <p class="text-lg opacity-90">منتجاتك المفضلة في مكان واحد</p>
@@ -35,7 +35,7 @@
         <div class="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" id="wishlist-items">
             @foreach($favorites as $favorite)
             <!-- Wishlist Item -->
-            <div class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 group wishlist-item" data-product-id="{{ $favorite->product->id }}">
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 group wishlist-item" data-product-id="{{ $favorite->product->slug }}">
                 <div class="relative">
                     <div class="aspect-square bg-gray-100 overflow-hidden">
                         @if($favorite->product->images && $favorite->product->images->first())
@@ -54,7 +54,7 @@
                         @endif
                     </div>
                     
-                    <button class="absolute top-3 left-3 p-2 bg-white rounded-full shadow-lg hover:bg-red-50 transition-colors remove-from-wishlist" data-product-id="{{ $favorite->product->id }}">
+                    <button class="absolute top-3 left-3 p-2 bg-white rounded-full shadow-lg hover:bg-red-50 transition-colors remove-from-wishlist" data-product-id="{{ $favorite->product->slug }}">
                         <svg class="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"/>
                         </svg>
@@ -87,10 +87,10 @@
                     </div>
                     
                     <div class="flex gap-2">
-                        <button class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-semibold add-to-cart" data-product-id="{{ $favorite->product->id }}">
+                        <button class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-semibold add-to-cart" data-product-id="{{ $favorite->product->slug }}">
                             إضافة للسلة
                         </button>
-                        <a href="{{ route('products.show', $favorite->product->id) }}" 
+                        <a href="{{ route('products.show', $favorite->product->slug) }}" 
                            class="bg-gray-100 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-200 transition-colors">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -343,3 +343,7 @@
     });
     </script>
 @endsection
+
+
+
+

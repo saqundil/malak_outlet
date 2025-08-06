@@ -13,7 +13,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Register services for dependency injection
+        $this->app->bind(\App\Services\ProductService::class, \App\Services\ProductService::class);
+        $this->app->bind(\App\Services\DashboardService::class, \App\Services\DashboardService::class);
+        $this->app->bind(\App\Services\ImageUploadService::class, \App\Services\ImageUploadService::class);
     }
 
     /**

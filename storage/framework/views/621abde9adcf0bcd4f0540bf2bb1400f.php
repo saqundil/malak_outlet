@@ -34,4 +34,8 @@
         </div>
     </body>
 </html>
+
+
+
+
 <?php /**PATH C:\wamp64\www\Malak_E_commers\malak_outlet\resources\views/layouts/app.blade.php ENDPATH**/ ?>

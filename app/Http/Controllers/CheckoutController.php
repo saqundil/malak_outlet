@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cookie;
 use App\Models\Product;
+use App\Models\ProductSize;
 use App\Models\Order;
 use App\Models\OrderItem;
 
@@ -18,32 +20,65 @@ class CheckoutController extends Controller
 
     public function index()
     {
-        // Get cart items from cookie
-        $cart = json_decode(request()->cookie('cart', '[]'), true);
+        $cart = $this->getCartFromCookie();
+        
+        if (empty($cart)) {
+            return redirect()->route('cart')
+                ->with('error', 'السلة فارغة. يرجى إضافة منتجات قبل إتمام الطلب.');
+        }
+
         $cartItems = [];
-        $total = 0;
+        $subtotal = 0;
 
-        if (!empty($cart)) {
-            $productIds = array_keys($cart);
-            $products = Product::whereIn('id', $productIds)->get();
+        foreach ($cart as $cartKey => $cartItem) {
+            // Handle old format (backwards compatibility)
+            if (is_numeric($cartItem)) {
+                $productId = $cartKey;
+                $quantity = $cartItem;
+                $sizeId = null;
+            } else {
+                // New format with size support
+                $productId = $cartItem['product_id'];
+                $quantity = $cartItem['quantity'];
+                $sizeId = $cartItem['size_id'] ?? null;
+            }
 
-            foreach ($products as $product) {
-                $quantity = $cart[$product->id];
+            $product = Product::with(['images', 'brand'])->find($productId);
+            
+            if ($product) {
+                $size = null;
+                if ($sizeId) {
+                    $size = ProductSize::find($sizeId);
+                }
+
                 $price = $product->sale_price ?? $product->price;
-                $subtotal = $price * $quantity;
-                
-                $cartItems[] = [
+                if ($size) {
+                    $price += $size->additional_price ?? 0;
+                }
+
+                $itemTotal = $price * $quantity;
+
+                $cartItem = [
+                    'key' => $cartKey,
                     'product' => $product,
+                    'size' => $size,
                     'quantity' => $quantity,
                     'price' => $price,
-                    'subtotal' => $subtotal
+                    'total' => $itemTotal
                 ];
-                
-                $total += $subtotal;
+
+                $cartItems[] = $cartItem;
+                $subtotal += $itemTotal;
             }
         }
 
-        return view('checkout.index', compact('cartItems', 'total'));
+        // Calculate additional costs
+        $shippingCost = 30.00; // Fixed shipping cost
+        $taxRate = 0.16; // 16% VAT (Jordan rate)
+        $taxAmount = $subtotal * $taxRate;
+        $total = $subtotal + $shippingCost + $taxAmount;
+
+        return view('checkout.index', compact('cartItems', 'subtotal', 'shippingCost', 'taxAmount', 'total'));
     }
 
     public function store(Request $request)
@@ -55,8 +90,7 @@ class CheckoutController extends Controller
             'notes' => 'nullable|string|max:1000',
         ]);
 
-        // Get cart items from cookie
-        $cart = json_decode($request->cookie('cart', '[]'), true);
+        $cart = $this->getCartFromCookie();
         
         if (empty($cart)) {
             return redirect()->route('cart')
@@ -64,24 +98,51 @@ class CheckoutController extends Controller
         }
 
         try {
-            DB::transaction(function () use ($request, $cart) {
-                // Get products and calculate totals
-                $productIds = array_keys($cart);
-                $products = Product::whereIn('id', $productIds)->get();
-                
+            $order = DB::transaction(function () use ($request, $cart) {
                 $subtotal = 0;
                 $orderItems = [];
 
-                foreach ($products as $product) {
-                    $quantity = $cart[$product->id];
-                    $price = $product->sale_price ?? $product->price;
-                    $totalPrice = $price * $quantity;
+                foreach ($cart as $cartKey => $cartItem) {
+                    // Handle old format (backwards compatibility)
+                    if (is_numeric($cartItem)) {
+                        $productId = $cartKey;
+                        $quantity = $cartItem;
+                        $sizeId = null;
+                    } else {
+                        // New format with size support
+                        $productId = $cartItem['product_id'];
+                        $quantity = $cartItem['quantity'];
+                        $sizeId = $cartItem['size_id'] ?? null;
+                    }
+
+                    $product = Product::findOrFail($productId);
                     
+                    // Check if product is still available
+                    if (!$product->is_active || $product->is_deleted) {
+                        throw new \Exception("المنتج {$product->name} غير متاح حالياً");
+                    }
+
+                    $size = null;
+                    if ($sizeId) {
+                        $size = ProductSize::findOrFail($sizeId);
+                        if (!$size->is_available || $size->stock_quantity < $quantity) {
+                            throw new \Exception("المقاس المطلوب للمنتج {$product->name} غير متاح بالكمية المطلوبة");
+                        }
+                    }
+
+                    $price = $product->sale_price ?? $product->price;
+                    if ($size) {
+                        $price += $size->additional_price ?? 0;
+                    }
+
+                    $totalPrice = $price * $quantity;
                     $subtotal += $totalPrice;
                     
                     $orderItems[] = [
                         'product_id' => $product->id,
+                        'product_size_id' => $sizeId,
                         'product_name' => $product->name,
+                        'product_size_name' => $size ? $size->size : null,
                         'product_price' => $price,
                         'quantity' => $quantity,
                         'total_price' => $totalPrice,
@@ -89,8 +150,8 @@ class CheckoutController extends Controller
                 }
 
                 // Calculate additional costs
-                $shippingCost = 30.00; // Fixed shipping cost
-                $taxRate = 0.15; // 15% VAT
+                $shippingCost = 30.00;
+                $taxRate = 0.16;
                 $taxAmount = $subtotal * $taxRate;
                 $totalAmount = $subtotal + $shippingCost + $taxAmount;
 
@@ -103,7 +164,7 @@ class CheckoutController extends Controller
                     'shipping_cost' => $shippingCost,
                     'tax_amount' => $taxAmount,
                     'total_amount' => $totalAmount,
-                    'payment_method' => $request->payment_method === 'cash' ? 'cod' : 'card',
+                    'payment_method' => $request->payment_method,
                     'payment_status' => 'pending',
                     'shipping_address' => $request->shipping_address,
                     'phone' => $request->phone,
@@ -115,32 +176,46 @@ class CheckoutController extends Controller
                     $order->items()->create($item);
                 }
 
-                // Store order number in session for success page
-                session(['last_order_number' => $order->order_number]);
+                // Update stock for sized products
+                foreach ($cart as $item) {
+                    if (isset($item['size_id'])) {
+                        $size = ProductSize::find($item['size_id']);
+                        if ($size) {
+                            $size->decrement('stock_quantity', $item['quantity']);
+                        }
+                    }
+                }
+
+                return $order;
             });
 
-            // Clear cart and redirect to success
-            return redirect()->route('checkout.success')
-                ->cookie('cart', json_encode([]), 60 * 24 * 30)
-                ->with('success', 'تم إنشاء طلبك بنجاح!');
-                
-        } catch (\Exception $e) {
+            // Clear cart after successful order
+            Cookie::queue(Cookie::forget('cart'));
+
+            return redirect()->route('checkout.success', $order->order_number)
+                ->with('success', 'تم إنشاء الطلب بنجاح!');        } catch (\Exception $e) {
             return redirect()->back()
-                ->with('error', 'حدث خطأ أثناء إنشاء الطلب. يرجى المحاولة مرة أخرى.')
-                ->withInput();
+                ->withInput()
+                ->with('error', 'حدث خطأ أثناء إنشاء الطلب: ' . $e->getMessage());
         }
     }
 
-    public function success()
+    private function getCartFromCookie()
     {
-        $orderNumber = session('last_order_number');
-        $order = null;
-        
-        if ($orderNumber) {
-            $order = Auth::user()->orders()
-                ->with('items.product')
-                ->where('order_number', $orderNumber)
-                ->first();
+        $cart = Cookie::get('cart');
+        return $cart ? json_decode($cart, true) : [];
+    }
+
+    public function success($orderNumber)
+    {
+        $order = Auth::user()->orders()
+            ->where('order_number', $orderNumber)
+            ->with('items.product')
+            ->first();
+            
+        if (!$order) {
+            return redirect()->route('home')
+                ->with('error', 'الطلب غير موجود');
         }
         
         return view('checkout.success', compact('order'));
