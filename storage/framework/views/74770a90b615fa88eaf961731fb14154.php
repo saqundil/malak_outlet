@@ -235,41 +235,71 @@
         </div>
     </div>
 
-    <!-- Categories Section -->
+    <!-- Toy Subcategories Section -->
     <section class="my-8 md:my-10">
         <div class="flex justify-between items-center mb-5">
-            <h2 class="text-xl md:text-2xl text-gray-800 m-0 font-bold">الألعاب حسب الفئة</h2>
+            <h2 class="text-xl md:text-2xl text-gray-800 m-0 font-bold">تصفح الألعاب</h2>
             <a href="<?php echo e(route('products.index')); ?>" class="flex items-center text-orange-500 no-underline font-bold text-sm md:text-base">
-                عرض جميع الفئات ←
+                عرض جميع الألعاب ←
             </a>
         </div>
 
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-6">
             <?php
-                $categoryIcons = [
-                    'electronics' => ['icon' => '📱', 'color' => 'bg-gradient-to-br from-blue-50 to-blue-100', 'age' => 'عمر 6+', 'border' => 'border-blue-200'],
-                    'clothing' => ['icon' => '👕', 'color' => 'bg-gradient-to-br from-green-50 to-green-100', 'age' => 'جميع الأعمار', 'border' => 'border-green-200'],
-                    'home-garden' => ['icon' => '🏠', 'color' => 'bg-gradient-to-br from-purple-50 to-purple-100', 'age' => 'عمر 8+', 'border' => 'border-purple-200'],
-                    'sports-fitness' => ['icon' => '⚽', 'color' => 'bg-gradient-to-br from-red-50 to-red-100', 'age' => 'عمر 5+', 'border' => 'border-red-200'],
-                    'books' => ['icon' => '📚', 'color' => 'bg-gradient-to-br from-indigo-50 to-indigo-100', 'age' => 'عمر 3+', 'border' => 'border-indigo-200'],
-                    'toys-games' => ['icon' => '🎮', 'color' => 'bg-gradient-to-br from-yellow-50 to-yellow-100', 'age' => 'عمر 6+', 'border' => 'border-yellow-200'],
+                $subcategoryIcons = [
+                    'lego-building' => ['icon' => '🧱', 'color' => 'bg-gradient-to-br from-red-50 to-red-100', 'age' => 'عمر 4+', 'border' => 'border-red-200'],
+                    'action-figures' => ['icon' => '🦸', 'color' => 'bg-gradient-to-br from-blue-50 to-blue-100', 'age' => 'عمر 3+', 'border' => 'border-blue-200'],
+                    'puzzles' => ['icon' => '🧩', 'color' => 'bg-gradient-to-br from-purple-50 to-purple-100', 'age' => 'عمر 5+', 'border' => 'border-purple-200'],
+                    'remote-control' => ['icon' => '🚗', 'color' => 'bg-gradient-to-br from-green-50 to-green-100', 'age' => 'عمر 6+', 'border' => 'border-green-200'],
+                    'educational' => ['icon' => '🎓', 'color' => 'bg-gradient-to-br from-indigo-50 to-indigo-100', 'age' => 'عمر 2+', 'border' => 'border-indigo-200'],
+                    'board-games' => ['icon' => '�', 'color' => 'bg-gradient-to-br from-yellow-50 to-yellow-100', 'age' => 'عمر 8+', 'border' => 'border-yellow-200'],
                 ];
             ?>
             
             <?php if(isset($categories) && $categories->count() > 0): ?>
-                <?php $__currentLoopData = $categories->take(6); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $category): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                 <?php
-                    $iconData = $categoryIcons[$category->slug] ?? ['icon' => '🛍️', 'color' => 'bg-gradient-to-br from-orange-50 to-orange-100', 'age' => 'جميع الأعمار', 'border' => 'border-orange-200'];
+                    $toysCategory = $categories->where('slug', 'toys-games')->first() ?? 
+                                   $categories->where('name', 'LIKE', '%ألعاب%')->first() ??
+                                   $categories->where('name', 'LIKE', '%toys%')->first();
+                    $toySubcategories = $toysCategory ? $toysCategory->children : collect();
                 ?>
-                <a href="<?php echo e(route('products.category', $category->slug)); ?>" 
-                   class="group flex flex-col items-center p-4 md:p-6 rounded-xl bg-white shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-2 no-underline text-gray-700 border <?php echo e($iconData['border']); ?> hover:border-opacity-100">
-                    <div class="w-16 h-16 md:w-20 md:h-20 <?php echo e($iconData['color']); ?> rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                        <span class="text-2xl md:text-3xl"><?php echo e($iconData['icon']); ?></span>
-                    </div>
-                    <div class="font-bold text-center text-sm md:text-base group-hover:text-orange-600 transition-colors mb-2"><?php echo e($category->name); ?></div>
-                    <span class="inline-block py-1.5 px-3 bg-gradient-to-r from-orange-100 to-orange-200 text-orange-700 rounded-full text-xs font-medium shadow-sm"><?php echo e($iconData['age']); ?></span>
-                </a>
-                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                
+                <?php if($toySubcategories->count() > 0): ?>
+                    <?php $__currentLoopData = $toySubcategories->take(6); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $subcategory): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <?php
+                            $iconData = $subcategoryIcons[$subcategory->slug] ?? ['icon' => '🧸', 'color' => 'bg-gradient-to-br from-orange-50 to-orange-100', 'age' => 'جميع الأعمار', 'border' => 'border-orange-200'];
+                        ?>
+                        <a href="<?php echo e(route('products.category', $subcategory->slug)); ?>" 
+                           class="group flex flex-col items-center p-4 md:p-6 rounded-xl bg-white shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-2 no-underline text-gray-700 border <?php echo e($iconData['border']); ?> hover:border-opacity-100">
+                            <div class="w-16 h-16 md:w-20 md:h-20 <?php echo e($iconData['color']); ?> rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                                <span class="text-2xl md:text-3xl"><?php echo e($iconData['icon']); ?></span>
+                            </div>
+                            <div class="font-bold text-center text-sm md:text-base group-hover:text-orange-600 transition-colors mb-2"><?php echo e($subcategory->name); ?></div>
+                            <span class="inline-block py-1.5 px-3 bg-gradient-to-r from-orange-100 to-orange-200 text-orange-700 rounded-full text-xs font-medium shadow-sm"><?php echo e($iconData['age']); ?></span>
+                        </a>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                <?php else: ?>
+                    <!-- Fallback: Show default toy categories if no subcategories exist -->
+                    <?php $__currentLoopData = $subcategoryIcons; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $slug => $iconData): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <a href="<?php echo e(route('products.index', ['category' => 'toys'])); ?>" 
+                           class="group flex flex-col items-center p-4 md:p-6 rounded-xl bg-white shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-2 no-underline text-gray-700 border <?php echo e($iconData['border']); ?> hover:border-opacity-100">
+                            <div class="w-16 h-16 md:w-20 md:h-20 <?php echo e($iconData['color']); ?> rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                                <span class="text-2xl md:text-3xl"><?php echo e($iconData['icon']); ?></span>
+                            </div>
+                            <div class="font-bold text-center text-sm md:text-base group-hover:text-orange-600 transition-colors mb-2">
+                                <?php switch($slug):
+                                    case ('lego-building'): ?> ليغو ومكعبات البناء <?php break; ?>
+                                    <?php case ('action-figures'): ?> شخصيات الأكشن <?php break; ?>
+                                    <?php case ('puzzles'): ?> الألغاز والأحاجي <?php break; ?>
+                                    <?php case ('remote-control'): ?> ألعاب التحكم عن بعد <?php break; ?>
+                                    <?php case ('educational'): ?> ألعاب تعليمية <?php break; ?>
+                                    <?php case ('board-games'): ?> ألعاب الطاولة <?php break; ?>
+                                <?php endswitch; ?>
+                            </div>
+                            <span class="inline-block py-1.5 px-3 bg-gradient-to-r from-orange-100 to-orange-200 text-orange-700 rounded-full text-xs font-medium shadow-sm"><?php echo e($iconData['age']); ?></span>
+                        </a>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                <?php endif; ?>
             <?php else: ?>
                 <div class="col-span-full text-center py-8">
                     <p class="text-gray-500">لا توجد فئات متاحة حالياً</p>
@@ -326,9 +356,9 @@
                             
                             <!-- Product badges -->
                             <div class="absolute top-3 right-3 flex flex-col space-y-2">
-                                <?php if($product->sale_price): ?>
+                                <?php if($product->discount_percentage > 0): ?>
                                 <span class="bg-gradient-to-r from-red-500 to-red-600 text-white text-xs font-bold rounded-full py-1.5 px-3 shadow-lg animate-pulse">
-                                    خصم <?php echo e(number_format((($product->price - $product->sale_price) / $product->price) * 100, 0)); ?>%
+                                    خصم <?php echo e($product->discount_percentage); ?>%
                                 </span>
                                 <?php elseif($product->is_featured): ?>
                                 <span class="bg-gradient-to-r from-green-500 to-green-600 text-white text-xs font-bold rounded-full py-1.5 px-3 shadow-lg">⭐ مميز</span>
@@ -387,12 +417,12 @@
                         <!-- Price Section -->
                         <div class="flex items-center justify-between mb-4">
                             <div class="flex flex-col">
-                                <?php if($product->sale_price): ?>
+                                <?php if($product->discount_percentage > 0): ?>
                                     <div class="flex items-center space-x-2 space-x-reverse">
-                                        <span class="text-xl font-bold text-gradient"><?php echo e(number_format($product->sale_price, 0)); ?> د.أ</span>
+                                        <span class="text-xl font-bold text-gradient"><?php echo e(number_format($product->effective_price, 0)); ?> د.أ</span>
                                         <span class="text-sm text-gray-500 line-through"><?php echo e(number_format($product->price, 0)); ?> د.أ</span>
                                     </div>
-                                    <span class="text-xs text-green-600 font-medium bg-green-50 px-2 py-1 rounded-full inline-block w-fit">وفّر <?php echo e(number_format($product->price - $product->sale_price, 0)); ?> د.أ</span>
+                                    <span class="text-xs text-green-600 font-medium bg-green-50 px-2 py-1 rounded-full inline-block w-fit">وفّر <?php echo e(number_format($product->price - $product->effective_price, 0)); ?> د.أ</span>
                                 <?php else: ?>
                                     <span class="text-xl font-bold text-gradient"><?php echo e(number_format($product->price, 0)); ?> د.أ</span>
                                 <?php endif; ?>
@@ -545,9 +575,9 @@
 
                                 </h3>
                                 <div class="flex items-center justify-between">
-                                    <?php if($product->sale_price): ?>
+                                    <?php if($product->discount_percentage > 0): ?>
                                         <div class="flex flex-col">
-                                            <span class="text-sm font-bold text-orange-600"><?php echo e(number_format($product->sale_price, 0)); ?> د.أ</span>
+                                            <span class="text-sm font-bold text-orange-600"><?php echo e(number_format($product->effective_price, 0)); ?> د.أ</span>
                                             <span class="text-xs text-gray-500 line-through"><?php echo e(number_format($product->price, 0)); ?> د.أ</span>
                                         </div>
                                     <?php else: ?>
@@ -698,9 +728,9 @@
                                 
                                 <!-- Price -->
                                 <div class="flex items-center justify-between mb-4">
-                                    <?php if($product->sale_price): ?>
+                                    <?php if($product->discount_percentage > 0): ?>
                                         <div class="flex flex-col">
-                                            <span class="text-lg font-bold text-orange-600"><?php echo e(number_format($product->sale_price, 0)); ?> د.أ</span>
+                                            <span class="text-lg font-bold text-orange-600"><?php echo e(number_format($product->effective_price, 0)); ?> د.أ</span>
                                             <span class="text-sm text-gray-500 line-through"><?php echo e(number_format($product->price, 0)); ?> د.أ</span>
                                         </div>
                                     <?php else: ?>
@@ -765,10 +795,12 @@
                                     
                                     <!-- Big Sale Badge -->
                                     <div class="absolute top-3 right-3">
-                                        <div class="bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg px-3 py-2 shadow-lg transform -rotate-12">
-                                            <div class="text-xs font-bold">خصم</div>
-                                            <div class="text-lg font-black"><?php echo e(number_format((($product->price - $product->sale_price) / $product->price) * 100, 0)); ?>%</div>
-                                        </div>
+                                        <?php if($product->discount_percentage > 0): ?>
+                                            <div class="bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg px-3 py-2 shadow-lg transform -rotate-12">
+                                                <div class="text-xs font-bold">خصم</div>
+                                                <div class="text-lg font-black"><?php echo e($product->discount_percentage); ?>%</div>
+                                            </div>
+                                        <?php endif; ?>
                                     </div>
                                 </div>
                             </a>
@@ -784,11 +816,11 @@
                                 <!-- Price with prominent savings -->
                                 <div class="mb-4">
                                     <div class="flex items-center justify-between mb-2">
-                                        <span class="text-xl font-bold text-red-600"><?php echo e(number_format($product->sale_price, 0)); ?> د.أ</span>
+                                        <span class="text-xl font-bold text-red-600"><?php echo e(number_format($product->effective_price, 0)); ?> د.أ</span>
                                         <span class="text-sm text-gray-500 line-through"><?php echo e(number_format($product->price, 0)); ?> د.أ</span>
                                     </div>
                                     <div class="bg-green-50 text-green-700 text-xs font-bold px-3 py-1 rounded-full w-fit">
-                                        وفّر <?php echo e(number_format($product->price - $product->sale_price, 0)); ?> د.أ
+                                        وفّر <?php echo e(number_format($product->price - $product->effective_price, 0)); ?> د.أ
                                     </div>
                                 </div>
                             </a>

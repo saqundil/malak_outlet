@@ -235,41 +235,71 @@
         </div>
     </div>
 
-    <!-- Categories Section -->
+    <!-- Toy Subcategories Section -->
     <section class="my-8 md:my-10">
         <div class="flex justify-between items-center mb-5">
-            <h2 class="text-xl md:text-2xl text-gray-800 m-0 font-bold">الألعاب حسب الفئة</h2>
+            <h2 class="text-xl md:text-2xl text-gray-800 m-0 font-bold">تصفح الألعاب</h2>
             <a href="{{ route('products.index') }}" class="flex items-center text-orange-500 no-underline font-bold text-sm md:text-base">
-                عرض جميع الفئات ←
+                عرض جميع الألعاب ←
             </a>
         </div>
 
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-6">
             @php
-                $categoryIcons = [
-                    'electronics' => ['icon' => '📱', 'color' => 'bg-gradient-to-br from-blue-50 to-blue-100', 'age' => 'عمر 6+', 'border' => 'border-blue-200'],
-                    'clothing' => ['icon' => '👕', 'color' => 'bg-gradient-to-br from-green-50 to-green-100', 'age' => 'جميع الأعمار', 'border' => 'border-green-200'],
-                    'home-garden' => ['icon' => '🏠', 'color' => 'bg-gradient-to-br from-purple-50 to-purple-100', 'age' => 'عمر 8+', 'border' => 'border-purple-200'],
-                    'sports-fitness' => ['icon' => '⚽', 'color' => 'bg-gradient-to-br from-red-50 to-red-100', 'age' => 'عمر 5+', 'border' => 'border-red-200'],
-                    'books' => ['icon' => '📚', 'color' => 'bg-gradient-to-br from-indigo-50 to-indigo-100', 'age' => 'عمر 3+', 'border' => 'border-indigo-200'],
-                    'toys-games' => ['icon' => '🎮', 'color' => 'bg-gradient-to-br from-yellow-50 to-yellow-100', 'age' => 'عمر 6+', 'border' => 'border-yellow-200'],
+                $subcategoryIcons = [
+                    'lego-building' => ['icon' => '🧱', 'color' => 'bg-gradient-to-br from-red-50 to-red-100', 'age' => 'عمر 4+', 'border' => 'border-red-200'],
+                    'action-figures' => ['icon' => '🦸', 'color' => 'bg-gradient-to-br from-blue-50 to-blue-100', 'age' => 'عمر 3+', 'border' => 'border-blue-200'],
+                    'puzzles' => ['icon' => '🧩', 'color' => 'bg-gradient-to-br from-purple-50 to-purple-100', 'age' => 'عمر 5+', 'border' => 'border-purple-200'],
+                    'remote-control' => ['icon' => '🚗', 'color' => 'bg-gradient-to-br from-green-50 to-green-100', 'age' => 'عمر 6+', 'border' => 'border-green-200'],
+                    'educational' => ['icon' => '🎓', 'color' => 'bg-gradient-to-br from-indigo-50 to-indigo-100', 'age' => 'عمر 2+', 'border' => 'border-indigo-200'],
+                    'board-games' => ['icon' => '�', 'color' => 'bg-gradient-to-br from-yellow-50 to-yellow-100', 'age' => 'عمر 8+', 'border' => 'border-yellow-200'],
                 ];
             @endphp
             
             @if(isset($categories) && $categories->count() > 0)
-                @foreach($categories->take(6) as $category)
                 @php
-                    $iconData = $categoryIcons[$category->slug] ?? ['icon' => '🛍️', 'color' => 'bg-gradient-to-br from-orange-50 to-orange-100', 'age' => 'جميع الأعمار', 'border' => 'border-orange-200'];
+                    $toysCategory = $categories->where('slug', 'toys-games')->first() ?? 
+                                   $categories->where('name', 'LIKE', '%ألعاب%')->first() ??
+                                   $categories->where('name', 'LIKE', '%toys%')->first();
+                    $toySubcategories = $toysCategory ? $toysCategory->children : collect();
                 @endphp
-                <a href="{{ route('products.category', $category->slug) }}" 
-                   class="group flex flex-col items-center p-4 md:p-6 rounded-xl bg-white shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-2 no-underline text-gray-700 border {{ $iconData['border'] }} hover:border-opacity-100">
-                    <div class="w-16 h-16 md:w-20 md:h-20 {{ $iconData['color'] }} rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                        <span class="text-2xl md:text-3xl">{{ $iconData['icon'] }}</span>
-                    </div>
-                    <div class="font-bold text-center text-sm md:text-base group-hover:text-orange-600 transition-colors mb-2">{{ $category->name }}</div>
-                    <span class="inline-block py-1.5 px-3 bg-gradient-to-r from-orange-100 to-orange-200 text-orange-700 rounded-full text-xs font-medium shadow-sm">{{ $iconData['age'] }}</span>
-                </a>
-                @endforeach
+                
+                @if($toySubcategories->count() > 0)
+                    @foreach($toySubcategories->take(6) as $subcategory)
+                        @php
+                            $iconData = $subcategoryIcons[$subcategory->slug] ?? ['icon' => '🧸', 'color' => 'bg-gradient-to-br from-orange-50 to-orange-100', 'age' => 'جميع الأعمار', 'border' => 'border-orange-200'];
+                        @endphp
+                        <a href="{{ route('products.category', $subcategory->slug) }}" 
+                           class="group flex flex-col items-center p-4 md:p-6 rounded-xl bg-white shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-2 no-underline text-gray-700 border {{ $iconData['border'] }} hover:border-opacity-100">
+                            <div class="w-16 h-16 md:w-20 md:h-20 {{ $iconData['color'] }} rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                                <span class="text-2xl md:text-3xl">{{ $iconData['icon'] }}</span>
+                            </div>
+                            <div class="font-bold text-center text-sm md:text-base group-hover:text-orange-600 transition-colors mb-2">{{ $subcategory->name }}</div>
+                            <span class="inline-block py-1.5 px-3 bg-gradient-to-r from-orange-100 to-orange-200 text-orange-700 rounded-full text-xs font-medium shadow-sm">{{ $iconData['age'] }}</span>
+                        </a>
+                    @endforeach
+                @else
+                    <!-- Fallback: Show default toy categories if no subcategories exist -->
+                    @foreach($subcategoryIcons as $slug => $iconData)
+                        <a href="{{ route('products.index', ['category' => 'toys']) }}" 
+                           class="group flex flex-col items-center p-4 md:p-6 rounded-xl bg-white shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-2 no-underline text-gray-700 border {{ $iconData['border'] }} hover:border-opacity-100">
+                            <div class="w-16 h-16 md:w-20 md:h-20 {{ $iconData['color'] }} rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                                <span class="text-2xl md:text-3xl">{{ $iconData['icon'] }}</span>
+                            </div>
+                            <div class="font-bold text-center text-sm md:text-base group-hover:text-orange-600 transition-colors mb-2">
+                                @switch($slug)
+                                    @case('lego-building') ليغو ومكعبات البناء @break
+                                    @case('action-figures') شخصيات الأكشن @break
+                                    @case('puzzles') الألغاز والأحاجي @break
+                                    @case('remote-control') ألعاب التحكم عن بعد @break
+                                    @case('educational') ألعاب تعليمية @break
+                                    @case('board-games') ألعاب الطاولة @break
+                                @endswitch
+                            </div>
+                            <span class="inline-block py-1.5 px-3 bg-gradient-to-r from-orange-100 to-orange-200 text-orange-700 rounded-full text-xs font-medium shadow-sm">{{ $iconData['age'] }}</span>
+                        </a>
+                    @endforeach
+                @endif
             @else
                 <div class="col-span-full text-center py-8">
                     <p class="text-gray-500">لا توجد فئات متاحة حالياً</p>
@@ -326,9 +356,9 @@
                             
                             <!-- Product badges -->
                             <div class="absolute top-3 right-3 flex flex-col space-y-2">
-                                @if($product->sale_price)
+                                @if($product->discount_percentage > 0)
                                 <span class="bg-gradient-to-r from-red-500 to-red-600 text-white text-xs font-bold rounded-full py-1.5 px-3 shadow-lg animate-pulse">
-                                    خصم {{ number_format((($product->price - $product->sale_price) / $product->price) * 100, 0) }}%
+                                    خصم {{ $product->discount_percentage }}%
                                 </span>
                                 @elseif($product->is_featured)
                                 <span class="bg-gradient-to-r from-green-500 to-green-600 text-white text-xs font-bold rounded-full py-1.5 px-3 shadow-lg">⭐ مميز</span>
@@ -386,12 +416,12 @@
                         <!-- Price Section -->
                         <div class="flex items-center justify-between mb-4">
                             <div class="flex flex-col">
-                                @if($product->sale_price)
+                                @if($product->discount_percentage > 0)
                                     <div class="flex items-center space-x-2 space-x-reverse">
-                                        <span class="text-xl font-bold text-gradient">{{ number_format($product->sale_price, 0) }} د.أ</span>
+                                        <span class="text-xl font-bold text-gradient">{{ number_format($product->effective_price, 0) }} د.أ</span>
                                         <span class="text-sm text-gray-500 line-through">{{ number_format($product->price, 0) }} د.أ</span>
                                     </div>
-                                    <span class="text-xs text-green-600 font-medium bg-green-50 px-2 py-1 rounded-full inline-block w-fit">وفّر {{ number_format($product->price - $product->sale_price, 0) }} د.أ</span>
+                                    <span class="text-xs text-green-600 font-medium bg-green-50 px-2 py-1 rounded-full inline-block w-fit">وفّر {{ number_format($product->price - $product->effective_price, 0) }} د.أ</span>
                                 @else
                                     <span class="text-xl font-bold text-gradient">{{ number_format($product->price, 0) }} د.أ</span>
                                 @endif
@@ -540,9 +570,9 @@
                                     {{ Str::limit($product->name, 40) }}
                                 </h3>
                                 <div class="flex items-center justify-between">
-                                    @if($product->sale_price)
+                                    @if($product->discount_percentage > 0)
                                         <div class="flex flex-col">
-                                            <span class="text-sm font-bold text-orange-600">{{ number_format($product->sale_price, 0) }} د.أ</span>
+                                            <span class="text-sm font-bold text-orange-600">{{ number_format($product->effective_price, 0) }} د.أ</span>
                                             <span class="text-xs text-gray-500 line-through">{{ number_format($product->price, 0) }} د.أ</span>
                                         </div>
                                     @else
@@ -691,9 +721,9 @@
                                 
                                 <!-- Price -->
                                 <div class="flex items-center justify-between mb-4">
-                                    @if($product->sale_price)
+                                    @if($product->discount_percentage > 0)
                                         <div class="flex flex-col">
-                                            <span class="text-lg font-bold text-orange-600">{{ number_format($product->sale_price, 0) }} د.أ</span>
+                                            <span class="text-lg font-bold text-orange-600">{{ number_format($product->effective_price, 0) }} د.أ</span>
                                             <span class="text-sm text-gray-500 line-through">{{ number_format($product->price, 0) }} د.أ</span>
                                         </div>
                                     @else
@@ -758,10 +788,12 @@
                                     
                                     <!-- Big Sale Badge -->
                                     <div class="absolute top-3 right-3">
-                                        <div class="bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg px-3 py-2 shadow-lg transform -rotate-12">
-                                            <div class="text-xs font-bold">خصم</div>
-                                            <div class="text-lg font-black">{{ number_format((($product->price - $product->sale_price) / $product->price) * 100, 0) }}%</div>
-                                        </div>
+                                        @if($product->discount_percentage > 0)
+                                            <div class="bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg px-3 py-2 shadow-lg transform -rotate-12">
+                                                <div class="text-xs font-bold">خصم</div>
+                                                <div class="text-lg font-black">{{ $product->discount_percentage }}%</div>
+                                            </div>
+                                        @endif
                                     </div>
                                 </div>
                             </a>
@@ -776,11 +808,11 @@
                                 <!-- Price with prominent savings -->
                                 <div class="mb-4">
                                     <div class="flex items-center justify-between mb-2">
-                                        <span class="text-xl font-bold text-red-600">{{ number_format($product->sale_price, 0) }} د.أ</span>
+                                        <span class="text-xl font-bold text-red-600">{{ number_format($product->effective_price, 0) }} د.أ</span>
                                         <span class="text-sm text-gray-500 line-through">{{ number_format($product->price, 0) }} د.أ</span>
                                     </div>
                                     <div class="bg-green-50 text-green-700 text-xs font-bold px-3 py-1 rounded-full w-fit">
-                                        وفّر {{ number_format($product->price - $product->sale_price, 0) }} د.أ
+                                        وفّر {{ number_format($product->price - $product->effective_price, 0) }} د.أ
                                     </div>
                                 </div>
                             </a>

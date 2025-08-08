@@ -7,6 +7,7 @@ use App\Models\Product;
 use App\Models\Category;
 use App\Models\Brand;
 use App\Models\Favorite;
+use App\Models\Discount;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -37,12 +38,22 @@ class HomeController extends Controller
             ->limit(6)
             ->get();
 
-        // Get discounted products (products with original_price > price)
-        $discountedProducts = Product::with(['category', 'brand', 'images'])
+        // Get discounted products (products with active discounts)
+        $discountedProducts = Product::with(['category', 'brand', 'images', 'discounts'])
             ->active()
             ->inStock()
-            ->whereNotNull('original_price')
-            ->whereRaw('original_price > price')
+            ->whereHas('discounts', function ($query) {
+                $query->where('discounts.is_active', true)
+                      ->where('discounts.is_deleted', false)
+                      ->where(function ($q) {
+                          $q->whereNull('discounts.starts_at')
+                            ->orWhere('discounts.starts_at', '<=', now());
+                      })
+                      ->where(function ($q) {
+                          $q->whereNull('discounts.ends_at')
+                            ->orWhere('discounts.ends_at', '>=', now());
+                      });
+            })
             ->limit(6)
             ->get();
 
@@ -55,12 +66,22 @@ class HomeController extends Controller
             ->limit(8)
             ->get();
 
-        // Get sale products (same as discounted products for now)
-        $saleProducts = Product::with(['category', 'brand', 'images'])
+        // Get sale products (products with active discounts)
+        $saleProducts = Product::with(['category', 'brand', 'images', 'discounts'])
             ->active()
             ->inStock()
-            ->whereNotNull('original_price')
-            ->whereRaw('original_price > price')
+            ->whereHas('discounts', function ($query) {
+                $query->where('discounts.is_active', true)
+                      ->where('discounts.is_deleted', false)
+                      ->where(function ($q) {
+                          $q->whereNull('discounts.starts_at')
+                            ->orWhere('discounts.starts_at', '<=', now());
+                      })
+                      ->where(function ($q) {
+                          $q->whereNull('discounts.ends_at')
+                            ->orWhere('discounts.ends_at', '>=', now());
+                      });
+            })
             ->limit(8)
             ->get();
 

@@ -14,12 +14,14 @@ class Product extends Model
         'slug',
         'description',
         'price',
+        'sale_price',
         'original_price',
         'sku',
         'quantity',
         'category_id',
         'brand_id',
         'is_active',
+        'is_featured',
         'status',
         'meta_title',
         'meta_description',
@@ -144,6 +146,11 @@ class Product extends Model
         return $query->where('is_featured', true);
     }
 
+    public function scopeOnSale($query)
+    {
+        return $query->whereNotNull('sale_price')->where('sale_price', '>', 0);
+    }
+
     // Accessors
     public function getFormattedPriceAttribute()
     {
@@ -157,10 +164,79 @@ class Product extends Model
 
     public function getDiscountPercentageAttribute()
     {
-        if ($this->original_price && $this->original_price > $this->price) {
-            return round((($this->original_price - $this->price) / $this->original_price) * 100);
+        // First check if product has active discount from discount table
+        $activeDiscount = $this->discounts()
+            ->where('discounts.is_active', true)
+            ->where('discounts.is_deleted', false)
+            ->where(function ($q) {
+                $q->whereNull('discounts.starts_at')
+                  ->orWhere('discounts.starts_at', '<=', now());
+            })
+            ->where(function ($q) {
+                $q->whereNull('discounts.ends_at')
+                  ->orWhere('discounts.ends_at', '>=', now());
+            })
+            ->first();
+        
+        if ($activeDiscount) {
+            if ($activeDiscount->discount_type === 'percentage') {
+                return min(95, max(1, $activeDiscount->discount_value));
+            } else if ($activeDiscount->discount_type === 'fixed') {
+                $discountPercent = round(($activeDiscount->discount_value / $this->price) * 100);
+                return min(95, max(1, $discountPercent));
+            }
         }
+        
+        // Fallback to sale_price calculation
+        if ($this->sale_price && $this->sale_price > 0 && $this->price > $this->sale_price) {
+            $discountPercent = round((($this->price - $this->sale_price) / $this->price) * 100);
+            return min(95, max(1, $discountPercent)); // Cap discount at 95% and minimum 1%
+        }
+        
+        // Fallback to original_price for backward compatibility
+        if ($this->original_price && $this->original_price > $this->price) {
+            $discountPercent = round((($this->original_price - $this->price) / $this->original_price) * 100);
+            return min(95, max(1, $discountPercent)); // Cap discount at 95% and minimum 1%
+        }
+        
         return 0;
+    }
+
+    /**
+     * Get the effective discounted price after applying active discounts
+     */
+    public function getEffectivePriceAttribute()
+    {
+        // First check if product has active discount from discount table
+        $activeDiscount = $this->discounts()
+            ->where('discounts.is_active', true)
+            ->where('discounts.is_deleted', false)
+            ->where(function ($q) {
+                $q->whereNull('discounts.starts_at')
+                  ->orWhere('discounts.starts_at', '<=', now());
+            })
+            ->where(function ($q) {
+                $q->whereNull('discounts.ends_at')
+                  ->orWhere('discounts.ends_at', '>=', now());
+            })
+            ->first();
+        
+        if ($activeDiscount) {
+            if ($activeDiscount->discount_type === 'percentage') {
+                $discountAmount = ($this->price * min(95, $activeDiscount->discount_value)) / 100;
+                return max(0.01, $this->price - $discountAmount); // Ensure minimum price of 0.01
+            } else if ($activeDiscount->discount_type === 'fixed') {
+                return max(0.01, $this->price - $activeDiscount->discount_value); // Ensure minimum price of 0.01
+            }
+        }
+        
+        // Fallback to sale_price if available
+        if ($this->sale_price && $this->sale_price > 0 && $this->price > $this->sale_price) {
+            return $this->sale_price;
+        }
+        
+        // Return original price
+        return $this->price;
     }
 
     public function getAverageRatingAttribute()

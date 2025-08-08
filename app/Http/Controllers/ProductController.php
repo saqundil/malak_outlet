@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Models\Brand;
 use App\Models\ProductSize;
 use App\Models\Favorite;
+use App\Models\Discount;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -14,7 +15,7 @@ class ProductController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Product::with(['category', 'brand', 'images', 'sizes'])
+        $query = Product::with(['category', 'brand', 'images', 'sizes', 'discounts'])
             ->active();
 
         // Search by name or description
@@ -86,8 +87,63 @@ class ProductController extends Controller
 
         // Filter by sale products
         if ($request->filled('on_sale')) {
-            $query->whereNotNull('sale_price')
-                  ->where('sale_price', '>', 0);
+            $query->where(function($mainQuery) {
+                $mainQuery->whereHas('discounts', function ($q) {
+                    $q->where('discounts.is_active', true)
+                      ->where('discounts.is_deleted', false)
+                      ->where(function ($q) {
+                          $q->whereNull('discounts.starts_at')
+                            ->orWhere('discounts.starts_at', '<=', now());
+                      })
+                      ->where(function ($q) {
+                          $q->whereNull('discounts.ends_at')
+                            ->orWhere('discounts.ends_at', '>=', now());
+                      });
+                })->orWhere(function($q) {
+                    // Only include products with valid sale_price that's less than regular price
+                    $q->whereNotNull('sale_price')
+                      ->where('sale_price', '>', 0)
+                      ->whereColumn('sale_price', '<', 'price');
+                });
+            });
+        }
+
+        // General filter parameter for common filter types
+        if ($request->filled('filter')) {
+            switch ($request->filter) {
+                case 'sale':
+                    // Only show products that actually have active discounts or valid sale prices
+                    $query->where(function($mainQuery) {
+                        $mainQuery->whereHas('discounts', function ($q) {
+                            $q->where('discounts.is_active', true)
+                              ->where('discounts.is_deleted', false)
+                              ->where(function ($q) {
+                                  $q->whereNull('discounts.starts_at')
+                                    ->orWhere('discounts.starts_at', '<=', now());
+                              })
+                              ->where(function ($q) {
+                                  $q->whereNull('discounts.ends_at')
+                                    ->orWhere('discounts.ends_at', '>=', now());
+                              });
+                        })->orWhere(function($q) {
+                            // Only include products with valid sale_price that's less than regular price
+                            $q->whereNotNull('sale_price')
+                              ->where('sale_price', '>', 0)
+                              ->whereColumn('sale_price', '<', 'price');
+                        });
+                    });
+                    break;
+                case 'featured':
+                    $query->where('is_featured', true);
+                    break;
+                case 'new':
+                    $query->where('created_at', '>=', now()->subDays(30));
+                    break;
+                case 'popular':
+                    $query->withCount('favoritedByUsers')
+                          ->orderBy('favorited_by_users_count', 'desc');
+                    break;
+            }
         }
 
         // Sort products

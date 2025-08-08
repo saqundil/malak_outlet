@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
             RealArabicDataSeeder::class,
             ExpandedArabicProductsSeeder::class,
             ToysSeeder::class,
+            DiscountSeeder::class, // Add discounts after products are created
         ]);
     }
 }

@@ -84,7 +84,7 @@ Route::get('/faq', [PageController::class, 'faq'])->name('faq');
 Route::get('/contact', [PageController::class, 'contact'])->name('contact');
 
 // Admin routes (should be protected with admin middleware in production)
-Route::prefix('admin')->name('admin.')->group(function () {
+Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(function () {
     Route::get('/settings/contact', [SettingsController::class, 'contact'])->name('settings.contact');
     Route::put('/settings/contact', [SettingsController::class, 'updateContact'])->name('settings.contact.update');
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');

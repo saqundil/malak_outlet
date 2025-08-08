@@ -103,9 +103,12 @@
                                     @endif
                                 </a>
                                 
-                                @if($product->sale_price)
+                                @if($product->sale_price && $product->sale_price > 0 && $product->price > $product->sale_price)
+                                    @php
+                                        $discountPercent = min(95, max(1, round((($product->price - $product->sale_price) / $product->price) * 100)));
+                                    @endphp
                                     <span class="absolute top-3 left-3 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-semibold">
-                                        خصم {{ number_format((($product->price - $product->sale_price) / $product->price) * 100, 0) }}%
+                                        خصم {{ $discountPercent }}%
                                     </span>
                                 @endif
                                 
