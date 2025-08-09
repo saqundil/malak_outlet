@@ -64,6 +64,7 @@ Route::get('/search', [ProductController::class, 'search'])->name('search');
 // API Routes for search suggestions
 Route::get('/api/search-suggestions', [ProductController::class, 'searchSuggestions'])->name('api.search.suggestions');
 Route::get('/api/search-results', [ProductController::class, 'searchResults'])->name('api.search.results');
+Route::get('/api/brands-by-categories', [ProductController::class, 'getBrandsByCategories'])->name('api.brands.by-categories');
 
 Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
 Route::get('/categories/{slug}', [CategoryController::class, 'show'])->name('categories.show');
@@ -83,13 +84,8 @@ Route::get('/returns', [PageController::class, 'returns'])->name('returns');
 Route::get('/faq', [PageController::class, 'faq'])->name('faq');
 Route::get('/contact', [PageController::class, 'contact'])->name('contact');
 
-// Admin routes (should be protected with admin middleware in production)
-Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(function () {
-    Route::get('/settings/contact', [SettingsController::class, 'contact'])->name('settings.contact');
-    Route::put('/settings/contact', [SettingsController::class, 'updateContact'])->name('settings.contact.update');
-    Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
-    Route::put('/settings', [SettingsController::class, 'update'])->name('settings.update');
-});
+// Include admin routes
+require __DIR__.'/admin.php';
 
 // Legal pages
 Route::get('/legal/terms', function () {

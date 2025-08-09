@@ -130,6 +130,14 @@ class Product extends Model
         return $this->hasMany(OrderItem::class);
     }
 
+    /**
+     * العلاقة مع الطلبات (من خلال عناصر الطلبات)
+     */
+    public function orders()
+    {
+        return $this->hasManyThrough(Order::class, OrderItem::class, 'product_id', 'id', 'id', 'order_id');
+    }
+
     // Scopes
     public function scopeActive($query)
     {
@@ -149,6 +157,11 @@ class Product extends Model
     public function scopeOnSale($query)
     {
         return $query->whereNotNull('sale_price')->where('sale_price', '>', 0);
+    }
+
+    public function scopeLowStock($query, $threshold = 10)
+    {
+        return $query->where('quantity', '<=', $threshold)->where('quantity', '>', 0);
     }
 
     // Accessors

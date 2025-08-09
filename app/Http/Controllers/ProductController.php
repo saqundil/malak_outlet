@@ -181,7 +181,32 @@ class ProductController extends Controller
             ->withCount('products')
             ->orderBy('name')
             ->get();
-        $brands = Brand::active()->withCount('products')->orderBy('name')->get();
+        
+        // Get brands based on selected categories
+        $brandsQuery = Brand::active()->withCount('products')->orderBy('name');
+        
+        if ($request->filled('category')) {
+            $categories_selected = is_array($request->category) ? $request->category : [$request->category];
+            
+            // Get all selected categories and their subcategories
+            $allCategoryIds = collect($categories_selected);
+            
+            // For each selected category, add its subcategories if it's a main category
+            foreach ($categories_selected as $categoryId) {
+                $subcategories = Category::where('parent_id', $categoryId)->pluck('id');
+                $allCategoryIds = $allCategoryIds->merge($subcategories);
+            }
+            
+            // Filter brands to only show those that have products in the selected categories
+            $brandsQuery->whereHas('products', function($q) use ($allCategoryIds) {
+                $q->whereIn('category_id', $allCategoryIds->unique()->toArray())
+                  ->where('is_active', true)
+                  ->where('is_deleted', false);
+            });
+        }
+        
+        $brands = $brandsQuery->get();
+        
         $sizes = ProductSize::select('size')->distinct()->orderBy('size')->pluck('size');
         
         // Get available sizes with counts
@@ -319,6 +344,59 @@ class ProductController extends Controller
             'message' => $message,
             'is_favorite' => $isFavorite,
             'favorites_count' => $favoritesCount
+        ]);
+    }
+
+    /**
+     * Get brands based on selected categories (AJAX endpoint)
+     */
+    public function getBrandsByCategories(Request $request)
+    {
+        $brandsQuery = Brand::active()->withCount('products')->orderBy('name');
+        
+        if ($request->filled('categories')) {
+            $categoriesParam = $request->get('categories');
+            
+            // Handle both comma-separated string and array
+            if (is_string($categoriesParam)) {
+                $categories_selected = explode(',', $categoriesParam);
+            } else {
+                $categories_selected = is_array($categoriesParam) ? $categoriesParam : [$categoriesParam];
+            }
+            
+            // Filter out empty values and convert to integers
+            $categories_selected = array_filter(array_map('intval', $categories_selected));
+            
+            if (!empty($categories_selected)) {
+                // Get all selected categories and their subcategories
+                $allCategoryIds = collect($categories_selected);
+                
+                // For each selected category, add its subcategories if it's a main category
+                foreach ($categories_selected as $categoryId) {
+                    $subcategories = Category::where('parent_id', $categoryId)->pluck('id');
+                    $allCategoryIds = $allCategoryIds->merge($subcategories);
+                }
+                
+                // Filter brands to only show those that have products in the selected categories
+                $brandsQuery->whereHas('products', function($q) use ($allCategoryIds) {
+                    $q->whereIn('category_id', $allCategoryIds->unique()->toArray())
+                      ->where('is_active', true)
+                      ->where('is_deleted', false);
+                });
+            }
+        }
+        
+        $brands = $brandsQuery->get();
+        
+        return response()->json([
+            'success' => true,
+            'brands' => $brands->map(function($brand) {
+                return [
+                    'id' => $brand->id,
+                    'name' => $brand->name,
+                    'products_count' => $brand->products_count
+                ];
+            })
         ]);
     }
 

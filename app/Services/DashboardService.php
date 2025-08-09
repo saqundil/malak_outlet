@@ -7,6 +7,7 @@ use App\Models\Order;
 use App\Models\User;
 use App\Models\Category;
 use App\Models\Brand;
+use App\Models\Discount;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Collection;
@@ -23,8 +24,10 @@ class DashboardService
             'recentOrders' => $this->getRecentOrders(5),
             'recentCategories' => $this->getRecentCategories(10),
             'recentBrands' => $this->getRecentBrands(10),
+            'recentDiscounts' => $this->getRecentDiscounts(5),
             'monthlyRevenue' => $this->getMonthlyRevenue(),
             'topProducts' => $this->getTopProducts(5),
+            'discountedProducts' => $this->getDiscountedProducts(5),
             'lowStockProducts' => $this->getLowStockProducts(10, 10),
             'recentActivity' => $this->getRecentActivity(10),
         ];
@@ -48,6 +51,8 @@ class DashboardService
             'total_revenue' => $this->getTotalRevenue(),
             'total_categories' => $this->getTotalCategories(),
             'total_brands' => $this->getTotalBrands(),
+            'total_discounts' => $this->getTotalDiscounts(),
+            'active_discounts' => $this->getActiveDiscounts(),
             'low_stock_products' => $this->getLowStockCount(),
         ];
     }
@@ -120,7 +125,7 @@ class DashboardService
     public function getLowStockProducts(int $threshold = 10, int $limit = 10): Collection
     {
         return Product::lowStock($threshold)
-            ->orderBy('stock_quantity', 'asc')
+            ->orderBy('quantity', 'asc')
             ->limit($limit)
             ->get();
     }
@@ -133,7 +138,7 @@ class DashboardService
         $activities = collect();
 
         // Recent products
-        $recentProducts = Product::latest()->limit($limit / 2)->get();
+        $recentProducts = Product::latest()->limit($limit / 3)->get();
         foreach ($recentProducts as $product) {
             $activities->push((object) [
                 'type' => 'product_added',
@@ -146,7 +151,7 @@ class DashboardService
         }
 
         // Recent orders
-        $recentOrders = Order::latest()->limit($limit / 2)->get();
+        $recentOrders = Order::latest()->limit($limit / 3)->get();
         foreach ($recentOrders as $order) {
             $activities->push((object) [
                 'type' => 'order_placed',
@@ -158,7 +163,50 @@ class DashboardService
             ]);
         }
 
+        // Recent discounts
+        $recentDiscounts = Discount::where('is_deleted', false)->latest()->limit($limit / 3)->get();
+        foreach ($recentDiscounts as $discount) {
+            $activities->push((object) [
+                'type' => 'discount_added',
+                'title' => 'تم إضافة خصم جديد',
+                'description' => $discount->name,
+                'created_at' => $discount->created_at,
+                'icon' => 'fas fa-percentage',
+                'color' => 'text-purple-600'
+            ]);
+        }
+
         return $activities->sortByDesc('created_at')->take($limit);
+    }
+
+    /**
+     * Get recent discounts with product/category counts
+     */
+    public function getRecentDiscounts(int $limit = 5): Collection
+    {
+        return Discount::with(['products', 'categories'])
+            ->where('is_deleted', false)
+            ->latest()
+            ->limit($limit)
+            ->get();
+    }
+
+    /**
+     * Get products with active discounts
+     */
+    public function getDiscountedProducts(int $limit = 5): Collection
+    {
+        return Product::with(['discounts' => function($query) {
+                $query->where('discounts.is_active', true)
+                      ->where('discounts.is_deleted', false);
+            }])
+            ->whereHas('discounts', function($query) {
+                $query->where('discounts.is_active', true)
+                      ->where('discounts.is_deleted', false);
+            })
+            ->orderBy('created_at', 'desc')
+            ->limit($limit)
+            ->get();
     }
 
     // Private helper methods for statistics
@@ -220,6 +268,18 @@ class DashboardService
     private function getTotalBrands(): int
     {
         return Brand::count();
+    }
+
+    private function getTotalDiscounts(): int
+    {
+        return Discount::where('is_deleted', false)->count();
+    }
+
+    private function getActiveDiscounts(): int
+    {
+        return Discount::where('is_active', true)
+                      ->where('is_deleted', false)
+                      ->count();
     }
 
     private function getLowStockCount(int $threshold = 10): int

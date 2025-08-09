@@ -3,6 +3,44 @@
 @section('title', 'جميع المنتجات - Malak Outlet')
 
 @section('content')
+<style>
+/* Custom scrollbar for filter sidebar */
+.filter-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: #fb923c #f3f4f6;
+    scroll-behavior: smooth;
+}
+
+.filter-scrollbar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.filter-scrollbar::-webkit-scrollbar-track {
+    background: #f3f4f6;
+    border-radius: 3px;
+}
+
+.filter-scrollbar::-webkit-scrollbar-thumb {
+    background: #fb923c;
+    border-radius: 3px;
+    transition: background-color 0.2s ease;
+}
+
+.filter-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #f97316;
+}
+
+/* Ensure smooth scrolling for the entire page */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Add padding to prevent content from being hidden under sticky elements */
+.filter-content {
+    padding-bottom: 1rem;
+}
+</style>
+
 <main class="container mx-auto px-4" style="max-width: 1400px;">
     <div class="min-h-screen bg-gray-50 -mx-4 px-4">
         <!-- Header -->
@@ -16,15 +54,18 @@
             <div class="lg:grid lg:grid-cols-4 lg:gap-6 xl:gap-8">
                 <!-- Modern Filters Sidebar -->
                 <div class="hidden lg:block lg:col-span-1">
-                    <div class="bg-white rounded-xl shadow-lg p-6 sticky top-4 border border-gray-100">
-                        <div class="flex items-center justify-between mb-6">
-                            <h3 class="text-xl font-bold text-gray-900">التصفية</h3>
-                            <button onclick="clearFilters()" class="text-sm text-orange-500 hover:text-orange-600 font-medium">
-                                مسح الكل
-                            </button>
+                    <div class="bg-white rounded-xl shadow-lg border border-gray-100 sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto filter-scrollbar">
+                        <div class="p-6">
+                            <div class="flex items-center justify-between mb-6">
+                                <h3 class="text-xl font-bold text-gray-900">التصفية</h3>
+                                <button onclick="clearFilters()" class="text-sm text-orange-500 hover:text-orange-600 font-medium">
+                                    مسح الكل
+                                </button>
+                            </div>
                         </div>
                         
-                        <form method="GET" action="{{ route('products.index') }}" id="filterForm">
+                        <div class="px-6 pb-6 filter-content">
+                            <form method="GET" action="{{ route('products.index') }}" id="filterForm">
                             <!-- Search Box -->
                             <div class="mb-6">
                                 <div class="relative">
@@ -101,30 +142,48 @@
 
                             <!-- Brands Filter -->
                             @if($brands->count() > 0)
-                            <div class="mb-6">
-                                <button type="button" onclick="toggleSection('brands')" class="w-full text-left">
-                                    <h4 class="text-lg font-semibold text-gray-800 mb-4 flex items-center justify-between hover:text-orange-600 transition-colors">
+                            <div class="mb-6" id="brands-filter-section">
+                                <!-- Show message when no category is selected -->
+                                <div id="brands-placeholder" class="{{ request('category') ? 'hidden' : '' }}">
+                                    <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
                                         <div class="flex items-center">
-                                            <svg class="w-5 h-5 ml-2 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <svg class="w-5 h-5 text-orange-500 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
                                             </svg>
-                                            العلامات التجارية
+                                            <div>
+                                                <h4 class="text-sm font-semibold text-orange-800">العلامات التجارية</h4>
+                                                <p class="text-xs text-orange-600 mt-1">يرجى اختيار تصنيف أولاً لعرض العلامات التجارية المتاحة</p>
+                                            </div>
                                         </div>
-                                        <svg id="brands-arrow" class="w-5 h-5 text-gray-400 transform transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                                        </svg>
-                                    </h4>
-                                </button>
-                                <div id="brands-content" class="space-y-3 hidden">
-                                    @foreach($brands as $brand)
-                                    <label class="flex items-center group cursor-pointer">
-                                        <input type="checkbox" name="brand[]" value="{{ $brand->id }}" 
-                                               class="w-4 h-4 text-orange-500 border-gray-300 rounded focus:ring-orange-500"
-                                               {{ in_array($brand->id, (array)request('brand', [])) ? 'checked' : '' }}>
-                                        <span class="mr-3 text-sm text-gray-700 group-hover:text-orange-600 transition-colors">{{ $brand->name }}</span>
-                                        <span class="mr-auto text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">{{ $brand->products_count }}</span>
-                                    </label>
-                                    @endforeach
+                                    </div>
+                                </div>
+
+                                <!-- Show brands when category is selected -->
+                                <div id="brands-active-section" class="{{ !request('category') ? 'hidden' : '' }}">
+                                    <button type="button" onclick="toggleSection('brands')" class="w-full text-left">
+                                        <h4 class="text-lg font-semibold text-gray-800 mb-4 flex items-center justify-between hover:text-orange-600 transition-colors">
+                                            <div class="flex items-center">
+                                                <svg class="w-5 h-5 ml-2 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                                                </svg>
+                                                العلامات التجارية
+                                            </div>
+                                            <svg id="brands-arrow" class="w-5 h-5 text-gray-400 transform transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                            </svg>
+                                        </h4>
+                                    </button>
+                                    <div id="brands-content" class="space-y-3 hidden">
+                                        @foreach($brands as $brand)
+                                        <label class="flex items-center group cursor-pointer">
+                                            <input type="checkbox" name="brand[]" value="{{ $brand->id }}" 
+                                                   class="w-4 h-4 text-orange-500 border-gray-300 rounded focus:ring-orange-500"
+                                                   {{ in_array($brand->id, (array)request('brand', [])) ? 'checked' : '' }}>
+                                            <span class="mr-3 text-sm text-gray-700 group-hover:text-orange-600 transition-colors">{{ $brand->name }}</span>
+                                            <span class="mr-auto text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">{{ $brand->products_count }}</span>
+                                        </label>
+                                        @endforeach
+                                    </div>
                                 </div>
                             </div>
                             @endif
@@ -239,6 +298,7 @@
                                 </button>
                             </div>
                         </form>
+                        </div>
                     </div>
                 </div>
 
@@ -443,8 +503,10 @@
                 </div>
 
                 <!-- Pagination -->
-                <div class="mt-8 lg:mt-12 flex justify-center">
-                    {{ $products->links() }}
+                <div class="mt-12 flex justify-center">
+                    <div class="bg-white rounded-xl shadow-lg border border-gray-200 px-6 py-4">
+                        {{ $products->appends(request()->query())->links('custom.pagination') }}
+                    </div>
                 </div>
             @else
                 <div class="text-center py-12 lg:py-16">
@@ -471,7 +533,7 @@
             </button>
         </div>
         <div class="flex flex-col h-full">
-            <div class="flex-1 overflow-y-auto p-4">
+            <div class="flex-1 overflow-y-auto p-4 filter-scrollbar max-h-[calc(100vh-12rem)]">
                 <form method="GET" action="{{ route('products.index') }}" id="mobileFilterForm">
                     <!-- Mobile Search -->
                     <div class="mb-6">
@@ -538,30 +600,50 @@
 
                     <!-- Mobile Brands -->
                     @if($brands->count() > 0)
-                    <div class="mb-6">
-                        <button type="button" onclick="toggleMobileSection('mobile-brands')" class="w-full text-left">
-                            <div class="flex items-center space-x-3 space-x-reverse mb-4">
-                                <div class="p-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg">
-                                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                    <div class="mb-6" id="mobile-brands-filter-section">
+                        <!-- Show message when no category is selected -->
+                        <div id="mobile-brands-placeholder" class="{{ request('category') ? 'hidden' : '' }}">
+                            <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                                <div class="flex items-center">
+                                    <div class="p-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg ml-3">
+                                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-lg font-bold text-orange-800">العلامات التجارية</h4>
+                                        <p class="text-sm text-orange-600 mt-1">يرجى اختيار تصنيف أولاً لعرض العلامات التجارية</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Show brands when category is selected -->
+                        <div id="mobile-brands-active-section" class="{{ !request('category') ? 'hidden' : '' }}">
+                            <button type="button" onclick="toggleMobileSection('mobile-brands')" class="w-full text-left">
+                                <div class="flex items-center space-x-3 space-x-reverse mb-4">
+                                    <div class="p-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg">
+                                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                                        </svg>
+                                    </div>
+                                    <h4 class="text-lg font-bold text-gray-900">العلامات التجارية</h4>
+                                    <svg id="mobile-brands-arrow" class="w-5 h-5 text-gray-400 transform transition-transform duration-200 mr-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                                     </svg>
                                 </div>
-                                <h4 class="text-lg font-bold text-gray-900">العلامات التجارية</h4>
-                                <svg id="mobile-brands-arrow" class="w-5 h-5 text-gray-400 transform transition-transform duration-200 mr-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                                </svg>
+                            </button>
+                            <div id="mobile-brands-content" class="space-y-3 hidden">
+                                @foreach($brands as $brand)
+                                <label class="flex items-center p-3 hover:bg-gray-50 rounded-xl transition-colors cursor-pointer">
+                                    <input type="checkbox" name="brand[]" value="{{ $brand->id }}" 
+                                           {{ in_array($brand->id, (array)request('brand', [])) ? 'checked' : '' }}
+                                           class="w-4 h-4 text-orange-500 border-gray-300 rounded focus:ring-orange-500 focus:ring-2">
+                                    <span class="mr-3 text-gray-700 font-medium">{{ $brand->name }}</span>
+                                    <span class="mr-auto text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded-full">{{ $brand->products_count }}</span>
+                                </label>
+                                @endforeach
                             </div>
-                        </button>
-                        <div id="mobile-brands-content" class="space-y-3 hidden">
-                            @foreach($brands as $brand)
-                            <label class="flex items-center p-3 hover:bg-gray-50 rounded-xl transition-colors cursor-pointer">
-                                <input type="checkbox" name="brand[]" value="{{ $brand->id }}" 
-                                       {{ in_array($brand->id, (array)request('brand', [])) ? 'checked' : '' }}
-                                       class="w-4 h-4 text-orange-500 border-gray-300 rounded focus:ring-orange-500 focus:ring-2">
-                                <span class="mr-3 text-gray-700 font-medium">{{ $brand->name }}</span>
-                                <span class="mr-auto text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded-full">{{ $brand->products_count }}</span>
-                            </label>
-                            @endforeach
                         </div>
                     </div>
                     @endif
@@ -815,6 +897,15 @@ function showNotification(message, type = 'success') {
 
 // Add event listeners when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
+    // Add category checkbox event listeners to toggle brands visibility
+    const categoryCheckboxes = document.querySelectorAll('input[name="category[]"]');
+    categoryCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', toggleBrandsVisibility);
+    });
+    
+    // Initial check for brands visibility
+    toggleBrandsVisibility();
+    
     // Add wishlist button event listeners
     document.querySelectorAll('.add-to-wishlist-btn').forEach(button => {
         button.addEventListener('click', function(e) {
@@ -865,6 +956,174 @@ function toggleSection(sectionName) {
     } else {
         content.classList.add('hidden');
         arrow.classList.remove('rotate-180');
+    }
+}
+
+// Function to toggle brands visibility based on category selection and load relevant brands
+function toggleBrandsVisibility() {
+    const categoryCheckboxes = document.querySelectorAll('input[name="category[]"]');
+    const brandsPlaceholder = document.getElementById('brands-placeholder');
+    const brandsActiveSection = document.getElementById('brands-active-section');
+    const mobileBrandsPlaceholder = document.getElementById('mobile-brands-placeholder');
+    const mobileBrandsActiveSection = document.getElementById('mobile-brands-active-section');
+    
+    let hasSelectedCategory = false;
+    let selectedCategories = [];
+    
+    categoryCheckboxes.forEach(checkbox => {
+        if (checkbox.checked) {
+            hasSelectedCategory = true;
+            selectedCategories.push(checkbox.value);
+        }
+    });
+    
+    console.log('Selected categories:', selectedCategories); // Debug log
+    
+    // Handle desktop brands
+    if (brandsPlaceholder && brandsActiveSection) {
+        if (hasSelectedCategory) {
+            brandsPlaceholder.classList.add('hidden');
+            brandsActiveSection.classList.remove('hidden');
+            // Load brands for selected categories
+            loadBrandsForCategories(selectedCategories);
+        } else {
+            brandsPlaceholder.classList.remove('hidden');
+            brandsActiveSection.classList.add('hidden');
+            // Clear brand selections when no category is selected
+            const brandCheckboxes = document.querySelectorAll('input[name="brand[]"]');
+            brandCheckboxes.forEach(checkbox => {
+                checkbox.checked = false;
+            });
+        }
+    }
+    
+    // Handle mobile brands
+    if (mobileBrandsPlaceholder && mobileBrandsActiveSection) {
+        if (hasSelectedCategory) {
+            mobileBrandsPlaceholder.classList.add('hidden');
+            mobileBrandsActiveSection.classList.remove('hidden');
+        } else {
+            mobileBrandsPlaceholder.classList.remove('hidden');
+            mobileBrandsActiveSection.classList.add('hidden');
+        }
+    }
+}
+
+// Function to load brands for selected categories via AJAX
+function loadBrandsForCategories(categories) {
+    console.log('Loading brands for categories:', categories); // Debug log
+    
+    if (categories.length === 0) return;
+    
+    // Show loading state
+    const desktopBrandsContent = document.getElementById('brands-content');
+    const mobileBrandsContent = document.getElementById('mobile-brands-content');
+    
+    if (desktopBrandsContent) {
+        desktopBrandsContent.innerHTML = '<div class="text-center py-4"><div class="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-orange-500"></div></div>';
+    }
+    if (mobileBrandsContent) {
+        mobileBrandsContent.innerHTML = '<div class="text-center py-4"><div class="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-orange-500"></div></div>';
+    }
+    
+    const url = `/api/brands-by-categories?categories=${categories.join(',')}`;
+    console.log('AJAX URL:', url); // Debug log
+    
+    fetch(url, {
+        method: 'GET',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        credentials: 'same-origin'
+    })
+    .then(response => {
+        console.log('Response status:', response.status); // Debug log
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Response data:', data); // Debug log
+        if (data.success && data.brands) {
+            updateBrandsContent(data.brands);
+        } else {
+            console.error('Invalid response format:', data);
+            showBrandsError('تعذر تحميل العلامات التجارية');
+        }
+    })
+    .catch(error => {
+        console.error('Error loading brands:', error);
+        showBrandsError('خطأ في تحميل العلامات التجارية');
+    });
+}
+
+// Function to show error message in brands section
+function showBrandsError(message) {
+    const errorHtml = `<div class="text-center py-4 text-red-600 text-sm">${message}</div>`;
+    
+    const desktopBrandsContent = document.getElementById('brands-content');
+    const mobileBrandsContent = document.getElementById('mobile-brands-content');
+    
+    if (desktopBrandsContent) {
+        desktopBrandsContent.innerHTML = errorHtml;
+    }
+    if (mobileBrandsContent) {
+        mobileBrandsContent.innerHTML = errorHtml;
+    }
+}
+
+// Function to update brands content with new data
+function updateBrandsContent(brands) {
+    const desktopBrandsContent = document.getElementById('brands-content');
+    const mobileBrandsContent = document.getElementById('mobile-brands-content');
+    
+    // Handle empty brands case
+    if (!brands || brands.length === 0) {
+        const emptyMessage = '<div class="text-center py-4 text-gray-500 text-sm">لا توجد علامات تجارية متاحة للتصنيفات المحددة</div>';
+        if (desktopBrandsContent) {
+            desktopBrandsContent.innerHTML = emptyMessage;
+        }
+        if (mobileBrandsContent) {
+            mobileBrandsContent.innerHTML = emptyMessage;
+        }
+        return;
+    }
+    
+    if (desktopBrandsContent) {
+        let brandsHtml = '';
+        brands.forEach(brand => {
+            const isChecked = document.querySelector(`input[name="brand[]"][value="${brand.id}"]`)?.checked || false;
+            brandsHtml += `
+                <label class="flex items-center group cursor-pointer mb-3 last:mb-0">
+                    <input type="checkbox" name="brand[]" value="${brand.id}" 
+                           class="w-4 h-4 text-orange-500 border-gray-300 rounded focus:ring-orange-500"
+                           ${isChecked ? 'checked' : ''}>
+                    <span class="mr-3 text-sm text-gray-700 group-hover:text-orange-600 transition-colors">${brand.name}</span>
+                    <span class="mr-auto text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">${brand.products_count}</span>
+                </label>
+            `;
+        });
+        desktopBrandsContent.innerHTML = brandsHtml;
+    }
+    
+    if (mobileBrandsContent) {
+        let mobileBrandsHtml = '';
+        brands.forEach(brand => {
+            const isChecked = document.querySelector(`input[name="brand[]"][value="${brand.id}"]`)?.checked || false;
+            mobileBrandsHtml += `
+                <label class="flex items-center p-3 hover:bg-gray-50 rounded-xl transition-colors cursor-pointer">
+                    <input type="checkbox" name="brand[]" value="${brand.id}" 
+                           class="w-4 h-4 text-orange-500 border-gray-300 rounded focus:ring-orange-500 focus:ring-2"
+                           ${isChecked ? 'checked' : ''}>
+                    <span class="mr-3 text-gray-700 font-medium">${brand.name}</span>
+                    <span class="mr-auto text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded-full">${brand.products_count}</span>
+                </label>
+            `;
+        });
+        mobileBrandsContent.innerHTML = mobileBrandsHtml;
     }
 }
 

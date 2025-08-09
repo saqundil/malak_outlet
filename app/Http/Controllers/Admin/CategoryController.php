@@ -38,11 +38,16 @@ class CategoryController extends Controller
                 $query->orderBy('products_count', 'desc');
                 break;
             case 'created_at':
+            case 'created_at_desc':
                 $query->orderBy('created_at', 'desc');
+                break;
+            case 'created_at_asc':
+                $query->orderBy('created_at', 'asc');
                 break;
             case 'updated_at':
                 $query->orderBy('updated_at', 'desc');
                 break;
+            case 'name_asc':
             default:
                 $query->orderBy('name', 'asc');
                 break;

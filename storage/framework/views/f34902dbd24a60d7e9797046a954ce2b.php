@@ -3,15 +3,15 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="csrf-token" content="<?php echo e(csrf_token()); ?>">
     
-    <title>@yield('title', 'لوحة التحكم') - Malak Outlet Admin</title>
+    <title><?php echo $__env->yieldContent('title', 'لوحة التحكم'); ?> - Malak Outlet Admin</title>
     
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <?php echo app('Illuminate\Foundation\Vite')(['resources/css/app.css', 'resources/js/app.js']); ?>
     
     <!-- Toastr CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
@@ -60,7 +60,7 @@
         }
     </style>
     
-    @stack('styles')
+    <?php echo $__env->yieldPushContent('styles'); ?>
 </head>
 <body class="bg-gray-50 font-sans antialiased">
     <div class="flex h-screen">
@@ -75,8 +75,8 @@
             <nav class="mt-8">
                 <div class="px-4 space-y-1">
                     <!-- Dashboard -->
-                    <a href="{{ route('admin.dashboard') }}" 
-                       class="sidebar-link flex items-center px-4 py-3 text-gray-700 rounded-lg transition-colors {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
+                    <a href="<?php echo e(route('admin.dashboard')); ?>" 
+                       class="sidebar-link flex items-center px-4 py-3 text-gray-700 rounded-lg transition-colors <?php echo e(request()->routeIs('admin.dashboard') ? 'active' : ''); ?>">
                         <i class="fas fa-chart-bar ml-3"></i>
                         <span>لوحة التحكم</span>
                     </a>
@@ -87,37 +87,37 @@
                     <div class="space-y-1">
                         <p class="px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">إدارة المنتجات</p>
                         
-                        <a href="{{ route('admin.products.index') }}" 
-                           class="sidebar-link flex items-center px-4 py-3 text-gray-700 rounded-lg transition-colors {{ request()->routeIs('admin.products.*') ? 'active' : '' }}">
+                        <a href="<?php echo e(route('admin.products.index')); ?>" 
+                           class="sidebar-link flex items-center px-4 py-3 text-gray-700 rounded-lg transition-colors <?php echo e(request()->routeIs('admin.products.*') ? 'active' : ''); ?>">
                             <i class="fas fa-box ml-3"></i>
                             <span>جميع المنتجات</span>
-                            @if(isset($stats['total_products']) && $stats['total_products'] > 0)
-                                <span class="mr-auto bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">{{ $stats['total_products'] }}</span>
-                            @endif
+                            <?php if(isset($stats['total_products']) && $stats['total_products'] > 0): ?>
+                                <span class="mr-auto bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full"><?php echo e($stats['total_products']); ?></span>
+                            <?php endif; ?>
                         </a>
                         
-                        <a href="{{ route('admin.products.create') }}" 
-                           class="sidebar-link flex items-center px-4 py-3 text-gray-700 rounded-lg transition-colors {{ request()->routeIs('admin.products.create') ? 'active' : '' }}">
+                        <a href="<?php echo e(route('admin.products.create')); ?>" 
+                           class="sidebar-link flex items-center px-4 py-3 text-gray-700 rounded-lg transition-colors <?php echo e(request()->routeIs('admin.products.create') ? 'active' : ''); ?>">
                             <i class="fas fa-plus-circle ml-3"></i>
                             <span>إضافة منتج</span>
                         </a>
                         
-                        <a href="{{ route('admin.categories.index') }}" 
-                           class="sidebar-link flex items-center px-4 py-3 text-gray-700 rounded-lg transition-colors {{ request()->routeIs('admin.categories.*') ? 'active' : '' }}">
+                        <a href="<?php echo e(route('admin.categories.index')); ?>" 
+                           class="sidebar-link flex items-center px-4 py-3 text-gray-700 rounded-lg transition-colors <?php echo e(request()->routeIs('admin.categories.*') ? 'active' : ''); ?>">
                             <i class="fas fa-folder ml-3"></i>
                             <span>الفئات</span>
-                            @if(isset($stats['total_categories']) && $stats['total_categories'] > 0)
-                                <span class="mr-auto bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full">{{ $stats['total_categories'] }}</span>
-                            @endif
+                            <?php if(isset($stats['total_categories']) && $stats['total_categories'] > 0): ?>
+                                <span class="mr-auto bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full"><?php echo e($stats['total_categories']); ?></span>
+                            <?php endif; ?>
                         </a>
                         
-                        <a href="{{ route('admin.brands.index') }}" 
-                           class="sidebar-link flex items-center px-4 py-3 text-gray-700 rounded-lg transition-colors {{ request()->routeIs('admin.brands.*') ? 'active' : '' }}">
+                        <a href="<?php echo e(route('admin.brands.index')); ?>" 
+                           class="sidebar-link flex items-center px-4 py-3 text-gray-700 rounded-lg transition-colors <?php echo e(request()->routeIs('admin.brands.*') ? 'active' : ''); ?>">
                             <i class="fas fa-tags ml-3"></i>
                             <span>العلامات التجارية</span>
-                            @if(isset($stats['total_brands']) && $stats['total_brands'] > 0)
-                                <span class="mr-auto bg-indigo-100 text-indigo-800 text-xs px-2 py-1 rounded-full">{{ $stats['total_brands'] }}</span>
-                            @endif
+                            <?php if(isset($stats['total_brands']) && $stats['total_brands'] > 0): ?>
+                                <span class="mr-auto bg-indigo-100 text-indigo-800 text-xs px-2 py-1 rounded-full"><?php echo e($stats['total_brands']); ?></span>
+                            <?php endif; ?>
                         </a>
                     </div>
                     
@@ -127,29 +127,29 @@
                     <div class="space-y-1">
                         <p class="px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">إدارة الخصومات</p>
                         
-                        <a href="{{ route('admin.discounts.index') }}" 
-                           class="sidebar-link flex items-center px-4 py-3 text-gray-700 rounded-lg transition-colors {{ request()->routeIs('admin.discounts.*') ? 'active' : '' }}">
+                        <a href="<?php echo e(route('admin.discounts.index')); ?>" 
+                           class="sidebar-link flex items-center px-4 py-3 text-gray-700 rounded-lg transition-colors <?php echo e(request()->routeIs('admin.discounts.*') ? 'active' : ''); ?>">
                             <i class="fas fa-percentage ml-3"></i>
                             <span>جميع الخصومات</span>
-                            @if(isset($stats['total_discounts']) && $stats['total_discounts'] > 0)
-                                <span class="mr-auto bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">{{ $stats['total_discounts'] }}</span>
-                            @endif
+                            <?php if(isset($stats['total_discounts']) && $stats['total_discounts'] > 0): ?>
+                                <span class="mr-auto bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full"><?php echo e($stats['total_discounts']); ?></span>
+                            <?php endif; ?>
                         </a>
                         
-                        <a href="{{ route('admin.discounts.create') }}" 
-                           class="sidebar-link flex items-center px-4 py-3 text-gray-700 rounded-lg transition-colors {{ request()->routeIs('admin.discounts.create') ? 'active' : '' }}">
+                        <a href="<?php echo e(route('admin.discounts.create')); ?>" 
+                           class="sidebar-link flex items-center px-4 py-3 text-gray-700 rounded-lg transition-colors <?php echo e(request()->routeIs('admin.discounts.create') ? 'active' : ''); ?>">
                             <i class="fas fa-plus-circle ml-3"></i>
                             <span>إضافة خصم</span>
                         </a>
                         
-                        @if(isset($stats['active_discounts']) && $stats['active_discounts'] > 0)
-                        <a href="{{ route('admin.discounts.index') }}?status=active" 
+                        <?php if(isset($stats['active_discounts']) && $stats['active_discounts'] > 0): ?>
+                        <a href="<?php echo e(route('admin.discounts.index')); ?>?status=active" 
                            class="sidebar-link flex items-center px-4 py-3 text-gray-700 rounded-lg transition-colors">
                             <i class="fas fa-check-circle ml-3"></i>
                             <span>خصومات نشطة</span>
-                            <span class="mr-auto bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">{{ $stats['active_discounts'] }}</span>
+                            <span class="mr-auto bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full"><?php echo e($stats['active_discounts']); ?></span>
                         </a>
-                        @endif
+                        <?php endif; ?>
                     </div>
                     
                     <div class="border-t border-gray-200 my-4"></div>
@@ -158,23 +158,23 @@
                     <div class="space-y-1">
                         <p class="px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">إدارة الطلبات</p>
                         
-                        <a href="{{ route('admin.orders.index') }}" 
-                           class="sidebar-link flex items-center px-4 py-3 text-gray-700 rounded-lg transition-colors {{ request()->routeIs('admin.orders.*') ? 'active' : '' }}">
+                        <a href="<?php echo e(route('admin.orders.index')); ?>" 
+                           class="sidebar-link flex items-center px-4 py-3 text-gray-700 rounded-lg transition-colors <?php echo e(request()->routeIs('admin.orders.*') ? 'active' : ''); ?>">
                             <i class="fas fa-shopping-cart ml-3"></i>
                             <span>جميع الطلبات</span>
-                            @if(isset($stats['total_orders']) && $stats['total_orders'] > 0)
-                                <span class="mr-auto bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">{{ $stats['total_orders'] }}</span>
-                            @endif
+                            <?php if(isset($stats['total_orders']) && $stats['total_orders'] > 0): ?>
+                                <span class="mr-auto bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full"><?php echo e($stats['total_orders']); ?></span>
+                            <?php endif; ?>
                         </a>
                         
-                        @if(isset($stats['pending_orders']) && $stats['pending_orders'] > 0)
-                        <a href="{{ route('admin.orders.index') }}?status=pending" 
+                        <?php if(isset($stats['pending_orders']) && $stats['pending_orders'] > 0): ?>
+                        <a href="<?php echo e(route('admin.orders.index')); ?>?status=pending" 
                            class="sidebar-link flex items-center px-4 py-3 text-gray-700 rounded-lg transition-colors">
                             <i class="fas fa-clock ml-3"></i>
                             <span>طلبات في الانتظار</span>
-                            <span class="mr-auto bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded-full">{{ $stats['pending_orders'] }}</span>
+                            <span class="mr-auto bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded-full"><?php echo e($stats['pending_orders']); ?></span>
                         </a>
-                        @endif
+                        <?php endif; ?>
                     </div>
                     
                     <div class="border-t border-gray-200 my-4"></div>
@@ -183,14 +183,14 @@
                     <div class="space-y-1">
                         <p class="px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">إدارة المستخدمين</p>
                         
-                        <a href="{{ route('admin.users.index') }}" 
-                           class="sidebar-link flex items-center px-4 py-3 text-gray-700 rounded-lg transition-colors {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
+                        <a href="<?php echo e(route('admin.users.index')); ?>" 
+                           class="sidebar-link flex items-center px-4 py-3 text-gray-700 rounded-lg transition-colors <?php echo e(request()->routeIs('admin.users.*') ? 'active' : ''); ?>">
                             <i class="fas fa-users ml-3"></i>
                             <span>العملاء</span>
                         </a>
                         
-                        <a href="{{ route('admin.reviews.index') }}" 
-                           class="sidebar-link flex items-center px-4 py-3 text-gray-700 rounded-lg transition-colors {{ request()->routeIs('admin.reviews.*') ? 'active' : '' }}">
+                        <a href="<?php echo e(route('admin.reviews.index')); ?>" 
+                           class="sidebar-link flex items-center px-4 py-3 text-gray-700 rounded-lg transition-colors <?php echo e(request()->routeIs('admin.reviews.*') ? 'active' : ''); ?>">
                             <i class="fas fa-star ml-3"></i>
                             <span>المراجعات</span>
                         </a>
@@ -200,14 +200,14 @@
                     
                     <!-- Quick Actions -->
                     <div class="space-y-1">
-                        <a href="{{ route('home') }}" target="_blank"
+                        <a href="<?php echo e(route('home')); ?>" target="_blank"
                            class="sidebar-link flex items-center px-4 py-3 text-gray-700 rounded-lg transition-colors">
                             <i class="fas fa-external-link-alt ml-3"></i>
                             <span>زيارة الموقع</span>
                         </a>
                         
-                        <form method="POST" action="{{ route('logout') }}" class="w-full">
-                            @csrf
+                        <form method="POST" action="<?php echo e(route('logout')); ?>" class="w-full">
+                            <?php echo csrf_field(); ?>
                             <button type="submit" 
                                     class="sidebar-link flex items-center px-4 py-3 text-gray-700 rounded-lg transition-colors w-full text-right hover:bg-red-50 hover:text-red-700">
                                 <i class="fas fa-sign-out-alt ml-3"></i>
@@ -226,16 +226,18 @@
                 <div class="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
                     <div class="flex items-center justify-between">
                         <div>
-                            <h1 class="text-2xl font-bold text-gray-900">@yield('page-title', 'لوحة التحكم')</h1>
-                            <p class="text-gray-600">@yield('page-description', 'مرحباً بك في لوحة التحكم')</p>
+                            <h1 class="text-2xl font-bold text-gray-900"><?php echo $__env->yieldContent('page-title', 'لوحة التحكم'); ?></h1>
+                            <p class="text-gray-600"><?php echo $__env->yieldContent('page-description', 'مرحباً بك في لوحة التحكم'); ?></p>
                         </div>
                         
                         <div class="flex items-center space-x-4 space-x-reverse">
                             <div class="text-sm text-gray-600">
-                                مرحباً، {{ auth()->user()->name }}
+                                مرحباً، <?php echo e(auth()->user()->name); ?>
+
                             </div>
                             <div class="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-white font-bold">
-                                {{ substr(auth()->user()->name, 0, 1) }}
+                                <?php echo e(substr(auth()->user()->name, 0, 1)); ?>
+
                             </div>
                         </div>
                     </div>
@@ -246,39 +248,41 @@
             <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50">
                 <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
                     <!-- Alerts -->
-                    @if (session('success'))
+                    <?php if(session('success')): ?>
                         <div class="mb-6 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg">
                             <div class="flex items-center">
                                 <i class="fas fa-check-circle ml-2"></i>
-                                {{ session('success') }}
+                                <?php echo e(session('success')); ?>
+
                             </div>
                         </div>
-                    @endif
+                    <?php endif; ?>
                     
-                    @if (session('error'))
+                    <?php if(session('error')): ?>
                         <div class="mb-6 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg">
                             <div class="flex items-center">
                                 <i class="fas fa-times-circle ml-2"></i>
-                                {{ session('error') }}
+                                <?php echo e(session('error')); ?>
+
                             </div>
                         </div>
-                    @endif
+                    <?php endif; ?>
                     
-                    @if ($errors->any())
+                    <?php if($errors->any()): ?>
                         <div class="mb-6 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg">
                             <div class="flex items-center mb-2">
                                 <i class="fas fa-exclamation-triangle ml-2"></i>
                                 يرجى تصحيح الأخطاء التالية:
                             </div>
                             <ul class="list-disc list-inside space-y-1">
-                                @foreach ($errors->all() as $error)
-                                    <li>{{ $error }}</li>
-                                @endforeach
+                                <?php $__currentLoopData = $errors->all(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $error): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <li><?php echo e($error); ?></li>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             </ul>
                         </div>
-                    @endif
+                    <?php endif; ?>
                     
-                    @yield('content')
+                    <?php echo $__env->yieldContent('content'); ?>
                 </div>
             </main>
         </div>
@@ -339,10 +343,11 @@
         });
     </script>
     
-    @stack('scripts')
+    <?php echo $__env->yieldPushContent('scripts'); ?>
 </body>
 </html>
 
 
 
 
+<?php /**PATH C:\wamp64\www\Malak_E_commers\malak_outlet\resources\views/admin/layout.blade.php ENDPATH**/ ?>
