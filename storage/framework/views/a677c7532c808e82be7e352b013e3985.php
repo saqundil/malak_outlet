@@ -170,6 +170,7 @@ unset($__errorArgs, $__bag); ?>
                 ليس لديك حساب؟
                 <a href="<?php echo e(route('register')); ?>" class="auth-link">إنشاء حساب جديد</a>
             </p>
+           
         </div>
     </form>
 </div>

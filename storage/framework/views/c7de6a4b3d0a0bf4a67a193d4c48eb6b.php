@@ -13,6 +13,8 @@
     </div>
 
     <div class="container mx-auto px-4 py-4">
+        <!-- Flash messages will be shown via custom alerts -->
+
         <?php if(empty($cartItems)): ?>
             <div class="max-w-2xl mx-auto text-center">
                 <svg class="w-24 h-24 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -44,7 +46,7 @@
 
                                 <div>
                                     <label for="phone" class="block text-sm font-medium text-gray-700 mb-2">رقم الهاتف *</label>
-                                    <input type="tel" id="phone" name="phone" value="<?php echo e(old('phone', auth()->user()->phone ?? '')); ?>" required
+                                    <input dir="rtl" type="tel" id="phone" name="phone" value="<?php echo e(old('phone', auth()->user()->phone ?? '')); ?>" required
                                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
                                            placeholder="07xxxxxxxx">
                                     <?php $__errorArgs = ['phone'];
@@ -60,10 +62,39 @@ unset($__errorArgs, $__bag); ?>
                                 </div>
 
                                 <div>
-                                    <label for="shipping_address" class="block text-sm font-medium text-gray-700 mb-2">عنوان الشحن *</label>
+                                    <label for="jordan_city_id" class="block text-sm font-medium text-gray-700 mb-2">المدينة / المحافظة *</label>
+                                    <select id="jordan_city_id" name="jordan_city_id" required
+                                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                        <option value="">اختر المدينة</option>
+                                        <?php $__currentLoopData = $cities; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $city): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                            <option value="<?php echo e($city->id); ?>" 
+                                                    data-delivery-cost="<?php echo e($city->delivery_cost); ?>"
+                                                    data-delivery-days="<?php echo e($city->delivery_days); ?>"
+                                                    <?php echo e(old('jordan_city_id') == $city->id ? 'selected' : ''); ?>>
+                                                <?php echo e($city->name_ar); ?> - <?php echo e($city->formatted_delivery_cost); ?>
+
+                                                (<?php echo e($city->delivery_days == 1 ? 'يوم واحد' : $city->delivery_days . ' أيام'); ?>)
+                                            </option>
+                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                    </select>
+                                    <?php $__errorArgs = ['jordan_city_id'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                        <p class="mt-1 text-sm text-red-600"><?php echo e($message); ?></p>
+                                    <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
+                                    <div id="delivery-info" class="mt-2 text-sm text-gray-600 hidden"></div>
+                                </div>
+
+                                <div>
+                                    <label for="shipping_address" class="block text-sm font-medium text-gray-700 mb-2">عنوان الشحن التفصيلي *</label>
                                     <textarea id="shipping_address" name="shipping_address" rows="4" required
                                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-                                              placeholder="المحافظة، المدينة، الحي، اسم الشارع، رقم المبنى"><?php echo e(old('shipping_address')); ?></textarea>
+                                              placeholder="الحي، اسم الشارع، رقم المبنى، الطابق، أي معلومات إضافية للوصول"><?php echo e(old('shipping_address')); ?></textarea>
                                     <?php $__errorArgs = ['shipping_address'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
@@ -132,7 +163,7 @@ unset($__errorArgs, $__bag); ?>
                                             <h4 class="font-medium text-gray-800"><?php echo e($item['product']->name); ?></h4>
                                             <div class="flex justify-between items-center mt-1">
                                                 <span class="text-sm text-gray-600">الكمية: <?php echo e($item['quantity']); ?></span>
-                                                <span class="font-medium"><?php echo e(number_format($item['total'], 3)); ?> د.أ</span>
+                                                <span class="font-medium"><?php echo e(number_format($item['total'], 2)); ?> د.أ</span>
                                             </div>
                                         </div>
                                     </div>
@@ -140,26 +171,48 @@ unset($__errorArgs, $__bag); ?>
                             </div>
 
                             <div class="border-t pt-4 space-y-2">
+                                <?php if($totalSavings > 0): ?>
+                                <div class="flex justify-between text-gray-600">
+                                    <span>السعر الأصلي:</span>
+                                    <span class="line-through text-gray-400"><?php echo e(number_format($totalOriginal, 2)); ?> د.أ</span>
+                                </div>
+                                <div class="flex justify-between text-green-600">
+                                    <span>إجمالي الخصم:</span>
+                                    <span class="font-bold">-<?php echo e(number_format($totalSavings, 2)); ?> د.أ</span>
+                                </div>
+                                <?php endif; ?>
                                 <div class="flex justify-between">
                                     <span>المجموع الفرعي:</span>
-                                    <span><?php echo e(number_format($total, 3)); ?> د.أ</span>
+                                    <span id="subtotal-display"><?php echo e(number_format($subtotal, 2)); ?> د.أ</span>
                                 </div>
-                                <div class="flex justify-between">
-                                    <span>الشحن:</span>
-                                    <span class="text-orange-600">مجاني</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span>الضريبة (16%):</span>
-                                    <span><?php echo e(number_format($total * 0.16, 3)); ?> د.أ</span>
+                                <div class="flex justify-between" id="delivery-cost-row">
+                                    <span>تكلفة التوصيل:</span>
+                                    <span id="delivery-cost-display" class="text-orange-600 font-medium">يرجى اختيار المدينة</span>
                                 </div>
                                 <div class="flex justify-between text-lg font-bold border-t pt-2">
                                     <span>الإجمالي:</span>
-                                    <span><?php echo e(number_format($total * 1.16, 3)); ?> د.أ</span>
+                                    <span id="total-display" class="text-orange-600"><?php echo e(number_format($total, 2)); ?> د.أ</span>
                                 </div>
+                                <?php if($totalSavings > 0): ?>
+                                <div class="text-center mt-2">
+                                    <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-bold">
+                                        🎉 وفرت <?php echo e(number_format($totalSavings, 2)); ?> د.أ
+                                    </span>
+                                </div>
+                                <?php endif; ?>
                             </div>
 
-                            <button type="submit" class="w-full bg-orange-500 text-white py-4 rounded-lg hover:bg-orange-600 transition duration-200 font-medium text-lg mt-6">
-                                تأكيد الطلب
+                            <button type="submit" 
+                                    class="w-full bg-orange-500 text-white py-4 rounded-lg hover:bg-orange-600 transition duration-200 font-medium text-lg mt-6 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    id="submitOrderBtn">
+                                <span id="submitBtnText">تأكيد الطلب</span>
+                                <span id="submitBtnLoader" class="hidden">
+                                    <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    جاري المعالجة...
+                                </span>
                             </button>
 
                             <div class="mt-4 text-center">
@@ -174,6 +227,157 @@ unset($__errorArgs, $__bag); ?>
         <?php endif; ?>
     </div>
 </div>
+
+<?php if(!empty($cartItems)): ?>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Show flash messages using custom alerts
+    <?php if(session('success')): ?>
+        showSuccess('<?php echo e(session('success')); ?>');
+    <?php endif; ?>
+    
+    <?php if(session('error')): ?>
+        showError('<?php echo e(session('error')); ?>');
+    <?php endif; ?>
+    
+    <?php if($errors->any()): ?>
+        let errorMessage = 'يرجى تصحيح الأخطاء التالية:\n';
+        <?php $__currentLoopData = $errors->all(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $error): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+            errorMessage += '• <?php echo e($error); ?>\n';
+        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+        showError(errorMessage);
+    <?php endif; ?>
+    const citySelect = document.getElementById('jordan_city_id');
+    const deliveryInfo = document.getElementById('delivery-info');
+    const deliveryCostDisplay = document.getElementById('delivery-cost-display');
+    const totalDisplay = document.getElementById('total-display');
+    const subtotal = <?php echo e($subtotal); ?>;
+    
+    // Handle city selection
+    if (citySelect) {
+        citySelect.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            
+            if (selectedOption.value) {
+                const deliveryCost = parseFloat(selectedOption.dataset.deliveryCost) || 0;
+                const deliveryDays = selectedOption.dataset.deliveryDays;
+                const cityName = selectedOption.text.split(' - ')[0];
+                
+                // Update delivery cost display
+                deliveryCostDisplay.textContent = deliveryCost.toFixed(2) + ' د.أ';
+                deliveryCostDisplay.className = 'text-orange-600 font-medium';
+                
+                // Update total
+                const newTotal = subtotal + deliveryCost;
+                totalDisplay.textContent = newTotal.toFixed(2) + ' د.أ';
+                
+                // Show delivery info
+                if (deliveryInfo) {
+                    const daysText = deliveryDays == 1 ? 'يوم واحد' : deliveryDays + ' أيام';
+                    deliveryInfo.innerHTML = `
+                        <div class="flex items-center text-blue-600">
+                            <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            التوصيل لمحافظة ${cityName} خلال ${daysText}
+                        </div>
+                    `;
+                    deliveryInfo.classList.remove('hidden');
+                }
+            } else {
+                // Reset displays
+                deliveryCostDisplay.textContent = 'يرجى اختيار المدينة';
+                deliveryCostDisplay.className = 'text-gray-500';
+                totalDisplay.textContent = subtotal.toFixed(2) + ' د.أ';
+                
+                if (deliveryInfo) {
+                    deliveryInfo.classList.add('hidden');
+                }
+            }
+        });
+    }
+    
+    const form = document.querySelector('form[action*="checkout"]');
+    const submitBtn = document.getElementById('submitOrderBtn');
+    const btnText = document.getElementById('submitBtnText');
+    const btnLoader = document.getElementById('submitBtnLoader');
+    
+    if (form && submitBtn) {
+        // Form validation
+        function validateForm() {
+            const phone = document.getElementById('phone');
+            const address = document.getElementById('shipping_address');
+            
+            if (!phone.value.trim()) {
+                phone.focus();
+                phone.classList.add('border-red-500');
+                showMessage('يرجى إدخال رقم الهاتف', 'error');
+                return false;
+            }
+            
+            if (!address.value.trim()) {
+                address.focus();
+                address.classList.add('border-red-500');
+                showMessage('يرجى إدخال عنوان الشحن', 'error');
+                return false;
+            }
+            
+            return true;
+        }
+        
+        // Show message using custom alert system
+        function showMessage(message, type) {
+            if (type === 'error') {
+                showError(message);
+            } else {
+                showSuccess(message);
+            }
+        }
+        
+        // Handle form submission
+        form.addEventListener('submit', function(e) {
+            console.log('Form submission started');
+            
+            // Debug: Check if form data is correct
+            const formData = new FormData(form);
+            console.log('Form data:', {
+                phone: formData.get('phone'),
+                shipping_address: formData.get('shipping_address'),
+                payment_method: formData.get('payment_method'),
+                notes: formData.get('notes')
+            });
+            
+            if (!validateForm()) {
+                console.log('Validation failed');
+                e.preventDefault();
+                return;
+            }
+            
+            // Show loading state
+            submitBtn.disabled = true;
+            btnText.classList.add('hidden');
+            btnLoader.classList.remove('hidden');
+            
+            console.log('Form validation passed, submitting...');
+            
+            // Allow form to submit naturally
+            // The form will be submitted to the server
+        });
+        
+        // Remove error styling on input
+        ['phone', 'shipping_address'].forEach(fieldId => {
+            const field = document.getElementById(fieldId);
+            if (field) {
+                field.addEventListener('input', function() {
+                    this.classList.remove('border-red-500');
+                });
+            }
+        });
+    }
+});
+</script>
+<?php endif; ?>
+
 <?php $__env->stopSection(); ?>
 
 

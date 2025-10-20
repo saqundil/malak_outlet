@@ -12,6 +12,8 @@ class Order extends Model
     protected $fillable = [
         'order_number',
         'user_id',
+        'customer_name',
+        'customer_email',
         'status',
         'subtotal',
         'shipping_cost',
@@ -20,6 +22,8 @@ class Order extends Model
         'payment_method',
         'payment_status',
         'shipping_address',
+        'jordan_city_id',
+        'city_name',
         'phone',
         'notes',
         'shipped_at',
@@ -63,6 +67,14 @@ class Order extends Model
     public function items()
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    /**
+     * Get the delivery city
+     */
+    public function jordanCity()
+    {
+        return $this->belongsTo(JordanCity::class);
     }
 
     /**
@@ -123,5 +135,22 @@ class Order extends Model
         ];
 
         return $statuses[$this->payment_status] ?? $this->payment_status;
+    }
+
+    /**
+     * Get the status badge CSS class
+     */
+    public function getStatusBadgeClassAttribute()
+    {
+        $classes = [
+            'pending' => 'bg-yellow-100 text-yellow-800',
+            'confirmed' => 'bg-blue-100 text-blue-800',
+            'processing' => 'bg-purple-100 text-purple-800',
+            'shipped' => 'bg-indigo-100 text-indigo-800',
+            'delivered' => 'bg-green-100 text-green-800',
+            'cancelled' => 'bg-red-100 text-red-800',
+        ];
+
+        return $classes[$this->status] ?? 'bg-gray-100 text-gray-800';
     }
 }

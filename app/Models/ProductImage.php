@@ -18,6 +18,22 @@ class ProductImage extends Model
     ];
 
     /**
+     * Get the full URL for the image with proper encoding
+     */
+    public function getImageUrlAttribute()
+    {
+        if (!$this->image_path) {
+            return null;
+        }
+        
+        $imagePath = 'storage/' . $this->image_path;
+        $imageUrl = asset($imagePath);
+        
+        // Encode spaces and special characters for URL compatibility
+        return str_replace(' ', '%20', $imageUrl);
+    }
+
+    /**
      * العلاقة مع المنتج
      */
     public function product()

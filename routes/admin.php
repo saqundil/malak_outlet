@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\ReviewController;
 use App\Http\Controllers\Admin\DiscountController;
 use App\Http\Controllers\Admin\SettingsController;
+use App\Http\Controllers\Admin\CitiesController;
 
 /*
 |--------------------------------------------------------------------------
@@ -22,12 +23,16 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(fun
     // Dashboard
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
+    Route::get('/dashboard/enhanced', [DashboardController::class, 'enhanced'])->name('dashboard.enhanced');
+    Route::get('/dashboard/tables', [DashboardController::class, 'tablesOverview'])->name('dashboard.tables');
     
     // Products Management
     Route::resource('products', ProductController::class);
-    Route::post('products/{product}/toggle-status', [ProductController::class, 'toggleStatus'])->name('products.toggle-status');
-    Route::post('products/{product}/toggle-featured', [ProductController::class, 'toggleFeatured'])->name('products.toggle-featured');
-    Route::delete('products/{product}/images/{image}', [ProductController::class, 'deleteImage'])->name('products.delete-image');
+    Route::patch('products/{product}/toggle-status', [ProductController::class, 'toggleStatus'])->name('products.toggle-status');
+    Route::patch('products/{product}/toggle-featured', [ProductController::class, 'toggleFeatured'])->name('products.toggle-featured');
+    Route::post('products/{product}/duplicate', [ProductController::class, 'duplicate'])->name('products.duplicate');
+    Route::delete('products/images/{image}', [ProductController::class, 'deleteImage'])->name('products.images.delete');
+    Route::patch('products/images/{image}/primary', [ProductController::class, 'makePrimaryImage'])->name('products.images.primary');
     Route::post('products/bulk-action', [ProductController::class, 'bulkAction'])->name('products.bulk-action');
     
     // Categories Management
@@ -63,6 +68,12 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(fun
     Route::post('reviews/{review}/toggle-status', [ReviewController::class, 'toggleStatus'])->name('reviews.toggle-status');
     Route::post('reviews/bulk-action', [ReviewController::class, 'bulkAction'])->name('reviews.bulk-action');
     
+    // Cities Management
+    Route::resource('cities', CitiesController::class);
+    Route::post('cities/{city}/toggle-status', [CitiesController::class, 'toggleStatus'])->name('cities.toggle-status');
+    Route::post('cities/bulk-action', [CitiesController::class, 'bulkAction'])->name('cities.bulk-action');
+    Route::get('cities/{city}/orders', [CitiesController::class, 'orders'])->name('cities.orders');
+    
     // Settings
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
     Route::put('/settings', [SettingsController::class, 'update'])->name('settings.update');
@@ -77,6 +88,7 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(fun
     
     // API endpoints for AJAX
     Route::get('/api/stats', [DashboardController::class, 'getStats'])->name('api.stats');
+    Route::get('/api/products/stats', [ProductController::class, 'getStats'])->name('api.products.stats');
     Route::get('/api/products/search', [ProductController::class, 'search'])->name('api.products.search');
     Route::get('/api/categories/tree', [CategoryController::class, 'getTree'])->name('api.categories.tree');
 });

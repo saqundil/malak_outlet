@@ -10,11 +10,20 @@ class AttributeValue extends Model
     use HasFactory;
 
     protected $fillable = [
+        'product_id',
         'product_attribute_id',
         'value',
         'is_deleted',
         'edit_by',
     ];
+
+    /**
+     * المنتج المرتبط بهذه القيمة
+     */
+    public function product()
+    {
+        return $this->belongsTo(Product::class);
+    }
 
     /**
      * العلاقة مع الخاصية (مثل اللون، المقاس...)

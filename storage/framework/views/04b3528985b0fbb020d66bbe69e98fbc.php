@@ -4,23 +4,84 @@
 <?php $__env->startSection('page-title', 'لوحة التحكم'); ?>
 <?php $__env->startSection('page-description', 'نظرة عامة شاملة على نشاط المتجر والإحصائيات'); ?>
 
+<?php $__env->startPush('styles'); ?>
+<link href="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.css" rel="stylesheet">
+<style>
+    .dashboard-widget {
+        transition: all 0.3s ease;
+    }
+    .dashboard-widget:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: 700;
+        line-height: 1;
+    }
+    .animate-pulse-custom {
+        animation: pulse-custom 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    @keyframes pulse-custom {
+        0%, 100% { opacity: 1; }
+        50% { opacity: .8; }
+    }
+    .chart-container {
+        position: relative;
+        height: 300px;
+        width: 100%;
+    }
+    .realtime-indicator {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        background-color: #10B981;
+        border-radius: 50%;
+        animation: blink 2s infinite;
+    }
+    @keyframes blink {
+        0%, 50% { opacity: 1; }
+        51%, 100% { opacity: 0.3; }
+    }
+</style>
+<?php $__env->stopPush(); ?>
+
 <?php $__env->startSection('content'); ?>
 <div class="space-y-8">
-    <!-- Quick Stats Overview -->
+    <!-- Real-time Status Bar -->
+    <div class="bg-white rounded-xl shadow-lg p-4 mb-6 border-r-4 border-green-500">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="realtime-indicator"></div>
+                <span class="text-sm text-gray-600">آخر تحديث: <span id="last-update">الآن</span></span>
+            </div>
+            <button onclick="refreshDashboard()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm transition-colors">
+                <i class="fas fa-sync-alt mr-2"></i>تحديث البيانات
+            </button>
+        </div>
+    </div>
+
+    <!-- Enhanced Quick Stats Overview -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <!-- Total Products -->
-        <div class="stat-card p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow">
+        <div class="dashboard-widget bg-white p-6 rounded-xl shadow-lg border-t-4 border-blue-500" data-stat="products">
             <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm font-medium text-gray-600 mb-1">إجمالي المنتجات</p>
-                    <p class="text-3xl font-bold text-gray-900"><?php echo e(number_format($stats['total_products'])); ?></p>
-                    <p class="text-xs text-green-600 mt-1">
-                        <i class="fas fa-arrow-up"></i> 
-                        +<?php echo e($stats['active_products'] ?? 0); ?> نشط
-                    </p>
-                </div>
-                <div class="flex items-center justify-center w-14 h-14 bg-blue-100 rounded-xl">
-                    <i class="fas fa-box text-blue-600 text-xl"></i>
+                <div class="flex-1">
+                    <div class="flex items-center justify-between mb-2">
+                        <p class="text-sm font-medium text-gray-600">إجمالي المنتجات</p>
+                        <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-box text-blue-600"></i>
+                        </div>
+                    </div>
+                    <p class="stat-number text-blue-600 mb-2" id="total-products"><?php echo e(number_format($stats['total_products'])); ?></p>
+                    <div class="flex items-center space-x-2 text-xs">
+                        <span class="bg-green-100 text-green-600 px-2 py-1 rounded-full">
+                            <i class="fas fa-check-circle mr-1"></i><?php echo e($stats['active_products'] ?? 0); ?> نشط
+                        </span>
+                        <span class="bg-red-100 text-red-600 px-2 py-1 rounded-full">
+                            <i class="fas fa-exclamation-triangle mr-1"></i><?php echo e($stats['low_stock_products'] ?? 0); ?> منخفض
+                        </span>
+                    </div>
                 </div>
             </div>
             <div class="mt-4 flex justify-between items-center">
@@ -34,48 +95,57 @@
         </div>
         
         <!-- Total Orders -->
-        <div class="stat-card p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow">
+        <div class="dashboard-widget bg-white p-6 rounded-xl shadow-lg border-t-4 border-green-500" data-stat="orders">
             <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm font-medium text-gray-600 mb-1">إجمالي الطلبات</p>
-                    <p class="text-3xl font-bold text-gray-900"><?php echo e(number_format($stats['total_orders'])); ?></p>
-                    <p class="text-xs text-orange-600 mt-1">
-                        <i class="fas fa-clock"></i> 
-                        <?php echo e($stats['pending_orders'] ?? 0); ?> في الانتظار
-                    </p>
-                </div>
-                <div class="flex items-center justify-center w-14 h-14 bg-green-100 rounded-xl">
-                    <i class="fas fa-shopping-cart text-green-600 text-xl"></i>
+                <div class="flex-1">
+                    <div class="flex items-center justify-between mb-2">
+                        <p class="text-sm font-medium text-gray-600">إجمالي الطلبات</p>
+                        <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-shopping-cart text-green-600"></i>
+                        </div>
+                    </div>
+                    <p class="stat-number text-green-600 mb-2" id="total-orders"><?php echo e(number_format($stats['total_orders'])); ?></p>
+                    <div class="flex items-center space-x-2 text-xs">
+                        <span class="bg-orange-100 text-orange-600 px-2 py-1 rounded-full">
+                            <i class="fas fa-clock mr-1"></i><?php echo e($stats['pending_orders'] ?? 0); ?> معلق
+                        </span>
+                        <span class="bg-blue-100 text-blue-600 px-2 py-1 rounded-full">
+                            <i class="fas fa-truck mr-1"></i><?php echo e($stats['shipping_orders'] ?? 0); ?> شحن
+                        </span>
+                    </div>
                 </div>
             </div>
             <div class="mt-4 flex justify-between items-center">
                 <a href="<?php echo e(route('admin.orders.index')); ?>" class="text-green-600 hover:text-green-800 text-sm font-medium">
                     إدارة الطلبات
                 </a>
-                <span class="bg-green-100 text-green-800 px-2 py-1 rounded-md text-xs">
+                <span class="bg-green-100 text-green-800 px-2 py-1 rounded-md text-xs animate-pulse-custom" id="new-orders-badge">
                     جديد
                 </span>
             </div>
         </div>
         
         <!-- Total Revenue -->
-        <div class="stat-card p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow">
+        <div class="dashboard-widget bg-white p-6 rounded-xl shadow-lg border-t-4 border-yellow-500" data-stat="revenue">
             <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm font-medium text-gray-600 mb-1">إجمالي المبيعات</p>
-                    <p class="text-3xl font-bold text-gray-900"><?php echo e(number_format($stats['total_revenue'] ?? 0)); ?> ر.س</p>
-                    <p class="text-xs text-green-600 mt-1">
-                        <i class="fas fa-chart-line"></i> 
-                        هذا الشهر
-                    </p>
-                </div>
-                <div class="flex items-center justify-center w-14 h-14 bg-yellow-100 rounded-xl">
-                    <i class="fas fa-dollar-sign text-yellow-600 text-xl"></i>
-                </div>
-            </div>
-            <div class="mt-4">
-                <div class="w-full bg-gray-200 rounded-full h-2">
-                    <div class="bg-yellow-500 h-2 rounded-full" style="width: <?php echo e(min(100, ($stats['total_revenue'] ?? 0) / 1000)); ?>%"></div>
+                <div class="flex-1">
+                    <div class="flex items-center justify-between mb-2">
+                        <p class="text-sm font-medium text-gray-600">إجمالي المبيعات</p>
+                        <div class="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-dollar-sign text-yellow-600"></i>
+                        </div>
+                    </div>
+                    <p class="stat-number text-yellow-600 mb-2" id="total-revenue"><?php echo e(number_format($stats['total_revenue'] ?? 0, 2)); ?></p>
+                    <p class="text-xs text-gray-500">د.أ</p>
+                    <div class="mt-3">
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="bg-yellow-500 h-2 rounded-full transition-all duration-500 revenue-progress" 
+                                 data-width="<?php echo e(min(100, max(10, ($stats['total_revenue'] ?? 0) / 100))); ?>"></div>
+                        </div>
+                        <p class="text-xs text-green-600 mt-1">
+                            <i class="fas fa-chart-line mr-1"></i>الهدف الشهري
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -101,6 +171,60 @@
                 <a href="<?php echo e(route('admin.brands.index')); ?>" class="text-purple-600 hover:text-purple-800 text-sm font-medium">
                     العلامات
                 </a>
+            </div>
+        </div>
+        <!-- Total Customers -->
+        <div class="dashboard-widget bg-white p-6 rounded-xl shadow-lg border-t-4 border-purple-500" data-stat="customers">
+            <div class="flex items-center justify-between">
+                <div class="flex-1">
+                    <div class="flex items-center justify-between mb-2">
+                        <p class="text-sm font-medium text-gray-600">إجمالي العملاء</p>
+                        <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-users text-purple-600"></i>
+                        </div>
+                    </div>
+                    <p class="stat-number text-purple-600 mb-2" id="total-customers"><?php echo e(number_format($stats['total_customers'] ?? 0)); ?></p>
+                    <div class="flex items-center space-x-2 text-xs">
+                        <span class="bg-green-100 text-green-600 px-2 py-1 rounded-full">
+                            <i class="fas fa-user-plus mr-1"></i>جديد اليوم
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-4">
+                <a href="<?php echo e(route('admin.users.index')); ?>" class="text-purple-600 hover:text-purple-800 text-sm font-medium">
+                    إدارة العملاء
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Analytics Charts Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <!-- Sales Trends Chart -->
+        <div class="bg-white p-6 rounded-xl shadow-lg">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-bold text-gray-900">اتجاهات المبيعات (7 أيام)</h3>
+                <div class="flex items-center space-x-2">
+                    <span class="text-xs text-gray-500">تحديث تلقائي</span>
+                    <div class="realtime-indicator"></div>
+                </div>
+            </div>
+            <div class="chart-container">
+                <canvas id="salesChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Order Status Distribution -->
+        <div class="bg-white p-6 rounded-xl shadow-lg">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-bold text-gray-900">توزيع حالات الطلبات</h3>
+                <button onclick="refreshCharts()" class="text-blue-500 hover:text-blue-700">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+            </div>
+            <div class="chart-container">
+                <canvas id="ordersChart"></canvas>
             </div>
         </div>
     </div>
@@ -494,7 +618,7 @@
                     <?php $__currentLoopData = $recentOrders->take(5); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $order): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                     <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
                         <div class="flex items-center">
-                            <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center ml-4">
+                            <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mr-4">
                                 <i class="fas fa-receipt text-blue-500"></i>
                             </div>
                             <div>
@@ -589,6 +713,165 @@
             </div>
         </div>
     </div>
+
+    <!-- All Tables Overview Section -->
+    <div class="bg-white p-6 rounded-xl shadow-lg">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-xl font-bold text-gray-900">نظرة عامة على جميع جداول قاعدة البيانات</h3>
+            <a href="<?php echo e(route('admin.dashboard.tables')); ?>" class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg">
+                <i class="fas fa-database ml-2"></i>عرض التفاصيل الكاملة
+            </a>
+        </div>
+        
+        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
+            <!-- Products -->
+            <div class="text-center p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
+                <div class="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center mx-auto mb-2">
+                    <i class="fas fa-box text-white"></i>
+                </div>
+                <p class="text-sm font-medium text-gray-700">المنتجات</p>
+                <p class="text-xl font-bold text-blue-600"><?php echo e($stats['total_products']); ?></p>
+            </div>
+
+            <!-- Orders -->
+            <div class="text-center p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors">
+                <div class="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center mx-auto mb-2">
+                    <i class="fas fa-shopping-cart text-white"></i>
+                </div>
+                <p class="text-sm font-medium text-gray-700">الطلبات</p>
+                <p class="text-xl font-bold text-green-600"><?php echo e($stats['total_orders']); ?></p>
+            </div>
+
+            <!-- Users -->
+            <div class="text-center p-4 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors">
+                <div class="w-12 h-12 bg-purple-500 rounded-lg flex items-center justify-center mx-auto mb-2">
+                    <i class="fas fa-users text-white"></i>
+                </div>
+                <p class="text-sm font-medium text-gray-700">العملاء</p>
+                <p class="text-xl font-bold text-purple-600"><?php echo e($stats['total_customers']); ?></p>
+            </div>
+
+            <!-- Categories -->
+            <div class="text-center p-4 bg-orange-50 rounded-lg hover:bg-orange-100 transition-colors">
+                <div class="w-12 h-12 bg-orange-500 rounded-lg flex items-center justify-center mx-auto mb-2">
+                    <i class="fas fa-folder text-white"></i>
+                </div>
+                <p class="text-sm font-medium text-gray-700">الفئات</p>
+                <p class="text-xl font-bold text-orange-600"><?php echo e($stats['total_categories']); ?></p>
+            </div>
+
+            <!-- Brands -->
+            <div class="text-center p-4 bg-red-50 rounded-lg hover:bg-red-100 transition-colors">
+                <div class="w-12 h-12 bg-red-500 rounded-lg flex items-center justify-center mx-auto mb-2">
+                    <i class="fas fa-tags text-white"></i>
+                </div>
+                <p class="text-sm font-medium text-gray-700">العلامات</p>
+                <p class="text-xl font-bold text-red-600"><?php echo e($stats['total_brands']); ?></p>
+            </div>
+
+            <!-- Reviews -->
+            <div class="text-center p-4 bg-yellow-50 rounded-lg hover:bg-yellow-100 transition-colors">
+                <div class="w-12 h-12 bg-yellow-500 rounded-lg flex items-center justify-center mx-auto mb-2">
+                    <i class="fas fa-star text-white"></i>
+                </div>
+                <p class="text-sm font-medium text-gray-700">المراجعات</p>
+                <p class="text-xl font-bold text-yellow-600"><?php echo e($stats['total_reviews'] ?? 0); ?></p>
+            </div>
+
+            <!-- Discounts -->
+            <div class="text-center p-4 bg-pink-50 rounded-lg hover:bg-pink-100 transition-colors">
+                <div class="w-12 h-12 bg-pink-500 rounded-lg flex items-center justify-center mx-auto mb-2">
+                    <i class="fas fa-percentage text-white"></i>
+                </div>
+                <p class="text-sm font-medium text-gray-700">الخصومات</p>
+                <p class="text-xl font-bold text-pink-600"><?php echo e($stats['total_discounts']); ?></p>
+            </div>
+
+            <!-- Favorites -->
+            <div class="text-center p-4 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors">
+                <div class="w-12 h-12 bg-indigo-500 rounded-lg flex items-center justify-center mx-auto mb-2">
+                    <i class="fas fa-heart text-white"></i>
+                </div>
+                <p class="text-sm font-medium text-gray-700">المفضلة</p>
+                <p class="text-xl font-bold text-indigo-600"><?php echo e($stats['total_favorites'] ?? 0); ?></p>
+            </div>
+        </div>
+
+        <!-- Additional Tables Row -->
+        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4 mt-4">
+            <!-- Product Images -->
+            <div class="text-center p-3 bg-cyan-50 rounded-lg hover:bg-cyan-100 transition-colors">
+                <div class="w-10 h-10 bg-cyan-500 rounded-lg flex items-center justify-center mx-auto mb-1">
+                    <i class="fas fa-images text-white text-sm"></i>
+                </div>
+                <p class="text-xs font-medium text-gray-700">صور المنتجات</p>
+                <p class="text-lg font-bold text-cyan-600"><?php echo e($stats['total_product_images'] ?? 0); ?></p>
+            </div>
+
+            <!-- Product Sizes -->
+            <div class="text-center p-3 bg-lime-50 rounded-lg hover:bg-lime-100 transition-colors">
+                <div class="w-10 h-10 bg-lime-500 rounded-lg flex items-center justify-center mx-auto mb-1">
+                    <i class="fas fa-ruler text-white text-sm"></i>
+                </div>
+                <p class="text-xs font-medium text-gray-700">المقاسات</p>
+                <p class="text-lg font-bold text-lime-600"><?php echo e($stats['total_product_sizes'] ?? 0); ?></p>
+            </div>
+
+            <!-- Order Items -->
+            <div class="text-center p-3 bg-violet-50 rounded-lg hover:bg-violet-100 transition-colors">
+                <div class="w-10 h-10 bg-violet-500 rounded-lg flex items-center justify-center mx-auto mb-1">
+                    <i class="fas fa-list-ol text-white text-sm"></i>
+                </div>
+                <p class="text-xs font-medium text-gray-700">عناصر الطلبات</p>
+                <p class="text-lg font-bold text-violet-600"><?php echo e($stats['total_order_items'] ?? 0); ?></p>
+            </div>
+
+            <!-- Jordan Cities -->
+            <div class="text-center p-3 bg-emerald-50 rounded-lg hover:bg-emerald-100 transition-colors">
+                <div class="w-10 h-10 bg-emerald-500 rounded-lg flex items-center justify-center mx-auto mb-1">
+                    <i class="fas fa-map-marker-alt text-white text-sm"></i>
+                </div>
+                <p class="text-xs font-medium text-gray-700">المدن الأردنية</p>
+                <p class="text-lg font-bold text-emerald-600"><?php echo e($stats['total_jordan_cities'] ?? 0); ?></p>
+            </div>
+
+            <!-- Product Attributes -->
+            <div class="text-center p-3 bg-amber-50 rounded-lg hover:bg-amber-100 transition-colors">
+                <div class="w-10 h-10 bg-amber-500 rounded-lg flex items-center justify-center mx-auto mb-1">
+                    <i class="fas fa-list text-white text-sm"></i>
+                </div>
+                <p class="text-xs font-medium text-gray-700">خصائص المنتجات</p>
+                <p class="text-lg font-bold text-amber-600"><?php echo e($stats['total_product_attributes'] ?? 0); ?></p>
+            </div>
+
+            <!-- Attribute Values -->
+            <div class="text-center p-3 bg-teal-50 rounded-lg hover:bg-teal-100 transition-colors">
+                <div class="w-10 h-10 bg-teal-500 rounded-lg flex items-center justify-center mx-auto mb-1">
+                    <i class="fas fa-tags text-white text-sm"></i>
+                </div>
+                <p class="text-xs font-medium text-gray-700">قيم الخصائص</p>
+                <p class="text-lg font-bold text-teal-600"><?php echo e($stats['total_attribute_values'] ?? 0); ?></p>
+            </div>
+
+            <!-- Discount Products -->
+            <div class="text-center p-3 bg-rose-50 rounded-lg hover:bg-rose-100 transition-colors">
+                <div class="w-10 h-10 bg-rose-500 rounded-lg flex items-center justify-center mx-auto mb-1">
+                    <i class="fas fa-tag text-white text-sm"></i>
+                </div>
+                <p class="text-xs font-medium text-gray-700">منتجات مخفضة</p>
+                <p class="text-lg font-bold text-rose-600"><?php echo e($stats['total_discount_products'] ?? 0); ?></p>
+            </div>
+
+            <!-- Database Summary -->
+            <div class="text-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                <div class="w-10 h-10 bg-gray-500 rounded-lg flex items-center justify-center mx-auto mb-1">
+                    <i class="fas fa-database text-white text-sm"></i>
+                </div>
+                <p class="text-xs font-medium text-gray-700">إجمالي الجداول</p>
+                <p class="text-lg font-bold text-gray-600">16</p>
+            </div>
+        </div>
+    </div>
 </div>
 
 <style>
@@ -600,6 +883,314 @@
         transform: translateX(-0.25rem);
     }
 </style>
+
+<!-- Dashboard Data -->
+<script id="dashboard-data" type="application/json">
+{
+    "salesTrends": <?php echo json_encode($salesTrends); ?>,
+    "orderStatusDistribution": <?php echo json_encode($orderStatusDistribution); ?>,
+    "stats": <?php echo json_encode($stats); ?>
+
+}
+</script>
+
+<?php $__env->startPush('scripts'); ?>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<script>
+    let salesChart, ordersChart;
+    let refreshInterval;
+    let dashboardData;
+
+    // Initialize dashboard
+    document.addEventListener('DOMContentLoaded', function() {
+        // Load dashboard data
+        dashboardData = JSON.parse(document.getElementById('dashboard-data').textContent);
+        
+        initCharts();
+        initRealtimeUpdates();
+        initProgressBars();
+    });
+
+    // Initialize Charts
+    function initCharts() {
+        // Sales Trends Chart
+        const salesCtx = document.getElementById('salesChart').getContext('2d');
+        const salesLabels = dashboardData.salesTrends.map(item => {
+            const date = new Date(item.date);
+            return date.toLocaleDateString('ar-SA', {month: 'short', day: 'numeric'});
+        });
+        
+        salesChart = new Chart(salesCtx, {
+            type: 'line',
+            data: {
+                labels: salesLabels,
+                datasets: [{
+                    label: 'المبيعات (د.أ)',
+                    data: dashboardData.salesTrends.map(item => parseFloat(item.total_sales) || 0),
+                    borderColor: '#10B981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 6,
+                    pointHoverRadius: 8,
+                    pointBackgroundColor: '#10B981',
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 2,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return value.toLocaleString() + ' د.أ';
+                            }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                },
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                },
+                hover: {
+                    animationDuration: 200
+                }
+            }
+        });
+
+        // Order Status Distribution Chart
+        const ordersCtx = document.getElementById('ordersChart').getContext('2d');
+        const orderStatusData = dashboardData.orderStatusDistribution;
+        
+        ordersChart = new Chart(ordersCtx, {
+            type: 'doughnut',
+            data: {
+                labels: orderStatusData.map(item => {
+                    const statusMap = {
+                        'pending': 'في الانتظار',
+                        'processing': 'قيد المعالجة',
+                        'shipped': 'تم الشحن',
+                        'delivered': 'تم التوصيل',
+                        'cancelled': 'ملغي'
+                    };
+                    return statusMap[item.status] || item.status;
+                }),
+                datasets: [{
+                    data: orderStatusData.map(item => item.count),
+                    backgroundColor: [
+                        '#FCD34D', // pending - yellow
+                        '#60A5FA', // processing - blue
+                        '#A78BFA', // shipped - purple
+                        '#10B981', // delivered - green
+                        '#F87171'  // cancelled - red
+                    ],
+                    borderWidth: 3,
+                    borderColor: '#ffffff',
+                    hoverOffset: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
+                            usePointStyle: true,
+                            font: {
+                                size: 12
+                            }
+                        }
+                    }
+                },
+                animation: {
+                    animateRotate: true,
+                    animateScale: true
+                }
+            }
+        });
+    }
+
+    // Initialize real-time updates
+    function initRealtimeUpdates() {
+        refreshInterval = setInterval(updateRealtimeStats, 30000); // Update every 30 seconds
+    }
+
+    // Update real-time statistics
+    function updateRealtimeStats() {
+        fetch('<?php echo e(route("admin.api.stats")); ?>')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    updateStatsDisplay(data.stats);
+                    updateLastUpdateTime();
+                }
+            })
+            .catch(error => {
+                console.error('Error updating stats:', error);
+            });
+    }
+
+    // Update stats display
+    function updateStatsDisplay(stats) {
+        // Update numbers with animation
+        animateNumber('total-products', stats.total_orders_today || 0);
+        animateNumber('total-orders', stats.pending_orders || 0);
+        animateNumber('total-revenue', stats.revenue_today || 0);
+        animateNumber('total-customers', stats.new_customers_today || 0);
+
+        // Update badges
+        const newOrdersBadge = document.getElementById('new-orders-badge');
+        if (stats.pending_orders > 0) {
+            newOrdersBadge.textContent = `${stats.pending_orders} جديد`;
+            newOrdersBadge.classList.add('animate-pulse-custom');
+        } else {
+            newOrdersBadge.textContent = 'لا يوجد';
+            newOrdersBadge.classList.remove('animate-pulse-custom');
+        }
+    }
+
+    // Animate number changes
+    function animateNumber(elementId, newValue) {
+        const element = document.getElementById(elementId);
+        if (!element) return;
+        
+        const currentValue = parseInt(element.textContent.replace(/[^\d]/g, '')) || 0;
+        const increment = (newValue - currentValue) / 20;
+        let current = currentValue;
+        
+        const animation = setInterval(() => {
+            current += increment;
+            if ((increment > 0 && current >= newValue) || (increment < 0 && current <= newValue)) {
+                current = newValue;
+                clearInterval(animation);
+            }
+            element.textContent = Math.round(current).toLocaleString();
+        }, 50);
+    }
+
+    // Update last update time
+    function updateLastUpdateTime() {
+        document.getElementById('last-update').textContent = new Date().toLocaleTimeString('ar-SA');
+    }
+
+    // Manual refresh dashboard
+    function refreshDashboard() {
+        const button = event.target.closest('button');
+        const icon = button.querySelector('i');
+        
+        icon.classList.add('fa-spin');
+        button.disabled = true;
+        
+        Promise.all([
+            updateRealtimeStats(),
+            refreshCharts()
+        ]).then(() => {
+            icon.classList.remove('fa-spin');
+            button.disabled = false;
+            
+            // Show success notification
+            showNotification('تم تحديث البيانات بنجاح', 'success');
+        }).catch(error => {
+            icon.classList.remove('fa-spin');
+            button.disabled = false;
+            showNotification('حدث خطأ في تحديث البيانات', 'error');
+        });
+    }
+
+    // Refresh charts
+    function refreshCharts() {
+        return fetch('<?php echo e(route("admin.analytics")); ?>')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    updateChartsData(data.data);
+                }
+            });
+    }
+
+    // Update charts data
+    function updateChartsData(data) {
+        // Update sales chart
+        if (salesChart && data.salesTrends) {
+            salesChart.data.labels = data.salesTrends.map(item => 
+                new Date(item.date).toLocaleDateString('ar-SA', {month: 'short', day: 'numeric'})
+            );
+            salesChart.data.datasets[0].data = data.salesTrends.map(item => item.total_sales);
+            salesChart.update('active');
+        }
+
+        // Update orders chart
+        if (ordersChart && data.orderStatusDistribution) {
+            ordersChart.data.datasets[0].data = data.orderStatusDistribution.map(item => item.count);
+            ordersChart.update('active');
+        }
+    }
+
+    // Initialize progress bars
+    function initProgressBars() {
+        document.querySelectorAll('.revenue-progress').forEach(bar => {
+            const width = bar.dataset.width;
+            setTimeout(() => {
+                bar.style.width = width + '%';
+            }, 500);
+        });
+    }
+
+    // Show notification
+    function showNotification(message, type = 'success') {
+        const notification = document.createElement('div');
+        notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg transform translate-x-full transition-transform duration-300 ${
+            type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+        }`;
+        notification.innerHTML = `
+            <div class="flex items-center">
+                <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-triangle'} mr-2"></i>
+                <span>${message}</span>
+            </div>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.classList.remove('translate-x-full');
+        }, 100);
+        
+        setTimeout(() => {
+            notification.classList.add('translate-x-full');
+            setTimeout(() => {
+                document.body.removeChild(notification);
+            }, 300);
+        }, 3000);
+    }
+
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', function() {
+        if (refreshInterval) {
+            clearInterval(refreshInterval);
+        }
+    });
+</script>
+<?php $__env->stopPush(); ?>
+
 <?php $__env->stopSection(); ?>
 
 

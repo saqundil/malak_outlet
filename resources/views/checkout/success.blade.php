@@ -72,19 +72,22 @@
                             <div class="flex items-center gap-3">
                                 @if($item->product && $item->product->images->first())
                                     <img src="{{ $item->product->images->first()->image_path }}" 
-                                         alt="{{ $item->product_name }}" 
+                                         alt="{{ $item->product->name }}" 
                                          class="w-12 h-12 object-cover rounded">
                                 @else
                                     <div class="w-12 h-12 bg-gray-200 rounded flex items-center justify-center">
-                                        <span class="text-xs text-gray-500">{{ substr($item->product_name, 0, 2) }}</span>
+                                        <span class="text-xs text-gray-500">{{ $item->product ? substr($item->product->name, 0, 2) : 'N/A' }}</span>
                                     </div>
                                 @endif
                                 <div>
-                                    <p class="font-medium">{{ $item->product_name }}</p>
+                                    <p class="font-medium">{{ $item->product ? $item->product->name : 'منتج محذوف' }}</p>
                                     <p class="text-sm text-gray-600">الكمية: {{ $item->quantity }}</p>
+                                    @if($item->size)
+                                        <p class="text-sm text-gray-600">المقاس: {{ $item->size }}</p>
+                                    @endif
                                 </div>
                             </div>
-                            <span class="font-semibold">{{ number_format($item->total_price, 2) }} د.أ</span>
+                            <span class="font-semibold">{{ number_format($item->total, 2) }} د.أ</span>
                         </div>
                         @endforeach
                     </div>

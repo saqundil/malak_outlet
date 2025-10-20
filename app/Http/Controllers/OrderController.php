@@ -21,7 +21,7 @@ class OrderController extends Controller
     public function index()
     {
         $orders = Auth::user()->orders()
-            ->with('items.product')
+            ->with(['items.product.images'])
             ->orderBy('created_at', 'desc')
             ->get();
         
@@ -32,7 +32,7 @@ class OrderController extends Controller
     {
         try {
             $order = Auth::user()->orders()
-                ->with('items.product')
+                ->with(['items.product.images'])
                 ->where('order_number', $orderNumber)
                 ->firstOrFail();
                 
@@ -80,10 +80,10 @@ class OrderController extends Controller
                 
                 $orderItems[] = [
                     'product_id' => $product->id,
-                    'product_name' => $product->name,
-                    'product_price' => $product->price,
+                    'price' => $product->price,
                     'quantity' => $quantity,
-                    'total_price' => $totalPrice,
+                    'size' => null, // Add size logic if needed
+                    'total' => $totalPrice,
                 ];
             }
 
@@ -222,5 +222,36 @@ class OrderController extends Controller
             'message' => 'تم إضافة المنتجات إلى السلة بنجاح',
             'items' => $order->items
         ]);
+    }
+
+    /**
+     * Display detailed items and pricing breakdown for a specific order
+     */
+    public function itemsDetails($orderNumber)
+    {
+        $order = Auth::user()->orders()
+            ->with(['items.product.images', 'items.product.category', 'user'])
+            ->where('order_number', $orderNumber)
+            ->firstOrFail();
+
+        // Calculate detailed pricing breakdown
+        $subtotal = $order->items->sum('total');
+        $itemsCount = $order->items->sum('quantity');
+        
+        // Get tax rate and shipping cost from order or calculate
+        $taxRate = 0.14; // 14% tax rate (adjust based on your needs)
+        $taxAmount = $order->tax_amount ?? ($subtotal * $taxRate);
+        $shippingCost = $order->shipping_cost ?? 15.00; // Default shipping cost
+        
+        $pricingBreakdown = [
+            'subtotal' => $subtotal,
+            'items_count' => $itemsCount,
+            'tax_rate' => $taxRate * 100,
+            'tax_amount' => $taxAmount,
+            'shipping_cost' => $shippingCost,
+            'total' => $subtotal + $taxAmount + $shippingCost
+        ];
+
+        return view('orders.items', compact('order', 'pricingBreakdown'));
     }
 }

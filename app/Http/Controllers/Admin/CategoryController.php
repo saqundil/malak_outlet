@@ -308,4 +308,28 @@ class CategoryController extends Controller
         
         return response()->stream($callback, 200, $headers);
     }
+
+    /**
+     * Get categories tree for AJAX requests
+     */
+    public function getTree()
+    {
+        try {
+            $categories = Category::select('id', 'name', 'slug', 'parent_id', 'is_active')
+                ->where('is_active', true)
+                ->orderBy('parent_id')
+                ->orderBy('name')
+                ->get();
+
+            return response()->json([
+                'success' => true,
+                'data' => $categories
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'خطأ في جلب الفئات'
+            ], 500);
+        }
+    }
 }

@@ -126,6 +126,7 @@
                 ليس لديك حساب؟
                 <a href="{{ route('register') }}" class="auth-link">إنشاء حساب جديد</a>
             </p>
+           
         </div>
     </form>
 </div>

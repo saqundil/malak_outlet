@@ -12,12 +12,11 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Seed all tables in order with real Arabic data
+        // Seed all tables with real Arabic e-commerce data
         $this->call([
+            AdminUserSeeder::class,
+            SettingsSeeder::class,
             RealArabicDataSeeder::class,
-            ExpandedArabicProductsSeeder::class,
-            ToysSeeder::class,
-            DiscountSeeder::class, // Add discounts after products are created
         ]);
     }
 }

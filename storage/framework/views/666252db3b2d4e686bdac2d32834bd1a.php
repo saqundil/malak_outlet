@@ -57,22 +57,34 @@
         <!-- Main Content -->
         <div class="lg:col-span-2 space-y-6">
             <!-- Product Images -->
-            <?php if($product->images->count() > 0): ?>
+            <?php if($product->images && $product->images->count() > 0): ?>
             <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
                 <h3 class="text-lg font-semibold text-gray-900 mb-6">صور المنتج</h3>
                 
                 <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
                     <?php $__currentLoopData = $product->images; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $image): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <div class="relative group">
-                            <img src="<?php echo e($image->image_path); ?>" alt="<?php echo e($product->name); ?>" 
-                                 class="w-full h-48 object-cover rounded-lg border border-gray-300 cursor-pointer hover:opacity-75 transition-opacity"
-                                 onclick="openImageModal('<?php echo e($image->image_path); ?>')">
+                            <img src="<?php echo e($image->image_url); ?>" alt="<?php echo e($product->name); ?>" 
+                                 class="w-full h-48 object-cover rounded-lg border border-gray-300 cursor-pointer hover:opacity-75 transition-opacity shadow-sm"
+                                 onclick="openImageModal('<?php echo e($image->image_url); ?>')"
+                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                             <?php if($image->is_primary): ?>
-                                <div class="absolute top-2 right-2 bg-orange-500 text-white text-xs px-2 py-1 rounded">
-                                    <i class="fas fa-star"></i>
+                                <div class="absolute top-2 right-2 bg-orange-500 text-white text-xs px-2 py-1 rounded shadow-md">
+                                    <i class="fas fa-star mr-1"></i>
                                     الصورة الرئيسية
                                 </div>
                             <?php endif; ?>
+                            <div class="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded">
+                                <?php echo e($loop->iteration); ?> / <?php echo e($product->images->count()); ?>
+
+                            </div>
+                            <!-- Fallback placeholder -->
+                            <div class="hidden absolute inset-0 bg-gray-200 rounded-lg flex items-center justify-center">
+                                <div class="text-center">
+                                    <i class="fas fa-image text-gray-400 text-3xl mb-2"></i>
+                                    <p class="text-gray-500 text-xs">لا يمكن تحميل الصورة</p>
+                                </div>
+                            </div>
                         </div>
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                 </div>
@@ -93,6 +105,16 @@
                 <h3 class="text-lg font-semibold text-gray-900 mb-6">مواصفات المنتج</h3>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Dynamic Product Attributes -->
+                    <?php if($product->attributeValues && $product->attributeValues->count() > 0): ?>
+                        <?php $__currentLoopData = $product->attributeValues; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $attributeValue): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <div class="flex justify-between py-2 border-b border-gray-100">
+                                <span class="text-gray-600"><?php echo e($attributeValue->attribute ? $attributeValue->attribute->name : 'خاصية غير معروفة'); ?>:</span>
+                                <span class="font-medium"><?php echo e($attributeValue->value); ?></span>
+                            </div>
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                    <?php endif; ?>
+                    
                     <?php if($product->weight): ?>
                         <div class="flex justify-between py-2 border-b border-gray-100">
                             <span class="text-gray-600">الوزن:</span>
@@ -230,7 +252,7 @@
                 <div class="space-y-3">
                     <div class="flex justify-between items-center">
                         <span class="text-gray-600">الفئة:</span>
-                        <span class="font-medium"><?php echo e($product->category->name); ?></span>
+                        <span class="font-medium"><?php echo e($product->category ? $product->category->name : 'غير محدد'); ?></span>
                     </div>
                     
                     <?php if($product->brand): ?>
@@ -270,17 +292,17 @@
                 <div class="space-y-3">
                     <div class="flex justify-between items-center">
                         <span class="text-gray-600">عدد المراجعات:</span>
-                        <span class="font-medium"><?php echo e($product->reviews->count()); ?></span>
+                        <span class="font-medium"><?php echo e($product->reviews ? $product->reviews->count() : 0); ?></span>
                     </div>
                     
-                    <?php if($product->reviews->count() > 0): ?>
+                    <?php if($product->reviews && $product->reviews->count() > 0): ?>
                         <div class="flex justify-between items-center">
                             <span class="text-gray-600">متوسط التقييم:</span>
                             <div class="flex items-center gap-2">
-                                <span class="font-medium"><?php echo e(number_format($product->reviews->avg('rating'), 1)); ?></span>
+                                <span class="font-medium"><?php echo e(number_format($product->reviews->avg('rating') ?? 0, 1)); ?></span>
                                 <div class="flex">
                                     <?php for($i = 1; $i <= 5; $i++): ?>
-                                        <i class="fas fa-star text-sm <?php echo e($i <= round($product->reviews->avg('rating')) ? 'text-yellow-400' : 'text-gray-300'); ?>"></i>
+                                        <i class="fas fa-star text-sm <?php echo e($i <= round($product->reviews->avg('rating') ?? 0) ? 'text-yellow-400' : 'text-gray-300'); ?>"></i>
                                     <?php endfor; ?>
                                 </div>
                             </div>
@@ -289,7 +311,7 @@
                     
                     <div class="flex justify-between items-center">
                         <span class="text-gray-600">في قائمة الرغبات:</span>
-                        <span class="font-medium"><?php echo e($product->favorites->count()); ?></span>
+                        <span class="font-medium"><?php echo e($product->favoritedByUsers ? $product->favoritedByUsers->count() : 0); ?></span>
                     </div>
                 </div>
             </div>
@@ -338,14 +360,31 @@
 <script>
     function openImageModal(imageSrc) {
         document.getElementById('modalImage').src = imageSrc;
+        document.getElementById('modalImage').alt = 'صورة المنتج';
         document.getElementById('imageModal').classList.remove('hidden');
+        document.getElementById('imageModal').classList.add('flex');
+        document.body.style.overflow = 'hidden';
     }
-    
+
     function closeImageModal() {
         document.getElementById('imageModal').classList.add('hidden');
+        document.getElementById('imageModal').classList.remove('flex');
+        document.body.style.overflow = 'auto';
     }
-    
-    function deleteProduct() {
+
+    // Close modal on ESC key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeImageModal();
+        }
+    });
+
+    // Close modal on backdrop click
+    document.getElementById('imageModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeImageModal();
+        }
+    });    function deleteProduct() {
         document.getElementById('deleteModal').classList.remove('hidden');
     }
     

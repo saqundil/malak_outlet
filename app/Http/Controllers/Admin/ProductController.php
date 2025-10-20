@@ -9,11 +9,13 @@ use App\Models\Brand;
 use App\Models\ProductImage;
 use App\Models\ProductSize;
 use App\Models\Discount;
+use App\Models\DiscountProduct;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 
 class ProductController extends Controller
 {
@@ -31,24 +33,61 @@ class ProductController extends Controller
             });
         }
 
-        // Filter by category
-        if ($request->filled('category_id')) {
-            $query->where('category_id', $request->category_id);
+        // Filter by main category (parent categories)
+        if ($request->filled('main_category')) {
+            $mainCategoryId = $request->main_category;
+            $query->whereHas('category', function($q) use ($mainCategoryId) {
+                $q->where(function($subQ) use ($mainCategoryId) {
+                    // Include main category itself
+                    $subQ->where('id', $mainCategoryId)
+                         // Include subcategories of this main category
+                         ->orWhere('parent_id', $mainCategoryId);
+                });
+            });
+        }
+
+        // Filter by specific category (subcategory)
+        if ($request->filled('category') || $request->filled('category_id')) {
+            $categoryValue = $request->category ?? $request->category_id;
+            if (is_numeric($categoryValue)) {
+                $query->where('category_id', $categoryValue);
+            } else {
+                $query->whereHas('category', function($q) use ($categoryValue) {
+                    $q->where('slug', $categoryValue);
+                });
+            }
         }
 
         // Filter by brand
-        if ($request->filled('brand_id')) {
-            $query->where('brand_id', $request->brand_id);
+        if ($request->filled('brand') || $request->filled('brand_id')) {
+            $brandValue = $request->brand ?? $request->brand_id;
+            $query->where('brand_id', $brandValue);
         }
 
         // Filter by status
         if ($request->filled('status')) {
-            if ($request->status === 'active') {
-                $query->where('is_active', true)->where('is_deleted', false);
-            } elseif ($request->status === 'inactive') {
-                $query->where('is_active', false)->where('is_deleted', false);
-            } elseif ($request->status === 'deleted') {
-                $query->where('is_deleted', true);
+            switch ($request->status) {
+                case 'active':
+                    $query->where('is_active', true)->where('is_deleted', false);
+                    break;
+                case 'inactive':
+                    $query->where('is_active', false)->where('is_deleted', false);
+                    break;
+                case 'featured':
+                    $query->where('is_featured', true)->where('is_deleted', false);
+                    break;
+                case 'deleted':
+                    $query->where('is_deleted', true);
+                    break;
+                case 'low_stock':
+                    $query->where('quantity', '>', 0)->where('quantity', '<=', 10)->where('is_deleted', false);
+                    break;
+                case 'out_of_stock':
+                    $query->where('quantity', '=', 0)->where('is_deleted', false);
+                    break;
+                default:
+                    $query->where('is_deleted', false);
+                    break;
             }
         } else {
             $query->where('is_deleted', false);
@@ -119,24 +158,21 @@ class ProductController extends Controller
             $query->orderBy($sortBy, $sortDirection);
         }
 
-        $products = $query->paginate(20);
+        $products = $query->paginate(20)->appends($request->all());
 
         // Get filter options
-        $categories = Category::active()->orderBy('name')->get(['id', 'name']);
+        $categories = Category::active()->orderBy('parent_id')->orderBy('name')->get(['id', 'name', 'slug', 'parent_id']);
         $brands = Brand::active()->orderBy('name')->get(['id', 'name']);
 
         // Get statistics
         $stats = [
-            'total_products' => Product::count(),
+            'total_products' => Product::where('is_deleted', false)->count(),
             'active_products' => Product::where('is_active', true)->where('is_deleted', false)->count(),
             'inactive_products' => Product::where('is_active', false)->where('is_deleted', false)->count(),
-            'low_stock_products' => Product::where('quantity', '<=', 10)->where('quantity', '>', 0)->count(),
-            'out_of_stock_products' => Product::where('quantity', 0)->count(),
             'featured_products' => Product::where('is_featured', true)->where('is_deleted', false)->count(),
-            'total_revenue' => Product::join('order_items', 'products.id', '=', 'order_items.product_id')
-                                   ->join('orders', 'order_items.order_id', '=', 'orders.id')
-                                   ->where('orders.status', 'completed')
-                                   ->sum('order_items.total'),
+            'low_stock' => Product::where('quantity', '>', 0)->where('quantity', '<=', 10)->where('is_deleted', false)->count(),
+            'out_of_stock' => Product::where('quantity', '=', 0)->where('is_deleted', false)->count(),
+            'in_stock' => Product::where('quantity', '>', 10)->where('is_deleted', false)->count(),
         ];
 
         return view('admin.products.index', compact('products', 'categories', 'brands', 'stats'));
@@ -144,15 +180,19 @@ class ProductController extends Controller
 
     public function create()
     {
-        $categories = Category::active()->orderBy('name')->get(['id', 'name']);
+        $categories = Category::active()->orderBy('parent_id')->orderBy('name')->get(['id', 'name', 'parent_id']);
         $brands = Brand::active()->orderBy('name')->get(['id', 'name']);
-        $discounts = Discount::active()->orderBy('name')->get(['id', 'name', 'type', 'value']);
+        $discounts = Discount::active()->orderBy('name')->get(['id', 'name', 'discount_type', 'discount_value']);
 
         return view('admin.products.create', compact('categories', 'brands', 'discounts'));
     }
 
     public function store(Request $request)
     {
+        // Get selected category to check if it's shoes
+        $selectedCategory = Category::find($request->category_id);
+        $isShoesCategory = $selectedCategory && str_contains($selectedCategory->name, 'أحذية');
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -161,8 +201,8 @@ class ProductController extends Controller
             'price' => 'required|numeric|min:0',
             'sale_price' => 'nullable|numeric|min:0|lt:price',
             'category_id' => 'required|exists:categories,id',
-            'brand_id' => 'required|exists:brands,id',
-            'stock_quantity' => 'required|integer|min:0',
+            'brand_id' => 'nullable|exists:brands,id',
+            'quantity' => 'required|integer|min:0',
             'weight' => 'nullable|numeric|min:0',
             'dimensions' => 'nullable|string|max:255',
             'color' => 'nullable|string|max:50',
@@ -174,8 +214,16 @@ class ProductController extends Controller
             'images.*' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'sizes' => 'nullable|array',
             'sizes.*' => 'string|max:10',
+            'shoe_sizes' => $isShoesCategory ? 'required|array|min:1' : 'nullable|array',
+            'shoe_sizes.*.size' => $isShoesCategory ? 'required|string' : 'nullable|string',
+            'shoe_sizes.*.quantity' => $isShoesCategory ? 'required|integer|min:0' : 'nullable|integer|min:0',
             'discount_ids' => 'nullable|array',
             'discount_ids.*' => 'exists:discounts,id',
+        ], [
+            'shoe_sizes.required' => 'يجب إضافة مقاس واحد على الأقل للأحذية',
+            'shoe_sizes.min' => 'يجب إضافة مقاس واحد على الأقل للأحذية',
+            'shoe_sizes.*.size.required' => 'مقاس الحذاء مطلوب',
+            'shoe_sizes.*.quantity.required' => 'كمية المقاس مطلوبة',
         ]);
 
         // Generate slug
@@ -201,7 +249,22 @@ class ProductController extends Controller
             // Handle image uploads
             if ($request->hasFile('images')) {
                 foreach ($request->file('images') as $index => $image) {
-                    $filename = time() . '_' . $index . '_' . $image->getClientOriginalName();
+                    // Sanitize filename - remove spaces and special characters
+                    $originalName = $image->getClientOriginalName();
+                    $extension = $image->getClientOriginalExtension();
+                    $nameWithoutExtension = pathinfo($originalName, PATHINFO_FILENAME);
+                    
+                    // Clean the filename: remove spaces, special chars, keep only alphanumeric, dots, hyphens, underscores
+                    $cleanName = preg_replace('/[^a-zA-Z0-9\-_\.]/', '_', $nameWithoutExtension);
+                    $cleanName = preg_replace('/_+/', '_', $cleanName); // Replace multiple underscores with single
+                    $cleanName = trim($cleanName, '_'); // Remove leading/trailing underscores
+                    
+                    // If clean name is empty or too short, use a default name
+                    if (empty($cleanName) || strlen($cleanName) < 2) {
+                        $cleanName = 'product_image';
+                    }
+                    
+                    $filename = time() . '_' . $index . '_' . $cleanName . '.' . $extension;
                     $path = $image->storeAs('products', $filename, 'public');
                     
                     ProductImage::create([
@@ -218,14 +281,39 @@ class ProductController extends Controller
                     ProductSize::create([
                         'product_id' => $product->id,
                         'size' => $size,
-                        'quantity' => $validated['stock_quantity'] // Default to same as stock
+                        'stock_quantity' => $validated['quantity'] // Default to same as stock
                     ]);
                 }
             }
 
+            // Handle shoe sizes for shoes category
+            if ($isShoesCategory && !empty($validated['shoe_sizes'])) {
+                $totalShoeQuantity = 0;
+                
+                foreach ($validated['shoe_sizes'] as $shoeSize) {
+                    if (!empty($shoeSize['size']) && isset($shoeSize['quantity'])) {
+                        ProductSize::create([
+                            'product_id' => $product->id,
+                            'size' => $shoeSize['size'],
+                            'stock_quantity' => (int)$shoeSize['quantity']
+                        ]);
+                        $totalShoeQuantity += (int)$shoeSize['quantity'];
+                    }
+                }
+                
+                // Update total product quantity to match shoe sizes total
+                $product->update(['quantity' => $totalShoeQuantity]);
+            }
+
             // Handle discount associations
             if (!empty($validated['discount_ids'])) {
-                $product->discounts()->attach($validated['discount_ids']);
+                foreach ($validated['discount_ids'] as $discountId) {
+                    DiscountProduct::create([
+                        'product_id' => $product->id,
+                        'discount_id' => $discountId,
+                        'edit_by' => Auth::id(),
+                    ]);
+                }
             }
 
             DB::commit();
@@ -243,7 +331,7 @@ class ProductController extends Controller
     {
         $product->load(['category', 'brand', 'images', 'sizes', 'discounts' => function($query) {
             $query->where('is_active', true);
-        }, 'reviews']);
+        }, 'reviews', 'favoritedByUsers', 'attributeValues.attribute']);
 
         // Get product statistics
         $stats = [
@@ -260,15 +348,19 @@ class ProductController extends Controller
     public function edit(Product $product)
     {
         $product->load(['images', 'sizes', 'discounts']);
-        $categories = Category::active()->orderBy('name')->get(['id', 'name']);
+        $categories = Category::active()->orderBy('name')->get(['id', 'name', 'parent_id']);
         $brands = Brand::active()->orderBy('name')->get(['id', 'name']);
-        $discounts = Discount::active()->orderBy('name')->get(['id', 'name', 'type', 'value']);
+        $discounts = Discount::active()->orderBy('name')->get(['id', 'name', 'discount_type', 'discount_value']);
 
         return view('admin.products.edit', compact('product', 'categories', 'brands', 'discounts'));
     }
 
     public function update(Request $request, Product $product)
     {
+        // Get selected category to check if it's shoes
+        $selectedCategory = Category::find($request->category_id);
+        $isShoesCategory = $selectedCategory && str_contains($selectedCategory->name, 'أحذية');
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -277,8 +369,8 @@ class ProductController extends Controller
             'price' => 'required|numeric|min:0',
             'sale_price' => 'nullable|numeric|min:0|lt:price',
             'category_id' => 'required|exists:categories,id',
-            'brand_id' => 'required|exists:brands,id',
-            'stock_quantity' => 'required|integer|min:0',
+            'brand_id' => 'nullable|exists:brands,id',
+            'quantity' => $isShoesCategory ? 'nullable|integer|min:0' : 'required|integer|min:0',
             'weight' => 'nullable|numeric|min:0',
             'dimensions' => 'nullable|string|max:255',
             'color' => 'nullable|string|max:50',
@@ -290,10 +382,18 @@ class ProductController extends Controller
             'images.*' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'sizes' => 'nullable|array',
             'sizes.*' => 'string|max:10',
+            'shoe_sizes' => $isShoesCategory ? 'required|array|min:1' : 'nullable|array',
+            'shoe_sizes.*.size' => $isShoesCategory ? 'required|string' : 'nullable|string',
+            'shoe_sizes.*.quantity' => $isShoesCategory ? 'required|integer|min:0' : 'nullable|integer|min:0',
             'discount_ids' => 'nullable|array',
             'discount_ids.*' => 'exists:discounts,id',
             'remove_images' => 'nullable|array',
             'remove_images.*' => 'exists:product_images,id',
+        ], [
+            'shoe_sizes.required' => 'يجب إضافة مقاس واحد على الأقل للأحذية',
+            'shoe_sizes.min' => 'يجب إضافة مقاس واحد على الأقل للأحذية',
+            'shoe_sizes.*.size.required' => 'مقاس الحذاء مطلوب',
+            'shoe_sizes.*.quantity.required' => 'كمية المقاس مطلوبة',
         ]);
 
         // Update slug if name changed
@@ -324,7 +424,22 @@ class ProductController extends Controller
             // Handle new image uploads
             if ($request->hasFile('images')) {
                 foreach ($request->file('images') as $index => $image) {
-                    $filename = time() . '_' . $index . '_' . $image->getClientOriginalName();
+                    // Sanitize filename - remove spaces and special characters
+                    $originalName = $image->getClientOriginalName();
+                    $extension = $image->getClientOriginalExtension();
+                    $nameWithoutExtension = pathinfo($originalName, PATHINFO_FILENAME);
+                    
+                    // Clean the filename: remove spaces, special chars, keep only alphanumeric, dots, hyphens, underscores
+                    $cleanName = preg_replace('/[^a-zA-Z0-9\-_\.]/', '_', $nameWithoutExtension);
+                    $cleanName = preg_replace('/_+/', '_', $cleanName); // Replace multiple underscores with single
+                    $cleanName = trim($cleanName, '_'); // Remove leading/trailing underscores
+                    
+                    // If clean name is empty or too short, use a default name
+                    if (empty($cleanName) || strlen($cleanName) < 2) {
+                        $cleanName = 'product_image';
+                    }
+                    
+                    $filename = time() . '_' . $index . '_' . $cleanName . '.' . $extension;
                     $path = $image->storeAs('products', $filename, 'public');
                     
                     ProductImage::create([
@@ -345,13 +460,48 @@ class ProductController extends Controller
                     ProductSize::create([
                         'product_id' => $product->id,
                         'size' => $size,
-                        'quantity' => $validated['stock_quantity']
+                        'stock_quantity' => $validated['quantity']
                     ]);
                 }
             }
 
+            // Handle shoe sizes update for shoes category
+            if ($isShoesCategory && isset($validated['shoe_sizes'])) {
+                // Remove existing sizes
+                $product->sizes()->delete();
+                
+                $totalShoeQuantity = 0;
+                
+                // Add new shoe sizes
+                foreach ($validated['shoe_sizes'] as $shoeSize) {
+                    if (!empty($shoeSize['size']) && isset($shoeSize['quantity'])) {
+                        ProductSize::create([
+                            'product_id' => $product->id,
+                            'size' => $shoeSize['size'],
+                            'stock_quantity' => (int)$shoeSize['quantity']
+                        ]);
+                        $totalShoeQuantity += (int)$shoeSize['quantity'];
+                    }
+                }
+                
+                // Update total product quantity to match shoe sizes total
+                $validated['quantity'] = $totalShoeQuantity;
+            }
+
             // Handle discount associations
-            $product->discounts()->sync($validated['discount_ids'] ?? []);
+            // Remove existing discount associations
+            DiscountProduct::where('product_id', $product->id)->delete();
+            
+            // Add new discount associations
+            if (!empty($validated['discount_ids'])) {
+                foreach ($validated['discount_ids'] as $discountId) {
+                    DiscountProduct::create([
+                        'product_id' => $product->id,
+                        'discount_id' => $discountId,
+                        'edit_by' => Auth::id(),
+                    ]);
+                }
+            }
 
             DB::commit();
 
@@ -394,6 +544,26 @@ class ProductController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to update product status.'
+            ], 500);
+        }
+    }
+
+    public function toggleFeatured(Product $product)
+    {
+        try {
+            $product->update(['is_featured' => !$product->is_featured]);
+            
+            $status = $product->is_featured ? 'featured' : 'unfeatured';
+            return response()->json([
+                'success' => true,
+                'message' => "Product {$status} successfully!",
+                'is_featured' => $product->is_featured
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error toggling product featured status: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update product featured status.'
             ], 500);
         }
     }
@@ -456,7 +626,7 @@ class ProductController extends Controller
     public function quickEdit(Request $request, Product $product)
     {
         $validated = $request->validate([
-            'field' => 'required|in:price,sale_price,stock_quantity,is_active,is_featured',
+            'field' => 'required|in:price,sale_price,quantity,is_active,is_featured',
             'value' => 'required',
         ]);
 
@@ -468,16 +638,12 @@ class ProductController extends Controller
             } elseif (in_array($validated['field'], ['price', 'sale_price'])) {
                 $value = floatval($value);
                 if ($value < 0) throw new \Exception('Price cannot be negative');
-            } elseif ($validated['field'] === 'stock_quantity') {
+            } elseif ($validated['field'] === 'quantity') {
                 $value = intval($value);
                 if ($value < 0) throw new \Exception('Stock cannot be negative');
-                // Map stock_quantity to quantity column
-                $fieldToUpdate = 'quantity';
-            } else {
-                $fieldToUpdate = $validated['field'];
             }
 
-            $product->update([$fieldToUpdate ?? $validated['field'] => $value]);
+            $product->update([$validated['field'] => $value]);
 
             return response()->json([
                 'success' => true,
@@ -518,8 +684,21 @@ class ProductController extends Controller
                 $newSize->save();
             }
 
+            // Duplicate attribute values
+            foreach ($product->attributeValues as $attributeValue) {
+                $newAttributeValue = $attributeValue->replicate();
+                $newAttributeValue->product_id = $newProduct->id;
+                $newAttributeValue->save();
+            }
+
             // Duplicate discount associations
-            $newProduct->discounts()->attach($product->discounts->pluck('id'));
+            foreach ($product->discountProducts as $discountProduct) {
+                DiscountProduct::create([
+                    'product_id' => $newProduct->id,
+                    'discount_id' => $discountProduct->discount_id,
+                    'edit_by' => Auth::id(),
+                ]);
+            }
 
             DB::commit();
 
@@ -529,6 +708,156 @@ class ProductController extends Controller
             DB::rollback();
             Log::error('Error duplicating product: ' . $e->getMessage());
             return back()->withErrors(['error' => 'Failed to duplicate product.']);
+        }
+    }
+
+    /**
+     * Get real-time product statistics for API
+     */
+    public function getStats()
+    {
+        try {
+            $stats = [
+                'total_products' => Product::where('is_deleted', false)->count(),
+                'active_products' => Product::where('is_active', true)->where('is_deleted', false)->count(),
+                'inactive_products' => Product::where('is_active', false)->where('is_deleted', false)->count(),
+                'featured_products' => Product::where('is_featured', true)->where('is_deleted', false)->count(),
+                'low_stock' => Product::where('quantity', '>', 0)->where('quantity', '<=', 10)->where('is_deleted', false)->count(),
+                'out_of_stock' => Product::where('quantity', '=', 0)->where('is_deleted', false)->count(),
+                'in_stock' => Product::where('quantity', '>', 10)->where('is_deleted', false)->count(),
+                'total_value' => Product::where('is_deleted', false)->sum(DB::raw('price * COALESCE(quantity, 0)')),
+                'recent_products_count' => Product::where('is_deleted', false)->where('created_at', '>=', now()->subDays(30))->count(),
+            ];
+
+            return response()->json([
+                'success' => true,
+                'data' => $stats
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'خطأ في جلب الإحصائيات'
+            ], 500);
+        }
+    }
+
+    /**
+     * Search products for AJAX autocomplete
+     */
+    public function search(Request $request)
+    {
+        try {
+            $search = $request->get('q');
+            $products = Product::where('is_deleted', false)
+                ->where(function($query) use ($search) {
+                    $query->where('name', 'LIKE', "%{$search}%")
+                        ->orWhere('sku', 'LIKE', "%{$search}%")
+                        ->orWhere('description', 'LIKE', "%{$search}%");
+                })
+                ->with(['category', 'brand', 'images'])
+                ->limit(10)
+                ->get();
+
+            return response()->json([
+                'success' => true,
+                'data' => $products->map(function($product) {
+                    return [
+                        'id' => $product->id,
+                        'slug' => $product->slug,
+                        'name' => $product->name,
+                        'sku' => $product->sku,
+                        'price' => $product->price,
+                        'sale_price' => $product->sale_price,
+                        'quantity' => $product->quantity,
+                        'is_active' => $product->is_active,
+                        'is_featured' => $product->is_featured,
+                        'category' => $product->category?->name,
+                        'brand' => $product->brand?->name,
+                        'image' => $product->images->first()?->image_path,
+                    ];
+                })
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'خطأ في البحث'
+            ], 500);
+        }
+    }
+
+    /**
+     * Delete a product image
+     */
+    public function deleteImage(ProductImage $image)
+    {
+        try {
+            // Check if this is the only image
+            $product = $image->product;
+            if ($product->images->count() <= 1) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'لا يمكن حذف الصورة الوحيدة للمنتج'
+                ], 400);
+            }
+
+            // Delete the physical file
+            if (Storage::disk('public')->exists($image->image_path)) {
+                Storage::disk('public')->delete($image->image_path);
+            }
+
+            // If this was the primary image, make another image primary
+            if ($image->is_primary) {
+                $nextImage = $product->images()->where('id', '!=', $image->id)->first();
+                if ($nextImage) {
+                    $nextImage->update(['is_primary' => true]);
+                }
+            }
+
+            // Delete the image record
+            $image->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'تم حذف الصورة بنجاح'
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error deleting product image: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'حدث خطأ أثناء حذف الصورة'
+            ], 500);
+        }
+    }
+
+    /**
+     * Make an image primary
+     */
+    public function makePrimaryImage(ProductImage $image)
+    {
+        try {
+            DB::beginTransaction();
+
+            // Remove primary status from all other images of this product
+            ProductImage::where('product_id', $image->product_id)
+                       ->where('id', '!=', $image->id)
+                       ->update(['is_primary' => false]);
+
+            // Make this image primary
+            $image->update(['is_primary' => true]);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'تم تحديث الصورة الرئيسية بنجاح'
+            ]);
+        } catch (\Exception $e) {
+            DB::rollback();
+            Log::error('Error making image primary: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'حدث خطأ أثناء تحديث الصورة الرئيسية'
+            ], 500);
         }
     }
 }

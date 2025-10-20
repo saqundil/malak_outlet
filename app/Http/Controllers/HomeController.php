@@ -16,7 +16,7 @@ class HomeController extends Controller
     public function index()
     {
         // Get featured/latest products
-        $featuredProducts = Product::with(['category', 'brand', 'images'])
+        $featuredProducts = Product::with(['category', 'brand', 'images', 'discountProducts.discount'])
             ->active()
             ->inStock()
             ->latest()
@@ -31,18 +31,18 @@ class HomeController extends Controller
             ->get();
 
         // Get latest products
-        $latestProducts = Product::with(['category', 'brand', 'images'])
+        $latestProducts = Product::with(['category', 'brand', 'images', 'discountProducts.discount'])
             ->active()
             ->inStock()
             ->latest()
-            ->limit(6)
+            ->limit(5)
             ->get();
 
         // Get discounted products (products with active discounts)
-        $discountedProducts = Product::with(['category', 'brand', 'images', 'discounts'])
+        $discountedProducts = Product::with(['category', 'brand', 'images', 'discountProducts.discount'])
             ->active()
             ->inStock()
-            ->whereHas('discounts', function ($query) {
+            ->whereHas('discountProducts.discount', function ($query) {
                 $query->where('discounts.is_active', true)
                       ->where('discounts.is_deleted', false)
                       ->where(function ($q) {
@@ -58,7 +58,7 @@ class HomeController extends Controller
             ->get();
 
         // Get popular products (most favorited)
-        $popularProducts = Product::with(['category', 'brand', 'images'])
+        $popularProducts = Product::with(['category', 'brand', 'images', 'discountProducts.discount'])
             ->active()
             ->inStock()
             ->withCount('favoritedByUsers')
@@ -67,10 +67,10 @@ class HomeController extends Controller
             ->get();
 
         // Get sale products (products with active discounts)
-        $saleProducts = Product::with(['category', 'brand', 'images', 'discounts'])
+        $saleProducts = Product::with(['category', 'brand', 'images', 'discountProducts.discount'])
             ->active()
             ->inStock()
-            ->whereHas('discounts', function ($query) {
+            ->whereHas('discountProducts.discount', function ($query) {
                 $query->where('discounts.is_active', true)
                       ->where('discounts.is_deleted', false)
                       ->where(function ($q) {
@@ -84,7 +84,6 @@ class HomeController extends Controller
             })
             ->limit(8)
             ->get();
-
         // Get user's wishlist product slugs for authenticated users
         $wishlistProductIds = [];
         if (Auth::check()) {

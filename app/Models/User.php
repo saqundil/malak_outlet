@@ -23,7 +23,9 @@ class User extends Authenticatable
         'password',
         'phone',
         'is_admin',
-        ''
+        'otp_code',
+        'otp_expires_at',
+        'is_verified',
     ];
 
     /**
@@ -34,6 +36,7 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'otp_code',
     ];
 
     /**
@@ -46,6 +49,8 @@ class User extends Authenticatable
         'password' => 'hashed',
         'date_of_birth' => 'date',
         'is_admin' => 'boolean',
+        'is_verified' => 'boolean',
+        'otp_expires_at' => 'datetime',
     ];
 
     /**

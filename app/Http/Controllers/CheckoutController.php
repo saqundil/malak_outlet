@@ -6,15 +6,19 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cookie;
+use Illuminate\Support\Facades\Log;
 use App\Models\Product;
 use App\Models\ProductSize;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\User;
+use App\Models\JordanCity;
 
 class CheckoutController extends Controller
 {
     public function __construct()
     {
+        // Require authentication for checkout
         $this->middleware('auth');
     }
 
@@ -29,6 +33,7 @@ class CheckoutController extends Controller
 
         $cartItems = [];
         $subtotal = 0;
+        $totalOriginal = 0;
 
         foreach ($cart as $cartKey => $cartItem) {
             // Handle old format (backwards compatibility)
@@ -51,12 +56,16 @@ class CheckoutController extends Controller
                     $size = ProductSize::find($sizeId);
                 }
 
-                $price = $product->sale_price ?? $product->price;
+                $price = $product->final_price;
+                $originalPrice = $product->price;
+                
                 if ($size) {
                     $price += $size->additional_price ?? 0;
+                    $originalPrice += $size->additional_price ?? 0;
                 }
 
                 $itemTotal = $price * $quantity;
+                $originalItemTotal = $originalPrice * $quantity;
 
                 $cartItem = [
                     'key' => $cartKey,
@@ -64,30 +73,46 @@ class CheckoutController extends Controller
                     'size' => $size,
                     'quantity' => $quantity,
                     'price' => $price,
+                    'original_price' => $originalPrice,
                     'total' => $itemTotal
                 ];
 
                 $cartItems[] = $cartItem;
                 $subtotal += $itemTotal;
+                $totalOriginal += $originalItemTotal;
             }
         }
 
-        // Calculate additional costs
-        $shippingCost = 30.00; // Fixed shipping cost
-        $taxRate = 0.16; // 16% VAT (Jordan rate)
-        $taxAmount = $subtotal * $taxRate;
-        $total = $subtotal + $shippingCost + $taxAmount;
+        // Get Jordan cities for delivery
+        $cities = JordanCity::active()->orderBy('delivery_cost')->get();
+        
+        // Calculate totals (delivery cost will be calculated on frontend)
+        $total = $subtotal;
+        $totalSavings = $totalOriginal - $total;
 
-        return view('checkout.index', compact('cartItems', 'subtotal', 'shippingCost', 'taxAmount', 'total'));
+        return view('checkout.index', compact('cartItems', 'subtotal', 'total', 'totalOriginal', 'totalSavings', 'cities'));
     }
 
     public function store(Request $request)
     {
+        // Debug logging
+        Log::info('Checkout store method called', [
+            'user_id' => Auth::id(),
+            'request_data' => $request->all()
+        ]);
+
         $request->validate([
             'payment_method' => 'required|in:cash,card',
             'shipping_address' => 'required|string|max:500',
+            'jordan_city_id' => 'required|exists:jordan_cities,id',
             'phone' => 'required|string|max:20',
             'notes' => 'nullable|string|max:1000',
+        ], [
+            'payment_method.required' => 'يرجى اختيار طريقة الدفع',
+            'shipping_address.required' => 'عنوان الشحن مطلوب',
+            'jordan_city_id.required' => 'يرجى اختيار المدينة',
+            'jordan_city_id.exists' => 'المدينة المختارة غير صحيحة',
+            'phone.required' => 'رقم الهاتف مطلوب',
         ]);
 
         $cart = $this->getCartFromCookie();
@@ -130,7 +155,7 @@ class CheckoutController extends Controller
                         }
                     }
 
-                    $price = $product->sale_price ?? $product->price;
+                    $price = $product->final_price;
                     if ($size) {
                         $price += $size->additional_price ?? 0;
                     }
@@ -140,33 +165,34 @@ class CheckoutController extends Controller
                     
                     $orderItems[] = [
                         'product_id' => $product->id,
-                        'product_size_id' => $sizeId,
-                        'product_name' => $product->name,
-                        'product_size_name' => $size ? $size->size : null,
-                        'product_price' => $price,
+                        'price' => $price,
                         'quantity' => $quantity,
-                        'total_price' => $totalPrice,
+                        'size' => $size ? $size->size : null,
+                        'total' => $totalPrice,
                     ];
                 }
 
-                // Calculate additional costs
-                $shippingCost = 30.00;
-                $taxRate = 0.16;
-                $taxAmount = $subtotal * $taxRate;
-                $totalAmount = $subtotal + $shippingCost + $taxAmount;
+                // Get selected city and calculate delivery cost
+                $selectedCity = JordanCity::findOrFail($request->jordan_city_id);
+                $shippingCost = $selectedCity->delivery_cost;
+                $totalAmount = $subtotal + $shippingCost;
 
                 // Create order
                 $order = Order::create([
                     'order_number' => Order::generateOrderNumber(),
                     'user_id' => Auth::id(),
+                    'customer_name' => Auth::user()->name,
+                    'customer_email' => Auth::user()->email,
                     'status' => 'pending',
                     'subtotal' => $subtotal,
                     'shipping_cost' => $shippingCost,
-                    'tax_amount' => $taxAmount,
+                    'tax_amount' => 0.00,
                     'total_amount' => $totalAmount,
                     'payment_method' => $request->payment_method,
                     'payment_status' => 'pending',
                     'shipping_address' => $request->shipping_address,
+                    'jordan_city_id' => $selectedCity->id,
+                    'city_name' => $selectedCity->name_ar,
                     'phone' => $request->phone,
                     'notes' => $request->notes,
                 ]);
@@ -193,7 +219,14 @@ class CheckoutController extends Controller
             Cookie::queue(Cookie::forget('cart'));
 
             return redirect()->route('checkout.success', $order->order_number)
-                ->with('success', 'تم إنشاء الطلب بنجاح!');        } catch (\Exception $e) {
+                ->with('success', 'تم إنشاء الطلب بنجاح!');
+                
+        } catch (\Exception $e) {
+            Log::error('Checkout error: ' . $e->getMessage(), [
+                'user_id' => Auth::id(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
             return redirect()->back()
                 ->withInput()
                 ->with('error', 'حدث خطأ أثناء إنشاء الطلب: ' . $e->getMessage());
@@ -208,9 +241,10 @@ class CheckoutController extends Controller
 
     public function success($orderNumber)
     {
-        $order = Auth::user()->orders()
-            ->where('order_number', $orderNumber)
-            ->with('items.product')
+        // Find order for authenticated user only
+        $order = Order::where('order_number', $orderNumber)
+            ->where('user_id', Auth::id())
+            ->with(['items.product.images'])
             ->first();
             
         if (!$order) {

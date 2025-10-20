@@ -26,6 +26,14 @@ class Discount extends Model
     ];
 
     /**
+     * Scope للحصول على الخصومات النشطة فقط
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+
+    /**
      * المنتجات المرتبطة بهذا الخصم
      */
     public function products()

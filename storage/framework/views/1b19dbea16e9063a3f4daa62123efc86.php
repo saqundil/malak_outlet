@@ -30,6 +30,27 @@
     background: #f97316;
 }
 
+/* Size button hover animations */
+.size-button {
+    position: relative;
+    overflow: hidden;
+}
+
+.size-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s;
+}
+
+.size-button:hover::before {
+    left: 100%;
+}
+
 /* Ensure smooth scrolling for the entire page */
 html {
     scroll-behavior: smooth;
@@ -39,15 +60,62 @@ html {
 .filter-content {
     padding-bottom: 1rem;
 }
+
+/* Enhanced button focus states */
+.size-button:focus-within {
+    outline: 2px solid #fb923c;
+    outline-offset: 2px;
+}
+
+/* Improved transitions */
+.transition-all {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Line clamp utility for text truncation */
+.line-clamp-2 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 640px) {
+    .container {
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+    
+    /* Ensure product cards have proper spacing on mobile */
+    .product-card {
+        margin-bottom: 0.75rem;
+    }
+    
+    /* Better touch targets on mobile */
+    .mobile-touch-target {
+        min-height: 44px;
+        min-width: 44px;
+    }
+}
+
+/* Responsive grid improvements */
+@media (max-width: 390px) {
+    .grid {
+        gap: 0.5rem;
+    }
+}
 </style>
 
-<main class="container mx-auto px-4" style="max-width: 1400px;">
-    <div class="min-h-screen bg-gray-50 -mx-4 px-4">
+<main class="container mx-auto px-3 sm:px-4" style="max-width: 1400px;">
+    <div id="productsPageConfig" class="hidden" data-auth="<?php echo e(auth()->check() ? 1 : 0); ?>"></div>
+    <div class="min-h-screen bg-gray-50 px-4">
         <!-- Header -->
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 lg:mb-8 space-y-4 sm:space-y-0 pt-6 lg:pt-8">
-            <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">جميع المنتجات</h1>
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 lg:mb-8 space-y-4 sm:space-y-0 pt-4 sm:pt-6 lg:pt-8 px-2 sm:px-0">
+            <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">جميع المنتجات</h1>
             <div class="flex items-center space-x-4 space-x-reverse">
-                <span class="text-gray-600"><?php echo e($products->total()); ?> منتج</span>
+                <span class="text-sm sm:text-base text-gray-600"><?php echo e($products->total()); ?> منتج</span>
             </div>
         </div>
 
@@ -261,8 +329,7 @@ html {
                             </div>
 
                             <!-- Sizes Filter -->
-                            <?php if(!empty($availableSizes)): ?>
-                            <div class="mb-6">
+                            <div class="mb-6 <?php echo e(!request('category') ? 'hidden' : ''); ?>" id="sizes-filter-section">
                                 <button type="button" onclick="toggleSection('sizes')" class="w-full text-left">
                                     <h4 class="text-lg font-semibold text-gray-800 mb-4 flex items-center justify-between hover:text-orange-600 transition-colors">
                                         <div class="flex items-center">
@@ -276,21 +343,34 @@ html {
                                         </svg>
                                     </h4>
                                 </button>
-                                <div id="sizes-content" class="grid grid-cols-4 gap-2 hidden">
-                                    <?php $__currentLoopData = $availableSizes; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $size => $count): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                        <label class="relative cursor-pointer">
-                                            <input type="checkbox" name="sizes[]" value="<?php echo e($size); ?>" class="sr-only size-checkbox"
-                                                   <?php echo e(in_array($size, request('sizes', [])) ? 'checked' : ''); ?>>
-                                            <div class="size-button w-full text-center py-2 px-1 text-xs font-medium border-2 rounded-lg transition-all duration-200 hover:border-orange-300
-                                                  <?php echo e(in_array($size, request('sizes', [])) ? 'bg-orange-500 text-white border-orange-500' : 'bg-white text-gray-700 border-gray-300'); ?>">
-                                                <div class="font-bold"><?php echo e($size); ?></div>
-                                                <div class="text-xs opacity-75">(<?php echo e($count); ?>)</div>
-                                            </div>
-                                        </label>
-                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                
+                                <!-- Active Sizes Section -->
+                                <div id="sizes-active-section">
+                                    <div id="sizes-content" class="grid grid-cols-3 gap-3">
+                                        <?php if(!empty($availableSizes)): ?>
+                                            <?php $__currentLoopData = $availableSizes; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $size => $count): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                <label class="relative cursor-pointer group">
+                                                    <input type="checkbox" name="sizes[]" value="<?php echo e($size); ?>" class="sr-only size-checkbox"
+                                                           <?php echo e(in_array($size, request('sizes', [])) ? 'checked' : ''); ?>>
+                                                    <div class="size-button w-full text-center py-3 px-2 text-xs font-medium border-2 rounded-xl transition-all duration-200 group-hover:border-orange-400 group-hover:shadow-md transform group-hover:scale-105
+                                                          <?php echo e(in_array($size, request('sizes', [])) ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white border-orange-500 shadow-lg' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'); ?>">
+                                                        <div class="font-bold text-sm"><?php echo e($size); ?></div>
+                                                        <div class="text-xs mt-1 opacity-75">(<?php echo e($count); ?>)</div>
+                                                    </div>
+                                                </label>
+                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                        <?php endif; ?>
+                                    </div>
+                                    
+                                    <!-- Loading state -->
+                                    <div id="sizes-loading" class="hidden text-center py-6">
+                                        <div class="inline-flex items-center justify-center">
+                                            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+                                            <span class="mr-3 text-sm text-gray-600 font-medium">جاري تحميل المقاسات...</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                            <?php endif; ?>
 
                             <!-- Apply Filters Button -->
                             <div class="space-y-3">
@@ -306,9 +386,9 @@ html {
                 <!-- Products Section -->
                 <div class="lg:col-span-3">
                     <!-- Mobile Filter Toggle -->
-                    <div class="lg:hidden mb-4">
-                        <button onclick="toggleMobileFilters()" class="bg-white border border-gray-300 rounded-md px-4 py-2 flex items-center justify-center w-full shadow-sm">
-                            <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="lg:hidden mb-4 px-2 sm:px-0">
+                        <button onclick="toggleMobileFilters()" class="bg-white border border-gray-300 rounded-lg px-4 py-3 flex items-center justify-center w-full shadow-sm text-sm sm:text-base font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                            <svg class="w-4 h-4 sm:w-5 sm:h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.414A1 1 0 013 6.707V4z"></path>
                             </svg>
                             تصفية النتائج
@@ -316,13 +396,13 @@ html {
                     </div>
 
                     <!-- Modern Sort Options -->
-                    <div class="bg-white rounded-xl shadow-lg p-4 mb-6 border border-gray-100">
+                    <div class="bg-white rounded-lg sm:rounded-xl shadow-lg p-3 sm:p-4 mb-4 sm:mb-6 border border-gray-100 mx-2 sm:mx-0">
                         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-3 sm:space-y-0">
-                            <div class="flex items-center space-x-4 space-x-reverse">
-                                <span class="text-sm font-medium text-gray-700">ترتيب حسب:</span>
-                                <div class="relative">
+                            <div class="flex items-center space-x-4 space-x-reverse w-full sm:w-auto">
+                                <span class="text-xs sm:text-sm font-medium text-gray-700">ترتيب حسب:</span>
+                                <div class="relative flex-1 sm:flex-initial">
                                     <select name="sort" onchange="this.form.submit()" form="filterForm" 
-                                            class="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500">
+                                            class="appearance-none bg-white border border-gray-300 rounded-lg px-3 sm:px-4 py-2 pr-8 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 w-full sm:w-auto">
                                         <option value="newest" <?php echo e(request('sort') == 'newest' ? 'selected' : ''); ?>>الأحدث</option>
                                         <option value="price_low" <?php echo e(request('sort') == 'price_low' ? 'selected' : ''); ?>>السعر: من الأقل للأعلى</option>
                                         <option value="price_high" <?php echo e(request('sort') == 'price_high' ? 'selected' : ''); ?>>السعر: من الأعلى للأقل</option>
@@ -330,22 +410,22 @@ html {
                                         <option value="popularity" <?php echo e(request('sort') == 'popularity' ? 'selected' : ''); ?>>الأكثر شعبية</option>
                                     </select>
                                     <div class="absolute inset-y-0 left-0 flex items-center pl-2 pointer-events-none">
-                                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg class="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                                         </svg>
                                     </div>
                                 </div>
                             </div>
-                            <div class="flex items-center space-x-3 space-x-reverse">
-                                <span class="text-sm text-gray-600"><?php echo e($products->total()); ?> منتج</span>
+                            <div class="flex items-center justify-between sm:justify-end space-x-3 space-x-reverse w-full sm:w-auto">
+                                <span class="text-xs sm:text-sm text-gray-600"><?php echo e($products->total()); ?> منتج</span>
                                 <div class="flex items-center space-x-2 space-x-reverse">
                                     <button onclick="toggleViewMode('grid')" id="grid-view" class="view-toggle p-2 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors active">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
                                         </svg>
                                     </button>
                                     <button onclick="toggleViewMode('list')" id="list-view" class="view-toggle p-2 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
                                         </svg>
                                     </button>
@@ -355,18 +435,18 @@ html {
                     </div>
 
             <?php if($products->count() > 0): ?>
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6">
+                <div id="productsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 px-2 sm:px-0">
                     <?php $__currentLoopData = $products; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $product): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                        <div class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 group border border-gray-100 flex flex-col h-full">
+                        <div class="bg-white rounded-lg sm:rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 group border border-gray-100 flex flex-col h-full">
                             <div class="relative">
                                 <a href="<?php echo e(route('products.show', $product->slug)); ?>" class="block">
                                     <?php if($product->images->first()): ?>
                                         <img src="<?php echo e($product->images->first()->image_url); ?>" 
                                              alt="<?php echo e($product->name); ?>" 
-                                             class="w-full h-48 sm:h-56 object-cover group-hover:scale-105 transition-transform duration-300">
+                                             class="w-full h-40 sm:h-48 lg:h-56 object-cover group-hover:scale-105 transition-transform duration-300">
                                     <?php else: ?>
-                                        <div class="w-full h-48 sm:h-56 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-                                            <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <div class="w-full h-40 sm:h-48 lg:h-56 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                                            <svg class="w-8 h-8 sm:w-12 sm:h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 01-2-2z"></path>
                                             </svg>
                                         </div>
@@ -374,25 +454,25 @@ html {
                                 </a>
                                 
                                 <!-- Badges -->
-                                <div class="absolute top-3 left-3 flex flex-col gap-2">
+                                <div class="absolute top-2 sm:top-3 left-2 sm:left-3 flex flex-col gap-1 sm:gap-2">
                                     <?php if($product->discount_percentage > 0): ?>
-                                        <span class="bg-gradient-to-r from-red-500 to-red-600 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg border-2 border-white">
+                                        <span class="bg-gradient-to-r from-red-500 to-red-600 text-white px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs font-bold shadow-lg border-2 border-white">
                                             خصم <?php echo e($product->discount_percentage); ?>%
                                         </span>
                                     <?php endif; ?>
                                     <?php if($product->is_featured): ?>
-                                        <span class="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg border-2 border-white">
+                                        <span class="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs font-bold shadow-lg border-2 border-white">
                                             مميز
                                         </span>
                                     <?php endif; ?>
                                 </div>
                                 
                                 <!-- Wishlist Button -->
-                                <div class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                    <button class="bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-lg hover:bg-white hover:shadow-xl text-gray-600 add-to-wishlist-btn <?php echo e(in_array($product->slug, $wishlistProductIds ?? []) ? 'is-in-wishlist text-red-500' : ''); ?> transition-all duration-200"
+                                <div class="absolute top-2 sm:top-3 right-2 sm:right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                    <button class="bg-white/90 backdrop-blur-sm p-1.5 sm:p-2 rounded-full shadow-lg hover:bg-white hover:shadow-xl text-gray-600 add-to-wishlist-btn <?php echo e(in_array($product->slug, $wishlistProductIds ?? []) ? 'is-in-wishlist text-red-500' : ''); ?> transition-all duration-200"
                                             data-product-id="<?php echo e($product->slug); ?>"
                                             title="<?php echo e(in_array($product->slug, $wishlistProductIds ?? []) ? 'موجود في قائمة الأمنيات' : 'إضافة إلى قائمة الأمنيات'); ?>">
-                                        <svg class="w-4 h-4" 
+                                        <svg class="w-3 h-3 sm:w-4 sm:h-4" 
                                              fill="<?php echo e(in_array($product->slug, $wishlistProductIds ?? []) ? 'currentColor' : 'none'); ?>" 
                                              stroke="currentColor" 
                                              viewBox="0 0 24 24">
@@ -404,12 +484,12 @@ html {
                                 <!-- Stock Status -->
                                 <?php if($product->quantity <= 0 || $product->status != 'in_stock'): ?>
                                     <div class="absolute inset-0 bg-black/50 flex items-center justify-center">
-                                        <span class="bg-red-500 text-white px-4 py-2 rounded-lg font-semibold">غير متوفر</span>
+                                        <span class="bg-red-500 text-white px-3 sm:px-4 py-2 rounded-lg font-semibold text-sm">غير متوفر</span>
                                     </div>
                                 <?php endif; ?>
                             </div>
                             
-                            <div class="p-4 flex flex-col flex-1">
+                            <div class="p-3 sm:p-4 flex flex-col flex-1">
                                 <!-- Product Brand -->
                                 <?php if($product->brand): ?>
                                     <p class="text-xs text-orange-600 font-medium mb-1 uppercase tracking-wide"><?php echo e($product->brand->name); ?></p>
@@ -417,42 +497,42 @@ html {
 
                                 <!-- Product Name -->
                                 <a href="<?php echo e(route('products.show', $product->slug)); ?>" class="block">
-                                    <h3 class="font-bold text-base sm:text-lg mb-2 text-gray-800 hover:text-orange-600 transition-colors duration-200 leading-tight h-12 overflow-hidden">
-                                        <?php echo e(Str::limit($product->name, 60)); ?>
+                                    <h3 class="font-bold text-sm sm:text-base lg:text-lg mb-2 text-gray-800 hover:text-orange-600 transition-colors duration-200 leading-tight line-clamp-2">
+                                        <?php echo e(Str::limit($product->name, 50)); ?>
 
                                     </h3>
                                 </a>
 
                                 <!-- Product Category -->
                                 <?php if($product->category): ?>
-                                    <p class="text-xs text-gray-500 mb-3"><?php echo e($product->category->name); ?></p>
+                                    <p class="text-xs text-gray-500 mb-2 sm:mb-3"><?php echo e($product->category->name); ?></p>
                                 <?php endif; ?>
                                 
                                 <!-- Flexible content area -->
                                 <div class="flex-1">
                                     <!-- Price Section -->
-                                    <div class="mb-4">
-                                        <?php if($product->discount_percentage > 0): ?>
-                                            <div class="flex items-center gap-2 mb-1">
-                                                <span class="text-lg font-bold text-orange-600"><?php echo e(number_format($product->effective_price, 2)); ?> د.أ</span>
-                                                <span class="text-sm text-gray-500 line-through"><?php echo e(number_format($product->price, 2)); ?> د.أ</span>
+                                    <div class="mb-3 sm:mb-4">
+                                        <?php if($product->has_discount): ?>
+                                            <div class="flex items-center gap-1 sm:gap-2 mb-1">
+                                                <span class="text-base sm:text-lg font-bold text-orange-600"><?php echo e(number_format($product->final_price, 2)); ?> د.أ</span>
+                                                <span class="text-xs sm:text-sm text-gray-500 line-through"><?php echo e(number_format($product->price, 2)); ?> د.أ</span>
                                             </div>
                                         <?php else: ?>
-                                            <span class="text-lg font-bold text-gray-800"><?php echo e(number_format($product->price, 2)); ?> د.أ</span>
+                                            <span class="text-base sm:text-lg font-bold text-gray-800"><?php echo e(number_format($product->price, 2)); ?> د.أ</span>
                                         <?php endif; ?>
                                     </div>
 
                                     <!-- Rating (if available) -->
                                     <?php if(isset($product->average_rating) && $product->average_rating > 0): ?>
-                                        <div class="flex items-center mb-3">
+                                        <div class="flex items-center mb-2 sm:mb-3">
                                             <div class="flex items-center">
                                                 <?php for($i = 1; $i <= 5; $i++): ?>
-                                                    <svg class="w-4 h-4 <?php echo e($i <= $product->average_rating ? 'text-yellow-400' : 'text-gray-300'); ?>" fill="currentColor" viewBox="0 0 20 20">
+                                                    <svg class="w-3 h-3 sm:w-4 sm:h-4 <?php echo e($i <= $product->average_rating ? 'text-yellow-400' : 'text-gray-300'); ?>" fill="currentColor" viewBox="0 0 20 20">
                                                         <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
                                                     </svg>
                                                 <?php endfor; ?>
                                             </div>
-                                            <span class="text-xs text-gray-600 mr-2">(<?php echo e($product->reviews_count ?? 0); ?>)</span>
+                                            <span class="text-xs text-gray-600 mr-1 sm:mr-2">(<?php echo e($product->reviews_count ?? 0); ?>)</span>
                                         </div>
                                     <?php endif; ?>
                                 </div>
@@ -461,7 +541,7 @@ html {
                                 <div class="mt-auto">
                                     <!-- Quick Info -->
                                     <?php if($product->quantity > 0 && $product->quantity <= 5): ?>
-                                        <p class="text-xs text-red-600 mb-3 font-medium">
+                                        <p class="text-xs text-red-600 mb-2 sm:mb-3 font-medium">
                                             <svg class="w-3 h-3 inline ml-1" fill="currentColor" viewBox="0 0 20 20">
                                                 <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
                                             </svg>
@@ -469,31 +549,31 @@ html {
                                         </p>
                                     <?php endif; ?>
 
-                                    <div class="flex items-center gap-2">
+                                    <div class="flex items-center gap-1.5 sm:gap-2">
                                         <?php if($product->quantity > 0 && $product->status == 'in_stock'): ?>
                                             <?php if($product->sizes && $product->sizes->count() > 0): ?>
                                                 <!-- Products with sizes - redirect to product page -->
                                                 <a href="<?php echo e(route('products.show', $product->slug)); ?>" 
-                                                   class="flex-1 bg-gradient-to-r from-orange-500 to-orange-600 text-white py-2.5 px-4 rounded-lg text-sm font-semibold hover:from-orange-600 hover:to-orange-700 transition-all duration-300 text-center shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                                                   class="flex-1 bg-gradient-to-r from-orange-500 to-orange-600 text-white py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg text-xs sm:text-sm font-semibold hover:from-orange-600 hover:to-orange-700 transition-all duration-300 text-center shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
                                                     اختر المقاس
                                                 </a>
                                             <?php else: ?>
                                                 <!-- Regular products without sizes -->
-                                                <button onclick="addToCart('<?php echo e($product->slug); ?>')" 
-                                                        class="flex-1 add-to-cart-btn bg-gradient-to-r from-orange-500 to-orange-600 text-white py-2.5 px-4 rounded-lg text-sm font-semibold hover:from-orange-600 hover:to-orange-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                                                <button onclick="addToCart(this, '<?php echo e($product->slug); ?>')" 
+                                                        class="flex-1 add-to-cart-btn bg-gradient-to-r from-orange-500 to-orange-600 text-white py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg text-xs sm:text-sm font-semibold hover:from-orange-600 hover:to-orange-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
                                                     <span class="btn-text">أضف للسلة</span>
                                                     <span class="loading-text hidden">جاري الإضافة...</span>
                                                 </button>
                                             <?php endif; ?>
                                             <a href="<?php echo e(route('products.show', $product->slug)); ?>" 
-                                               class="px-3 py-2.5 border border-orange-300 text-orange-600 hover:bg-orange-50 rounded-lg text-sm font-medium transition-colors duration-200">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                               class="px-2 sm:px-3 py-2 sm:py-2.5 border border-orange-300 text-orange-600 hover:bg-orange-50 rounded-lg text-xs sm:text-sm font-medium transition-colors duration-200">
+                                                <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                                                 </svg>
                                             </a>
                                         <?php else: ?>
-                                            <div class="flex-1 bg-gray-100 text-gray-500 py-2.5 px-4 rounded-lg text-sm font-medium text-center">
+                                            <div class="flex-1 bg-gray-100 text-gray-500 py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg text-xs sm:text-sm font-medium text-center">
                                                 غير متوفر
                                             </div>
                                         <?php endif; ?>
@@ -505,19 +585,25 @@ html {
                 </div>
 
                 <!-- Pagination -->
-                <div class="mt-12 flex justify-center">
-                    <div class="bg-white rounded-xl shadow-lg border border-gray-200 px-6 py-4">
+                <div class="mt-8 sm:mt-12 flex justify-center px-2 sm:px-0">
+                    <div class="bg-white rounded-lg sm:rounded-xl shadow-lg border border-gray-200 px-3 sm:px-6 py-3 sm:py-4 w-full sm:w-auto">
                         <?php echo e($products->appends(request()->query())->links('custom.pagination')); ?>
 
                     </div>
                 </div>
             <?php else: ?>
-                <div class="text-center py-12 lg:py-16">
-                    <svg class="w-20 sm:w-24 h-20 sm:h-24 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="text-center py-12 lg:py-16 px-4">
+                    <svg class="w-16 sm:w-20 lg:w-24 h-16 sm:h-20 lg:h-24 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4v-6.586a1 1 0 00-.293-.707L3.293 7.414A1 1 0 013 6.707V4z"></path>
                     </svg>
-                    <h2 class="text-xl sm:text-2xl font-semibold text-gray-600 mb-2">لا توجد منتجات</h2>
-                    <p class="text-sm sm:text-base text-gray-500">لم يتم العثور على أي منتجات حالياً</p>
+                    <h2 class="text-lg sm:text-xl lg:text-2xl font-semibold text-gray-600 mb-2">لا توجد منتجات</h2>
+                    <p class="text-sm sm:text-base text-gray-500 mb-6">لم يتم العثور على أي منتجات حالياً</p>
+                    <a href="<?php echo e(route('products.index')); ?>" class="inline-flex items-center px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-medium rounded-lg hover:from-orange-600 hover:to-orange-700 transition-all duration-200 text-sm sm:text-base">
+                        <svg class="w-4 h-4 sm:w-5 sm:h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                        </svg>
+                        مسح التصفية
+                    </a>
                 </div>
             <?php endif; ?>
     </div>
@@ -526,7 +612,7 @@ html {
 <!-- Mobile Filters Modal -->
 <div id="mobileFilters" class="fixed inset-0 z-50 hidden">
     <div class="fixed inset-0 bg-black bg-opacity-50" onclick="toggleMobileFilters()"></div>
-    <div class="fixed right-0 top-0 h-full w-80 max-w-full bg-white shadow-lg transform translate-x-full transition-transform duration-300" id="mobileFiltersPanel">
+    <div class="fixed right-0 top-0 h-full w-full sm:w-80 max-w-full bg-white shadow-lg transform translate-x-full transition-transform duration-300" id="mobileFiltersPanel">
         <div class="flex justify-between items-center p-4 border-b border-gray-200">
             <h3 class="text-lg font-bold text-gray-900">تصفية المنتجات</h3>
             <button onclick="toggleMobileFilters()" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
@@ -543,7 +629,7 @@ html {
                         <div class="relative">
                             <input type="text" name="search" value="<?php echo e(request('search')); ?>" 
                                    placeholder="ابحث عن منتج..." 
-                                   class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500">
+                                   class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-sm">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                 <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
@@ -723,16 +809,27 @@ function toggleMobileFilters() {
     }
 }
 
-function addToCart(productId) {
-    const button = event.target.closest('.add-to-cart-btn');
+function addToCart(button, productId) {
+    if (!button) {
+        return;
+    }
+
     const btnText = button.querySelector('.btn-text');
     const loadingText = button.querySelector('.loading-text');
-    
-    // Show loading state
-    btnText.classList.add('hidden');
-    loadingText.classList.remove('hidden');
+
+    if (btnText && !btnText.dataset.defaultText) {
+        btnText.dataset.defaultText = btnText.textContent.trim();
+    }
+
+    if (btnText) {
+        btnText.classList.add('hidden');
+    }
+    if (loadingText) {
+        loadingText.classList.remove('hidden');
+    }
+
     button.disabled = true;
-    
+
     fetch('<?php echo e(route("cart.add", ":productId")); ?>'.replace(':productId', productId), {
         method: 'POST',
         headers: {
@@ -747,18 +844,18 @@ function addToCart(productId) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // Show success state
-            btnText.textContent = 'تم الإضافة';
-            btnText.classList.remove('hidden');
-            loadingText.classList.add('hidden');
-            button.classList.remove('bg-orange-500', 'hover:bg-orange-600');
-            button.classList.add('bg-green-500');
-            
-            // Reset after 2 seconds
+            if (loadingText) {
+                loadingText.classList.add('hidden');
+            }
+            if (btnText) {
+                btnText.textContent = 'تم الإضافة';
+                btnText.classList.remove('hidden');
+            }
+
             setTimeout(() => {
-                btnText.textContent = 'أضف للسلة';
-                button.classList.remove('bg-green-500');
-                button.classList.add('bg-orange-500', 'hover:bg-orange-600');
+                if (btnText) {
+                    btnText.textContent = btnText.dataset.defaultText || 'أضف للسلة';
+                }
                 button.disabled = false;
             }, 2000);
         } else {
@@ -766,18 +863,19 @@ function addToCart(productId) {
         }
     })
     .catch(error => {
-        // Show error state
-        btnText.textContent = 'خطأ';
-        btnText.classList.remove('hidden');
-        loadingText.classList.add('hidden');
-        button.classList.remove('bg-orange-500', 'hover:bg-orange-600');
-        button.classList.add('bg-red-500');
-        
-        // Reset after 2 seconds
+        console.error('Add to cart error:', error);
+        if (loadingText) {
+            loadingText.classList.add('hidden');
+        }
+        if (btnText) {
+            btnText.textContent = 'خطأ';
+            btnText.classList.remove('hidden');
+        }
+
         setTimeout(() => {
-            btnText.textContent = 'أضف للسلة';
-            button.classList.remove('bg-red-500');
-            button.classList.add('bg-orange-500', 'hover:bg-orange-600');
+            if (btnText) {
+                btnText.textContent = btnText.dataset.defaultText || 'أضف للسلة';
+            }
             button.disabled = false;
         }, 2000);
     });
@@ -817,7 +915,8 @@ function addToWishlist(productId, button) {
     }
 
     // Check if user is authenticated
-    const isAuthenticated = <?php echo e(auth()->check() ? 'true' : 'false'); ?>;
+    const configElement = document.getElementById('productsPageConfig');
+    const isAuthenticated = configElement ? configElement.dataset.auth === '1' : false;
     if (!isAuthenticated) {
         showNotification('يجب تسجيل الدخول أولاً لإضافة المنتجات إلى قائمة الأمنيات', 'error');
         setTimeout(() => {
@@ -904,14 +1003,18 @@ function showNotification(message, type = 'success') {
 
 // Add event listeners when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
-    // Add category checkbox event listeners to toggle brands visibility
+    // Add category checkbox event listeners to toggle brands and sizes visibility
     const categoryCheckboxes = document.querySelectorAll('input[name="category[]"]');
     categoryCheckboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', toggleBrandsVisibility);
+        checkbox.addEventListener('change', function() {
+            toggleBrandsVisibility();
+            toggleSizesVisibility();
+        });
     });
     
-    // Initial check for brands visibility
+    // Initial check for brands and sizes visibility
     toggleBrandsVisibility();
+    toggleSizesVisibility();
     
     // Add wishlist button event listeners
     document.querySelectorAll('.add-to-wishlist-btn').forEach(button => {
@@ -922,29 +1025,8 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Size filter functionality
-    document.querySelectorAll('.size-checkbox').forEach(checkbox => {
-        checkbox.addEventListener('change', function() {
-            const sizeButton = this.nextElementSibling;
-            if (this.checked) {
-                sizeButton.classList.remove('bg-white', 'text-gray-700', 'border-gray-300');
-                sizeButton.classList.add('bg-orange-500', 'text-white', 'border-orange-500');
-            } else {
-                sizeButton.classList.remove('bg-orange-500', 'text-white', 'border-orange-500');
-                sizeButton.classList.add('bg-white', 'text-gray-700', 'border-gray-300');
-            }
-        });
-    });
-    
-    // Make size buttons clickable
-    document.querySelectorAll('.size-button').forEach(button => {
-        button.addEventListener('click', function(e) {
-            e.preventDefault();
-            const checkbox = this.previousElementSibling;
-            checkbox.checked = !checkbox.checked;
-            checkbox.dispatchEvent(new Event('change'));
-        });
-    });
+    // Initial size event listeners attachment
+    attachSizeEventListeners();
 });
 
 // Clear all filters function
@@ -1134,6 +1216,204 @@ function updateBrandsContent(brands) {
     }
 }
 
+// Function to toggle sizes visibility based on category selection and load relevant sizes
+function toggleSizesVisibility() {
+    const categoryCheckboxes = document.querySelectorAll('input[name="category[]"]');
+    const sizesFilterSection = document.getElementById('sizes-filter-section');
+    const sizesPlaceholder = document.getElementById('sizes-placeholder');
+    const sizesActiveSection = document.getElementById('sizes-active-section');
+    
+    let hasSelectedCategory = false;
+    let selectedCategories = [];
+    
+    categoryCheckboxes.forEach(checkbox => {
+        if (checkbox.checked) {
+            hasSelectedCategory = true;
+            selectedCategories.push(checkbox.value);
+        }
+    });
+    
+    console.log('Selected categories for sizes:', selectedCategories); // Debug log
+    
+    // Show/hide entire sizes filter section
+    if (sizesFilterSection) {
+        if (hasSelectedCategory) {
+            sizesFilterSection.classList.remove('hidden');
+        } else {
+            sizesFilterSection.classList.add('hidden');
+            // Clear size selections when hiding
+            const sizeCheckboxes = document.querySelectorAll('input[name="sizes[]"]');
+            sizeCheckboxes.forEach(checkbox => {
+                checkbox.checked = false;
+            });
+        }
+    }
+    
+    // Handle sizes placeholder and active sections
+    if (sizesActiveSection) {
+        if (hasSelectedCategory) {
+            // Load sizes for selected categories
+            loadSizesForCategories(selectedCategories);
+        }
+    }
+}
+
+// Function to load sizes for selected categories via AJAX
+function loadSizesForCategories(categories) {
+    console.log('Loading sizes for categories:', categories); // Debug log
+    
+    if (categories.length === 0) return;
+    
+    // Show loading state
+    const sizesContent = document.getElementById('sizes-content');
+    const sizesLoading = document.getElementById('sizes-loading');
+    
+    if (sizesContent) {
+        sizesContent.classList.add('hidden');
+    }
+    if (sizesLoading) {
+        sizesLoading.classList.remove('hidden');
+    }
+    
+    const url = `/api/sizes-by-categories?categories=${categories.join(',')}`;
+    console.log('Sizes AJAX URL:', url); // Debug log
+    
+    fetch(url, {
+        method: 'GET',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        credentials: 'same-origin'
+    })
+    .then(response => {
+        console.log('Sizes response status:', response.status); // Debug log
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Sizes response data:', data); // Debug log
+        if (data.success && data.sizes) {
+            updateSizesContent(data.sizes);
+        } else {
+            console.error('Invalid sizes response format:', data);
+            showSizesError('تعذر تحميل المقاسات');
+        }
+    })
+    .catch(error => {
+        console.error('Error loading sizes:', error);
+        showSizesError('خطأ في تحميل المقاسات');
+    })
+    .finally(() => {
+        if (sizesLoading) {
+            sizesLoading.classList.add('hidden');
+        }
+    });
+}
+
+// Function to show error message in sizes section
+function showSizesError(message) {
+    const sizesContent = document.getElementById('sizes-content');
+    if (sizesContent) {
+        sizesContent.innerHTML = `
+            <div class="col-span-3 text-center py-8 px-4 bg-gradient-to-br from-red-50 to-red-100 rounded-xl border-2 border-dashed border-red-300">
+                <div class="w-12 h-12 mx-auto mb-3 bg-white rounded-full flex items-center justify-center shadow-lg">
+                    <svg class="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <p class="text-sm font-medium text-red-600">${message}</p>
+            </div>
+        `;
+        sizesContent.classList.remove('hidden');
+    }
+}
+
+// Function to update sizes content with new data
+function updateSizesContent(sizes) {
+    const sizesContent = document.getElementById('sizes-content');
+    
+    // Handle empty sizes case
+    if (!sizes || Object.keys(sizes).length === 0) {
+        if (sizesContent) {
+            sizesContent.innerHTML = `
+                <div class="col-span-3 text-center py-8 px-4 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl border-2 border-dashed border-gray-300">
+                    <div class="w-12 h-12 mx-auto mb-3 bg-white rounded-full flex items-center justify-center shadow-lg">
+                        <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zM21 5a2 2 0 00-2-2h-4a2 2 0 00-2 2v12a4 4 0 004 4h4a2 2 0 002-2V5z"></path>
+                        </svg>
+                    </div>
+                    <p class="text-sm font-medium text-gray-600">لا توجد مقاسات متاحة</p>
+                    <p class="text-xs text-gray-500">للتصنيفات المحددة</p>
+                </div>
+            `;
+            sizesContent.classList.remove('hidden');
+        }
+        return;
+    }
+    
+    if (sizesContent) {
+        let sizesHtml = '';
+        Object.entries(sizes).forEach(([size, count]) => {
+            const isChecked = document.querySelector(`input[name="sizes[]"][value="${size}"]`)?.checked || false;
+            sizesHtml += `
+                <label class="relative cursor-pointer group">
+                    <input type="checkbox" name="sizes[]" value="${size}" class="sr-only size-checkbox"
+                           ${isChecked ? 'checked' : ''}>
+                    <div class="size-button w-full text-center py-3 px-2 text-xs font-medium border-2 rounded-xl transition-all duration-200 group-hover:border-orange-400 group-hover:shadow-md transform group-hover:scale-105
+                          ${isChecked ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white border-orange-500 shadow-lg' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}">
+                        <div class="font-bold text-sm">${size}</div>
+                        <div class="text-xs mt-1 opacity-75">(${count})</div>
+                    </div>
+                </label>
+            `;
+        });
+        sizesContent.innerHTML = sizesHtml;
+        sizesContent.classList.remove('hidden');
+        
+        // Re-attach event listeners for new size checkboxes
+        attachSizeEventListeners();
+    }
+}
+
+// Function to attach event listeners to size elements
+function attachSizeEventListeners() {
+    // Size checkbox functionality
+    document.querySelectorAll('.size-checkbox').forEach(checkbox => {
+        checkbox.removeEventListener('change', handleSizeCheckboxChange); // Remove existing listener
+        checkbox.addEventListener('change', handleSizeCheckboxChange);
+    });
+    
+    // Make size buttons clickable
+    document.querySelectorAll('.size-button').forEach(button => {
+        button.removeEventListener('click', handleSizeButtonClick); // Remove existing listener
+        button.addEventListener('click', handleSizeButtonClick);
+    });
+}
+
+// Size checkbox change handler
+function handleSizeCheckboxChange() {
+    const sizeButton = this.nextElementSibling;
+    if (this.checked) {
+        sizeButton.classList.remove('bg-white', 'text-gray-700', 'border-gray-300', 'hover:bg-gray-50');
+        sizeButton.classList.add('bg-gradient-to-r', 'from-orange-500', 'to-orange-600', 'text-white', 'border-orange-500', 'shadow-lg');
+    } else {
+        sizeButton.classList.remove('bg-gradient-to-r', 'from-orange-500', 'to-orange-600', 'text-white', 'border-orange-500', 'shadow-lg');
+        sizeButton.classList.add('bg-white', 'text-gray-700', 'border-gray-300', 'hover:bg-gray-50');
+    }
+}
+
+// Size button click handler
+function handleSizeButtonClick(e) {
+    e.preventDefault();
+    const checkbox = this.previousElementSibling;
+    checkbox.checked = !checkbox.checked;
+    checkbox.dispatchEvent(new Event('change'));
+}
+
 // Toggle mobile filter sections
 function toggleMobileSection(sectionName) {
     const content = document.getElementById(sectionName + '-content');
@@ -1163,37 +1443,44 @@ function toggleSubcategories(categoryId) {
 }
 
 // View mode toggle functionality
-function toggleViewMode(mode) {
+function toggleViewMode(mode, skipStorage = false) {
     const gridView = document.getElementById('grid-view');
     const listView = document.getElementById('list-view');
-    const productGrid = document.querySelector('.grid');
+    const productGrid = document.getElementById('productsGrid');
     
-    if (mode === 'grid') {
-        gridView.classList.add('active', 'bg-orange-500', 'text-white');
-        gridView.classList.remove('border-gray-300', 'hover:bg-gray-50');
-        listView.classList.remove('active', 'bg-orange-500', 'text-white');
-        listView.classList.add('border-gray-300', 'hover:bg-gray-50');
-        
-        // Update grid layout
-        productGrid.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6';
-    } else {
+    if (!productGrid || !gridView || !listView) {
+        return;
+    }
+
+    const baseClasses = 'grid px-2 sm:px-0';
+    const gridClasses = `${baseClasses} grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-6`;
+    const listClasses = `${baseClasses} grid-cols-1 gap-4`;
+
+    if (mode === 'list') {
         listView.classList.add('active', 'bg-orange-500', 'text-white');
         listView.classList.remove('border-gray-300', 'hover:bg-gray-50');
         gridView.classList.remove('active', 'bg-orange-500', 'text-white');
         gridView.classList.add('border-gray-300', 'hover:bg-gray-50');
-        
-        // Update grid layout for list view
-        productGrid.className = 'grid grid-cols-1 gap-4';
+        productGrid.className = listClasses;
+        productGrid.dataset.viewMode = 'list';
+    } else {
+        gridView.classList.add('active', 'bg-orange-500', 'text-white');
+        gridView.classList.remove('border-gray-300', 'hover:bg-gray-50');
+        listView.classList.remove('active', 'bg-orange-500', 'text-white');
+        listView.classList.add('border-gray-300', 'hover:bg-gray-50');
+        productGrid.className = gridClasses;
+        productGrid.dataset.viewMode = 'grid';
     }
-    
-    // Store preference in localStorage
-    localStorage.setItem('viewMode', mode);
+
+    if (!skipStorage) {
+        localStorage.setItem('viewMode', mode);
+    }
 }
 
 // Load saved view mode on page load
 document.addEventListener('DOMContentLoaded', function() {
     const savedViewMode = localStorage.getItem('viewMode') || 'grid';
-    toggleViewMode(savedViewMode);
+    toggleViewMode(savedViewMode, true);
 });
 </script>
 <?php $__env->stopSection(); ?>

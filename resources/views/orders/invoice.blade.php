@@ -265,10 +265,10 @@
             <tbody>
                 @foreach($order->items as $item)
                 <tr>
-                    <td>{{ $item->product_name }}</td>
-                    <td>{{ number_format($item->product_price, 2) }} د.أ</td>
+                    <td>{{ $item->product->name ?? 'منتج غير متاح' }}</td>
+                    <td>{{ number_format($item->price, 2) }} د.أ</td>
                     <td>{{ $item->quantity }}</td>
-                    <td>{{ number_format($item->total_price, 2) }} د.أ</td>
+                    <td>{{ number_format($item->total, 2) }} د.أ</td>
                 </tr>
                 @endforeach
             </tbody>

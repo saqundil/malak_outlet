@@ -112,9 +112,14 @@
                                     </span>
                                 @endif
                                 
-                                <div class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition duration-300">
-                                    <button class="bg-white p-2 rounded-full shadow-lg hover:bg-gray-100 text-gray-600">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <div class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                    <button class="bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-lg hover:bg-white hover:shadow-xl text-gray-600 add-to-wishlist-btn {{ in_array($product->slug, $wishlistProductIds ?? []) ? 'is-in-wishlist text-red-500' : '' }} transition-all duration-200"
+                                            data-product-id="{{ $product->slug }}"
+                                            title="{{ in_array($product->slug, $wishlistProductIds ?? []) ? 'موجود في قائمة الأمنيات' : 'إضافة إلى قائمة الأمنيات' }}">
+                                        <svg class="w-4 h-4" 
+                                             fill="{{ in_array($product->slug, $wishlistProductIds ?? []) ? 'currentColor' : 'none' }}" 
+                                             stroke="currentColor" 
+                                             viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
                                         </svg>
                                     </button>
@@ -141,7 +146,7 @@
                                     
                                     <div class="flex items-center justify-between">
                                         @if($product->quantity > 0 && $product->status == 'in_stock')
-                                            <button onclick="addToCart({{ $product->slug }})" 
+                                            <button onclick="addToCart('{{ $product->slug }}')" 
                                                     class="add-to-cart-btn bg-orange-500 text-white px-3 py-2 rounded-lg text-sm hover:bg-orange-600 transition duration-300">
                                                 <span class="btn-text">أضف للسلة</span>
                                                 <span class="loading-text hidden">جاري...</span>
@@ -255,6 +260,96 @@ function showNotification(message, type = 'success') {
     }, 3000);
 }
 
+// Add to wishlist functionality
+function addToWishlist(productId, button) {
+    const csrfToken = document.querySelector('meta[name="csrf-token"]');
+    if (!csrfToken) {
+        showNotification('خطأ في النظام: لم يتم العثور على رمز الأمان', 'error');
+        return;
+    }
+
+    // Check if user is authenticated
+    const isAuthenticated = {{ auth()->check() ? 'true' : 'false' }};
+    if (!isAuthenticated) {
+        showNotification('يجب تسجيل الدخول أولاً لإضافة المنتجات إلى قائمة الأمنيات', 'error');
+        setTimeout(() => {
+            window.location.href = '{{ route("login") }}';
+        }, 2000);
+        return;
+    }
+
+    // Check if already in wishlist
+    const isInWishlist = button.classList.contains('is-in-wishlist');
+    const action = isInWishlist ? 'remove' : 'add';
+    const method = isInWishlist ? 'DELETE' : 'POST';
+
+    // Show loading state
+    const originalIcon = button.innerHTML;
+    button.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
+    button.disabled = true;
+
+    fetch(`/wishlist/${action}/${productId}`, {
+        method: method,
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': csrfToken.getAttribute('content'),
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            if (action === 'add') {
+                // Item added to wishlist
+                button.innerHTML = '<svg class="w-4 h-4" fill="currentColor" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>';
+                button.classList.add('is-in-wishlist', 'text-red-500');
+                button.setAttribute('title', 'موجود في قائمة الأمنيات');
+                showNotification('تم إضافة المنتج إلى قائمة الأمنيات', 'success');
+            } else {
+                // Item removed from wishlist
+                button.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>';
+                button.classList.remove('is-in-wishlist', 'text-red-500');
+                button.setAttribute('title', 'إضافة إلى قائمة الأمنيات');
+                showNotification('تم إزالة المنتج من قائمة الأمنيات', 'success');
+            }
+
+            // Update wishlist count in header if it exists
+            updateWishlistCount(data.wishlist_count || 0);
+        } else {
+            showNotification(data.message || 'حدث خطأ في العملية', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Wishlist error:', error);
+        showNotification('حدث خطأ في الاتصال', 'error');
+    })
+    .finally(() => {
+        // Reset button state
+        button.innerHTML = originalIcon;
+        button.disabled = false;
+    });
+}
+
+// Update wishlist count in header
+function updateWishlistCount(count) {
+    const wishlistBadge = document.getElementById('wishlist-count');
+    const wishlistLink = document.querySelector('a[href*="wishlist"]');
+    
+    if (count > 0) {
+        if (wishlistBadge) {
+            wishlistBadge.textContent = count;
+        } else if (wishlistLink) {
+            const badge = document.createElement('span');
+            badge.id = 'wishlist-count';
+            badge.className = 'absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center';
+            badge.textContent = count;
+            wishlistLink.appendChild(badge);
+        }
+    } else if (wishlistBadge) {
+        wishlistBadge.remove();
+    }
+}
+
 // Add size filter functionality
 document.addEventListener('DOMContentLoaded', function() {
     // Size filter functionality
@@ -284,6 +379,16 @@ document.addEventListener('DOMContentLoaded', function() {
     // Auto-submit on sort change
     document.querySelector('select[name="sort"]')?.addEventListener('change', function() {
         document.getElementById('categoryFilterForm').submit();
+    });
+    
+    // Add wishlist button event listeners
+    document.querySelectorAll('.add-to-wishlist-btn').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const productId = this.getAttribute('data-product-id');
+            addToWishlist(productId, this);
+        });
     });
 });
 </script>

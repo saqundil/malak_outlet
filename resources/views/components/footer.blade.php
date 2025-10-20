@@ -7,42 +7,42 @@
   
 
     <!-- Main Footer Content -->
-    <div class="py-16 px-4 md:px-10 relative z-10">
+    <div class="py-8 sm:py-12 md:py-16 px-3 sm:px-4 md:px-10 relative z-10">
         <div class="container mx-auto">
             <!-- Top Section -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 mb-8 sm:mb-12">
                 <!-- Company Info -->
                 <div class="lg:col-span-2">
-                    <div class="flex items-center mb-6">
-                        <img src="{{ asset('images/malak.png') }}" alt="MalakOutlet Logo" class="w-16 h-16 ml-4" />
+                    <div class="flex items-center mb-4 sm:mb-6">
+                        <img src="{{ asset('images/malak.png') }}" alt="MalakOutlet Logo" class="w-12 h-12 sm:w-16 sm:h-16 ml-3 sm:ml-4" />
                         <div>
-                            <h3 class="text-2xl font-bold text-white">MalakOutlet</h3>
-                                                        <p class="text-orange-400 text-sm">متجر الألعاب الأول في الأردن</p>
+                            <h3 class="text-xl sm:text-2xl font-bold text-white">MalakOutlet</h3>
+                            <p class="text-orange-400 text-xs sm:text-sm">متجر الألعاب الأول في الأردن</p>
                         </div>
                     </div>
-                    <p class="text-gray-300 text-base leading-relaxed mb-6 max-w-md">
+                    <p class="text-gray-300 text-sm sm:text-base leading-relaxed mb-4 sm:mb-6 max-w-md">
                         وجهتك المثالية لجميع منتجات الألعاب والترفيه التعليمية للأطفال. نقدم مجموعة واسعة من الألعاب المميزة من أفضل العلامات التجارية العالمية بأفضل الأسعار.
                     </p>
                     
                     <!-- Trust Badges -->
-                    <div class="flex flex-wrap gap-4 mb-6">
-                        <div class="bg-gray-700 rounded-lg p-3 flex items-center">
-                            <svg class="w-6 h-6 text-green-400 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="flex flex-wrap gap-2 sm:gap-4 mb-4 sm:mb-6">
+                        <div class="bg-gray-700 rounded-lg p-2 sm:p-3 flex items-center">
+                            <svg class="w-4 h-4 sm:w-6 sm:h-6 text-green-400 ml-1 sm:ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
-                            <span class="text-sm text-gray-300">منتجات أصلية</span>
+                            <span class="text-xs sm:text-sm text-gray-300">منتجات أصلية</span>
                         </div>
-                        <div class="bg-gray-700 rounded-lg p-3 flex items-center">
-                            <svg class="w-6 h-6 text-blue-400 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="bg-gray-700 rounded-lg p-2 sm:p-3 flex items-center">
+                            <svg class="w-4 h-4 sm:w-6 sm:h-6 text-blue-400 ml-1 sm:ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
-                            <span class="text-sm text-gray-300">توصيل سريع</span>
+                            <span class="text-xs sm:text-sm text-gray-300">توصيل سريع</span>
                         </div>
-                        <div class="bg-gray-700 rounded-lg p-3 flex items-center">
-                            <svg class="w-6 h-6 text-yellow-400 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="bg-gray-700 rounded-lg p-2 sm:p-3 flex items-center">
+                            <svg class="w-4 h-4 sm:w-6 sm:h-6 text-yellow-400 ml-1 sm:ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                             </svg>
-                            <span class="text-sm text-gray-300">دعم 24/7</span>
+                            <span class="text-xs sm:text-sm text-gray-300">دعم 24/7</span>
                         </div>
                     </div>
 
@@ -66,13 +66,13 @@
 
                 <!-- Quick Links -->
                 <div>
-                    <h3 class="text-xl font-bold mb-6 text-white flex items-center">
-                        <svg class="w-6 h-6 ml-3 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <h3 class="text-lg sm:text-xl font-bold mb-4 sm:mb-6 text-white flex items-center">
+                        <svg class="w-5 h-5 sm:w-6 sm:h-6 ml-2 sm:ml-3 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
                         </svg>
-                                                روابط مهمة
+                        روابط مهمة
                     </h3>
-                    <ul class="space-y-3">
+                    <ul class="space-y-2 sm:space-y-3">
                         <li>
                             <a href="{{ route('about') }}" class="text-gray-300 hover:text-orange-400 transition-colors duration-200 flex items-center group">
                                 <svg class="w-4 h-4 ml-2 text-orange-400 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -126,13 +126,13 @@
 
                 <!-- Categories -->
                 <div>
-                    <h3 class="text-xl font-bold mb-6 text-white flex items-center">
-                        <svg class="w-6 h-6 ml-3 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <h3 class="text-lg sm:text-xl font-bold mb-4 sm:mb-6 text-white flex items-center">
+                        <svg class="w-5 h-5 sm:w-6 sm:h-6 ml-2 sm:ml-3 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14-7l2 2m0 0l2 2m-2-2v6a2 2 0 01-2 2H9a2 2 0 01-2-2V9a2 2 0 012-2h10a2 2 0 012 2z"></path>
                         </svg>
                         الفئات الرئيسية
                     </h3>
-                    <ul class="space-y-3">
+                    <ul class="space-y-2 sm:space-y-3">
                         @php
                             $mainCategories = App\Models\Category::whereNull('parent_id')->where('is_active', true)->get();
                         @endphp
@@ -159,30 +159,30 @@
             </div>
 
             <!-- Bottom Section -->
-            <div class="border-t border-gray-700 pt-8">
-                <div class="flex flex-col lg:flex-row justify-between items-center space-y-4 lg:space-y-0">
+            <div class="border-t border-gray-700 pt-6 sm:pt-8">
+                <div class="flex flex-col lg:flex-row justify-between items-center space-y-3 sm:space-y-4 lg:space-y-0">
                     <div class="text-center lg:text-right">
-                        <p class="text-gray-400">© 2025 MalakOutlet. جميع الحقوق محفوظة.</p>
-                        <p class="text-gray-500 text-sm mt-1">صُنع بـ ❤️ في الأردن</p>
+                        <p class="text-gray-400 text-sm sm:text-base">© 2025 MalakOutlet. جميع الحقوق محفوظة.</p>
+                        <p class="text-gray-500 text-xs sm:text-sm mt-1">صُنع بـ ❤️ في الأردن</p>
                     </div>
                     
                     <!-- Compact Contact Information -->
-                    <div class="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-6 md:space-x-reverse text-sm">
+                    <div class="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4 md:space-x-6 sm:space-x-reverse text-xs sm:text-sm">
                         <div class="flex items-center text-gray-400">
-                            <svg class="w-4 h-4 ml-2 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-3 h-3 sm:w-4 sm:h-4 ml-1 sm:ml-2 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
                             </svg>
                             <span>عمان، الأردن</span>
                         </div>
                         <div class="flex items-center text-gray-400" dir="ltr">
-                            <svg class="w-4 h-4 ml-2 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-3 h-3 sm:w-4 sm:h-4 ml-1 sm:ml-2 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
                             </svg>
                             <span>+962 79 004 35 81</span>
                         </div>
                         <div class="flex items-center text-gray-400">
-                            <svg class="w-4 h-4 ml-2 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-3 h-3 sm:w-4 sm:h-4 ml-1 sm:ml-2 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
                             </svg>
                             <span>info@MalakOutlet.com</span>

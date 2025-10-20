@@ -218,11 +218,11 @@
                             </div>
 
                             <!-- Sale Badge -->
-                            <?php if($product->sale_price): ?>
+                            <?php if($product->has_discount): ?>
                                 <div
                                     class="absolute top-4 right-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold">
                                     وفر
-                                    <?php echo e(number_format((($product->price - $product->sale_price) / $product->price) * 100, 0)); ?>%
+                                    <?php echo e(number_format($product->discount_percentage, 0)); ?>%
                                 </div>
                             <?php endif; ?>
                         </div>
@@ -263,16 +263,16 @@
 
                         <!-- Price Section -->
                         <div class="mb-8 p-6 bg-white rounded-xl border">
-                            <?php if($product->sale_price): ?>
+                            <?php if($product->has_discount): ?>
                                 <div class="space-y-2">
                                     <div class="flex items-center justify-between">
                                         <span
-                                            class="text-3xl lg:text-4xl font-bold text-orange-600"><?php echo e(number_format($product->sale_price, 2)); ?>
+                                            class="text-3xl lg:text-4xl font-bold text-orange-600"><?php echo e(number_format($product->final_price, 2)); ?>
 
                                             د.أ</span>
                                         <span class="bg-red-100 text-red-800 text-sm font-bold px-3 py-1 rounded-full">
                                             خصم
-                                            <?php echo e(number_format((($product->price - $product->sale_price) / $product->price) * 100, 0)); ?>%
+                                            <?php echo e(number_format($product->discount_percentage, 0)); ?>%
                                         </span>
                                     </div>
                                     <div class="flex items-center gap-3">
@@ -280,7 +280,7 @@
 
                                             د.أ</span>
                                         <span class="text-green-600 font-medium">
-                                            وفرت <?php echo e(number_format($product->price - $product->sale_price, 2)); ?> د.أ
+                                            وفرت <?php echo e(number_format($product->savings_amount, 2)); ?> د.أ
                                         </span>
                                     </div>
                                 </div>
@@ -297,7 +297,21 @@
 
                         <!-- Product Sizes -->
                         <?php if($product->sizes && $product->sizes->count() > 0): ?>
-                            <div class="mb-8 p-6 bg-white rounded-xl border">
+                            <div x-data="{
+                                selectedSize: null,
+                                sizes: <?php echo \Illuminate\Support\Js::from($product->availableSizes->map(function($size) {
+                                    return [
+                                        'id' => $size->id,
+                                        'size' => $size->size,
+                                        'stock_quantity' => $size->stock_quantity,
+                                        'additional_price' => $size->additional_price,
+                                        'is_popular' => $size->is_popular ?? false
+                                    ];
+                                }))->toHtml() ?>,
+                                getSelectedSizeData() {
+                                    return this.sizes.find(size => size.id === this.selectedSize) || null;
+                                }
+                            }" class="mb-8 p-6 bg-white rounded-xl border">
                                 <label class="text-lg font-semibold text-gray-700 mb-4 block">الحجم المتاح:</label>
                                 <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
                                     <?php $__currentLoopData = $product->availableSizes; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $size): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
@@ -372,10 +386,8 @@
                                         <div class="flex items-center gap-3">
                                             <i class="fas fa-check-circle text-green-600"></i>
                                             <span class="text-green-800 font-medium">تم اختيار الحجم:</span>
-                                            <span x-text="document.querySelector('[data-size-id=\"' + selectedSize + '
-                                                \"]')?.innerText.split('\n')[0] || ''" 
-                                                      class=" bg-green-100 text-green-800 px-2 py-1 rounded-lg text-sm
-                                                font-bold"></span>
+                                            <span x-text="getSelectedSizeData()?.size || ''" 
+                                                  class="bg-green-100 text-green-800 px-2 py-1 rounded-lg text-sm font-bold"></span>
                                         </div>
                                         <button @click="selectedSize = null"
                                             class="text-green-600 hover:text-green-800 text-sm">
@@ -396,38 +408,8 @@
                                     </div>
                                 </div>
 
-                                <!-- Size Information Panel -->
-                                <template x-if="selectedSize">
-                                    <div class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-xl">
-                                        <h4 class="font-semibold text-blue-800 mb-2">تفاصيل الحجم المختار</h4>
-                                        <div class="space-y-2 text-sm">
-                                            <div class="flex justify-between">
-                                                <span class="text-blue-700">الحجم:</span>
-                                                <span x-text="document.querySelector('[data-size-id=\"' + selectedSize + '
-                                                    \"]')?.innerText.split('\n')[0] || ''" 
-                                                          class=" font-bold text-blue-900"></span>
-                                            </div>
-                                            <div class="flex justify-between">
-                                                <span class="text-blue-700">الكمية المتاحة:</span>
-                                                <span x-text="document.querySelector('[data-size-id=\"' + selectedSize + '
-                                                    \"]')?.innerText.includes('متبقي') ?
-                                                    document.querySelector('[data-size-id=\"' + selectedSize + '\"]'
-                                                    )?.innerText.match(/(\d+) متبقي/)?.[1] || 'متوفر' : 'متوفر'" 
-                                                          class=" font-bold text-blue-900"></span>
-                                            </div>
-                                            <template x-if="document.querySelector('[data-size-id=\"' + selectedSize + '
-                                                \"]')?.getAttribute('data-additional-price')> 0">
-                                                <div class="flex justify-between border-t border-blue-200 pt-2">
-                                                    <span class="text-blue-700">السعر الإضافي:</span>
-                                                    <span
-                                                        x-text="'+' + document.querySelector('[data-size-id=\"' + selectedSize + '
-                                                        \"]')?.getAttribute('data-additional-price') + ' د.أ'" 
-                                                              class=" font-bold text-blue-900"></span>
-                                                </div>
-                                            </template>
-                                        </div>
-                                    </div>
-                                </template>
+                                <!-- Enhanced Size Information Panel -->
+                               
                             </div>
                         <?php endif; ?>
 
@@ -542,87 +524,258 @@
 
                     <!-- Dynamic Specifications Tab -->
                     <div id="specifications-content" class="tab-content" dir="rtl">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div class="space-y-4">
-                                <div class="flex justify-between py-3 border-b border-gray-200">
-                                    <span class="font-semibold text-gray-900">رقم المنتج:</span>
-                                    <span class="text-gray-700"><?php echo e($product->sku); ?></span>
+                        <!-- Product Attributes from attribute_values table -->
+                        <?php if($product->attributeValues && $product->attributeValues->count() > 0): ?>
+                            <div class="mb-12">
+                                <!-- Enhanced Header with Icon and Divider -->
+                                <div class="flex items-center mb-8">
+                                    <div class="flex items-center">
+                                        <div class="bg-gradient-to-r from-orange-500 to-red-500 p-3 rounded-xl shadow-lg ml-4">
+                                            <i class="fas fa-cogs text-white text-lg"></i>
+                                        </div>
+                                        <div>
+                                            <h4 class="text-2xl font-bold text-gray-900 mb-1">مواصفات المنتج</h4>
+                                            <p class="text-sm text-gray-500">التفاصيل التقنية والخصائص المميزة</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex-grow mr-6">
+                                        <div class="h-px bg-gradient-to-l from-orange-200 to-transparent"></div>
+                                    </div>
                                 </div>
-                                <div class="flex justify-between py-3 border-b border-gray-200">
-                                    <span class="font-semibold text-gray-900">الفئة:</span>
-                                    <span class="text-gray-700"><?php echo e($product->category->name); ?></span>
+
+                                <?php
+                                    // Group attribute values by attribute name
+                                    $groupedAttributes = [];
+                                    foreach($product->attributeValues as $attributeValue) {
+                                        if($attributeValue->attribute) {
+                                            $attributeName = $attributeValue->attribute->name;
+                                            if (!isset($groupedAttributes[$attributeName])) {
+                                                $groupedAttributes[$attributeName] = [];
+                                            }
+                                            $groupedAttributes[$attributeName][] = $attributeValue->value;
+                                        }
+                                    }
+                                ?>
+
+                                <!-- Professional Attributes Grid -->
+                                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                    <?php $__currentLoopData = $groupedAttributes; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $attributeName => $values): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <div class="group">
+                                            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
+                                                <div class="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-b border-gray-100">
+                                                    <div class="flex items-center">
+                                                        <div class="w-2 h-2 bg-orange-500 rounded-full ml-3 animate-pulse"></div>
+                                                        <h5 class="font-bold text-gray-800 text-lg"><?php echo e($attributeName); ?></h5>
+                                                    </div>
+                                                </div>
+                                                <div class="p-6">
+                                                    <div class="flex flex-wrap gap-2">
+                                                        <?php $__currentLoopData = array_unique($values); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $value): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                            <span class="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-gradient-to-r from-orange-100 to-yellow-100 text-orange-800 border border-orange-200 shadow-sm hover:shadow-md transition-all duration-200 hover:scale-105">
+                                                                <i class="fas fa-check-circle text-orange-600 text-xs ml-2"></i>
+                                                                <?php echo e($value); ?>
+
+                                                            </span>
+                                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                 </div>
+
+                                <!-- Enhanced Footer with Additional Info -->
+                                <div class="mt-8 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl border border-blue-100">
+                                    <div class="flex items-center justify-center text-center">
+                                        <div class="bg-blue-100 p-2 rounded-full ml-3">
+                                            <i class="fas fa-info-circle text-blue-600"></i>
+                                        </div>
+                                        <p class="text-blue-800 font-medium">
+                                            جميع المواصفات المذكورة أعلاه تخضع لمعايير الجودة العالية لضمان أفضل تجربة للعميل
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+
+                        <!-- Enhanced Basic Product Information -->
+                        <div class="mt-12">
+                            <!-- Enhanced Header -->
+                            <div class="flex items-center mb-8">
+                                <div class="flex items-center">
+                                    <div class="bg-gradient-to-r from-blue-500 to-indigo-500 p-3 rounded-xl shadow-lg ml-4">
+                                        <i class="fas fa-info-circle text-white text-lg"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-2xl font-bold text-gray-900 mb-1">المعلومات الأساسية</h4>
+                                        <p class="text-sm text-gray-500">تفاصيل المنتج والمعلومات العامة</p>
+                                    </div>
+                                </div>
+                                <div class="flex-grow mr-6">
+                                    <div class="h-px bg-gradient-to-l from-blue-200 to-transparent"></div>
+                                </div>
+                            </div>
+
+                            <!-- Professional Info Cards -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                <!-- Product SKU -->
+                                <div class="bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 p-6">
+                                    <div class="flex items-center mb-3">
+                                        <div class="bg-purple-100 p-2 rounded-lg ml-3">
+                                            <i class="fas fa-barcode text-purple-600"></i>
+                                        </div>
+                                        <span class="font-bold text-gray-800">رقم المنتج</span>
+                                    </div>
+                                    <p class="text-gray-600 font-medium bg-gray-50 px-3 py-2 rounded-lg text-center"><?php echo e($product->sku); ?></p>
+                                </div>
+
+                                <!-- Category -->
+                                <div class="bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 p-6">
+                                    <div class="flex items-center mb-3">
+                                        <div class="bg-green-100 p-2 rounded-lg ml-3">
+                                            <i class="fas fa-tags text-green-600"></i>
+                                        </div>
+                                        <span class="font-bold text-gray-800">الفئة</span>
+                                    </div>
+                                    <p class="text-gray-600 font-medium bg-green-50 px-3 py-2 rounded-lg text-center"><?php echo e($product->category->name); ?></p>
+                                </div>
+
+                                <!-- Brand -->
                                 <?php if($product->brand): ?>
+                                <div class="bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 p-6">
+                                    <div class="flex items-center mb-3">
+                                        <div class="bg-orange-100 p-2 rounded-lg ml-3">
+                                            <i class="fas fa-award text-orange-600"></i>
+                                        </div>
+                                        <span class="font-bold text-gray-800">العلامة التجارية</span>
+                                    </div>
+                                    <p class="text-gray-600 font-medium bg-orange-50 px-3 py-2 rounded-lg text-center"><?php echo e($product->brand->name); ?></p>
+                                </div>
+                                <?php endif; ?>
+
+                                <!-- Weight -->
+                                <?php if($product->weight): ?>
+                                <div class="bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 p-6">
+                                    <div class="flex items-center mb-3">
+                                        <div class="bg-blue-100 p-2 rounded-lg ml-3">
+                                            <i class="fas fa-weight text-blue-600"></i>
+                                        </div>
+                                        <span class="font-bold text-gray-800">الوزن</span>
+                                    </div>
+                                    <p class="text-gray-600 font-medium bg-blue-50 px-3 py-2 rounded-lg text-center"><?php echo e($product->weight); ?> كجم</p>
+                                </div>
+                                <?php endif; ?>
+
+                                <!-- Dimensions -->
+                                <?php if($product->dimensions): ?>
+                                <div class="bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 p-6">
+                                    <div class="flex items-center mb-3">
+                                        <div class="bg-indigo-100 p-2 rounded-lg ml-3">
+                                            <i class="fas fa-ruler-combined text-indigo-600"></i>
+                                        </div>
+                                        <span class="font-bold text-gray-800">الأبعاد</span>
+                                    </div>
+                                    <p class="text-gray-600 font-medium bg-indigo-50 px-3 py-2 rounded-lg text-center"><?php echo e($product->dimensions); ?></p>
+                                </div>
+                                <?php endif; ?>
+
+                                <!-- Materials -->
+                                <?php if($product->materials): ?>
+                                <div class="bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 p-6">
+                                    <div class="flex items-center mb-3">
+                                        <div class="bg-yellow-100 p-2 rounded-lg ml-3">
+                                            <i class="fas fa-industry text-yellow-600"></i>
+                                        </div>
+                                        <span class="font-bold text-gray-800">المواد</span>
+                                    </div>
+                                    <p class="text-gray-600 font-medium bg-yellow-50 px-3 py-2 rounded-lg text-center"><?php echo e($product->materials); ?></p>
+                                </div>
+                                <?php endif; ?>
+
+                                <!-- Country of Origin -->
+                                <?php if($product->country_of_origin): ?>
+                                <div class="bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 p-6">
+                                    <div class="flex items-center mb-3">
+                                        <div class="bg-red-100 p-2 rounded-lg ml-3">
+                                            <i class="fas fa-globe text-red-600"></i>
+                                        </div>
+                                        <span class="font-bold text-gray-800">بلد المنشأ</span>
+                                    </div>
+                                    <p class="text-gray-600 font-medium bg-red-50 px-3 py-2 rounded-lg text-center"><?php echo e($product->country_of_origin); ?></p>
+                                </div>
+                                <?php endif; ?>
+
+                                <!-- Warranty -->
+                                <?php if($product->warranty_period): ?>
+                                <div class="bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 p-6">
+                                    <div class="flex items-center mb-3">
+                                        <div class="bg-teal-100 p-2 rounded-lg ml-3">
+                                            <i class="fas fa-shield-alt text-teal-600"></i>
+                                        </div>
+                                        <span class="font-bold text-gray-800">فترة الضمان</span>
+                                    </div>
+                                    <p class="text-gray-600 font-medium bg-teal-50 px-3 py-2 rounded-lg text-center"><?php echo e($product->warranty_period); ?> شهر</p>
+                                </div>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                                <?php if($product->color): ?>
                                     <div class="flex justify-between py-3 border-b border-gray-200">
-                                        <span class="font-semibold text-gray-900">العلامة التجارية:</span>
-                                        <span class="text-gray-700"><?php echo e($product->brand->name); ?></span>
+                                        <span class="font-semibold text-gray-900">اللون:</span>
+                                        <span class="text-gray-700"><?php echo e($product->color); ?></span>
                                     </div>
                                 <?php endif; ?>
-                                <div class="flex justify-between py-3 border-b border-gray-200">
-                                    <span class="font-semibold text-gray-900">الوزن:</span>
-                                    <span class="text-gray-700"><?php echo e($product->formatted_weight); ?></span>
-                                </div>
-                                <div class="flex justify-between py-3 border-b border-gray-200">
-                                    <span class="font-semibold text-gray-900">الأبعاد:</span>
-                                    <span class="text-gray-700"><?php echo e($product->formatted_dimensions); ?></span>
-                                </div>
-                            </div>
-                            <div class="space-y-4">
-                                <div class="flex justify-between py-3 border-b border-gray-200">
-                                    <span class="font-semibold text-gray-900">المواد:</span>
-                                    <span class="text-gray-700"><?php echo e($product->formatted_materials); ?></span>
-                                </div>
-                                <div class="flex justify-between py-3 border-b border-gray-200">
-                                    <span class="font-semibold text-gray-900">بلد المنشأ:</span>
-                                    <span class="text-gray-700"><?php echo e($product->formatted_country); ?></span>
-                                </div>
-                                <div class="flex justify-between py-3 border-b border-gray-200">
-                                    <span class="font-semibold text-gray-900">الضمان:</span>
-                                    <span class="text-gray-700"><?php echo e($product->formatted_warranty); ?></span>
-                                </div>
+                                <?php if($product->material): ?>
+                                    <div class="flex justify-between py-3 border-b border-gray-200">
+                                        <span class="font-semibold text-gray-900">الخامة:</span>
+                                        <span class="text-gray-700"><?php echo e($product->material); ?></span>
+                                    </div>
+                                <?php endif; ?>
                             </div>
                         </div>
 
-                        <!-- Product Specifications -->
-                        <div class="mt-8">
-                            <h4 class="text-lg font-bold text-gray-900 mb-4">مواصفات إضافية</h4>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <?php if($product->suitable_age): ?>
-                                    <div class="flex justify-between py-3 border-b border-gray-200">
-                                        <span class="font-semibold text-gray-900">العمر المناسب:</span>
-                                        <span class="text-gray-700"><?php echo e($product->formatted_suitable_age); ?></span>
-                                    </div>
-                                <?php endif; ?>
+                        <!-- Additional Product Specifications -->
+                        <?php if($product->suitable_age || $product->pieces_count || $product->standards || $product->battery_type || !is_null($product->washable)): ?>
+                            <div class="mt-8">
+                                <h4 class="text-lg font-bold text-gray-900 mb-4">مواصفات إضافية</h4>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <?php if($product->suitable_age): ?>
+                                        <div class="flex justify-between py-3 border-b border-gray-200">
+                                            <span class="font-semibold text-gray-900">العمر المناسب:</span>
+                                            <span class="text-gray-700"><?php echo e($product->suitable_age); ?></span>
+                                        </div>
+                                    <?php endif; ?>
 
-                                <?php if($product->pieces_count): ?>
-                                    <div class="flex justify-between py-3 border-b border-gray-200">
-                                        <span class="font-semibold text-gray-900">عدد القطع:</span>
-                                        <span class="text-gray-700"><?php echo e($product->formatted_pieces_count); ?></span>
-                                    </div>
-                                <?php endif; ?>
+                                    <?php if($product->pieces_count): ?>
+                                        <div class="flex justify-between py-3 border-b border-gray-200">
+                                            <span class="font-semibold text-gray-900">عدد القطع:</span>
+                                            <span class="text-gray-700"><?php echo e($product->pieces_count); ?></span>
+                                        </div>
+                                    <?php endif; ?>
 
-                                <?php if($product->standards): ?>
-                                    <div class="flex justify-between py-3 border-b border-gray-200">
-                                        <span class="font-semibold text-gray-900">المعايير:</span>
-                                        <span class="text-gray-700"><?php echo e($product->formatted_standards); ?></span>
-                                    </div>
-                                <?php endif; ?>
+                                    <?php if($product->standards): ?>
+                                        <div class="flex justify-between py-3 border-b border-gray-200">
+                                            <span class="font-semibold text-gray-900">المعايير:</span>
+                                            <span class="text-gray-700"><?php echo e($product->standards); ?></span>
+                                        </div>
+                                    <?php endif; ?>
 
-                                <?php if($product->battery_type): ?>
-                                    <div class="flex justify-between py-3 border-b border-gray-200">
-                                        <span class="font-semibold text-gray-900">نوع البطارية:</span>
-                                        <span class="text-gray-700"><?php echo e($product->formatted_battery_type); ?></span>
-                                    </div>
-                                <?php endif; ?>
+                                    <?php if($product->battery_type): ?>
+                                        <div class="flex justify-between py-3 border-b border-gray-200">
+                                            <span class="font-semibold text-gray-900">نوع البطارية:</span>
+                                            <span class="text-gray-700"><?php echo e($product->battery_type); ?></span>
+                                        </div>
+                                    <?php endif; ?>
 
-                                <?php if(!is_null($product->washable)): ?>
-                                    <div class="flex justify-between py-3 border-b border-gray-200">
-                                        <span class="font-semibold text-gray-900">قابل للغسل:</span>
-                                        <span class="text-gray-700"><?php echo e($product->formatted_washable); ?></span>
-                                    </div>
-                                <?php endif; ?>
+                                    <?php if(!is_null($product->washable)): ?>
+                                        <div class="flex justify-between py-3 border-b border-gray-200">
+                                            <span class="font-semibold text-gray-900">قابل للغسل:</span>
+                                            <span class="text-gray-700"><?php echo e($product->washable ? 'نعم' : 'لا'); ?></span>
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
                             </div>
-                        </div>
+                        <?php endif; ?>
                     </div>
 
                     <!-- Dynamic Reviews Tab -->
@@ -748,11 +901,11 @@
                                         <?php endif; ?>
 
                                         <!-- Sale Badge -->
-                                        <?php if($relatedProduct->sale_price): ?>
+                                        <?php if($relatedProduct->has_discount): ?>
                                             <div
                                                 class="absolute top-3 right-3 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-bold">
                                                 خصم
-                                                <?php echo e(number_format((($relatedProduct->price - $relatedProduct->sale_price) / $relatedProduct->price) * 100, 0)); ?>%
+                                                <?php echo e(number_format($relatedProduct->discount_percentage, 0)); ?>%
                                             </div>
                                         <?php endif; ?>
 
@@ -779,10 +932,10 @@
 
                                         <div class="flex items-center justify-between">
                                             <div>
-                                                <?php if($relatedProduct->sale_price): ?>
+                                                <?php if($relatedProduct->has_discount): ?>
                                                     <div class="space-y-1">
                                                         <span
-                                                            class="text-lg font-bold text-orange-600"><?php echo e(number_format($relatedProduct->sale_price, 2)); ?>
+                                                            class="text-lg font-bold text-orange-600"><?php echo e(number_format($relatedProduct->final_price, 2)); ?>
 
                                                             د.أ</span>
                                                         <br>
@@ -858,7 +1011,7 @@
             // Size selection functionality
             function updatePriceWithSize() {
                 const selectedSizeButton = document.querySelector('[data-size-id].border-orange-500');
-                const originalPrice = <?php echo e(floatval($product->sale_price ?? $product->price)); ?>;
+                const originalPrice = <?php echo e(floatval($product->final_price)); ?>;
             let additionalPrice = 0;
 
 
@@ -1252,6 +1405,85 @@
                 };
             }
         </script>
+
+        <!-- Enhanced Professional Styling -->
+        <style>
+            /* Smooth entrance animations for attribute cards */
+            .group:nth-child(1) { animation: slideInUp 0.6s ease-out 0.1s both; }
+            .group:nth-child(2) { animation: slideInUp 0.6s ease-out 0.2s both; }
+            .group:nth-child(3) { animation: slideInUp 0.6s ease-out 0.3s both; }
+            .group:nth-child(4) { animation: slideInUp 0.6s ease-out 0.4s both; }
+            .group:nth-child(5) { animation: slideInUp 0.6s ease-out 0.5s both; }
+            .group:nth-child(6) { animation: slideInUp 0.6s ease-out 0.6s both; }
+
+            @keyframes slideInUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(30px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            /* Enhanced hover effects */
+            .group:hover .bg-white {
+                transform: translateY(-2px);
+                box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            }
+
+            /* Pulse animation for the status indicators */
+            .animate-pulse {
+                animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+            }
+
+            /* Subtle gradient animations */
+            .bg-gradient-to-r:hover {
+                background-size: 200% 200%;
+                animation: gradientShift 3s ease infinite;
+            }
+
+            @keyframes gradientShift {
+                0% { background-position: 0% 50%; }
+                50% { background-position: 100% 50%; }
+                100% { background-position: 0% 50%; }
+            }
+
+            /* Enhanced tag hover effects */
+            .group span:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+            }
+
+            /* Professional card entrance */
+            .bg-white {
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+
+            /* Smooth icon rotations */
+            .group:hover i {
+                animation: iconSpin 0.5s ease-in-out;
+            }
+
+            @keyframes iconSpin {
+                0% { transform: rotate(0deg); }
+                50% { transform: rotate(10deg); }
+                100% { transform: rotate(0deg); }
+            }
+
+            /* Professional loading shimmer effect */
+            .shimmer {
+                background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+                background-size: 200% 100%;
+                animation: shimmer 1.5s infinite;
+            }
+
+            @keyframes shimmer {
+                0% { background-position: -200% 0; }
+                100% { background-position: 200% 0; }
+            }
+        </style>
 <?php $__env->stopSection(); ?>
 
 

@@ -49,6 +49,16 @@ class LoginRequest extends FormRequest
             ]);
         }
 
+        // Check if user's email is verified
+        $user = Auth::user();
+        if (!$user->is_verified) {
+            Auth::logout();
+            
+            throw ValidationException::withMessages([
+                'email' => 'يجب تحقيق البريد الإلكتروني أولاً. تحقق من بريدك الإلكتروني أو اطلب إرسال كود جديد.',
+            ]);
+        }
+
         RateLimiter::clear($this->throttleKey());
     }
 

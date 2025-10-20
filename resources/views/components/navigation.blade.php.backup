@@ -1,0 +1,330 @@
+<!-- Desktop Navigation -->
+<nav class="bg-gradient-to-l to-orange-600 from-orange-500 text-white px-4 md:px-10 py-4 hidden md:block">
+    <div class="fl            <!-- M            <!-- Mobile Shoes Brands -->
+            <div class="mb-3 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg p-2.5">
+                <div class="flex items-center justify-center mb-2">
+                    <div class="bg-blue-500 p-1.5 rounded-full mr-1.5">
+                        <span class="text-white text-xs">👟</span>
+                    </div>
+                    <h4 class="text-blue-700 font-bold text-xs">أحذية</h4>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <a href="{{ route('products.index', ['category' => [7], 'brand' => 'Nike']) }}" 
+                       class="bg-white text-blue-600 px-2 py-1.5 rounded text-xs font-bold hover:bg-blue-500 hover:text-white transition-all duration-300 text-center shadow-sm border border-blue-200 transform hover:scale-105">
+                        Nike
+                    </a>
+                    <a href="{{ route('products.index', ['category' => [7], 'brand' => 'Adidas']) }}" 
+                       class="bg-white text-blue-600 px-2 py-1.5 rounded text-xs font-bold hover:bg-blue-500 hover:text-white transition-all duration-300 text-center shadow-sm border border-blue-200 transform hover:scale-105">
+                        Adidas
+                    </a>
+                </div>
+            </div>ds -->
+            <div class="mb-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg p-3">
+                <div class="flex items-center justify-center mb-3">
+                    <div class="bg-blue-500 p-2 rounded-full mr-2">
+                        <span class="text-white text-sm">👟</span>
+                    </div>
+                    <h4 class="text-blue-700 font-bold text-sm">أحذية</h4>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <a href="{{ route('products.index', ['category' => [7], 'brand' => 'Nike']) }}" 
+                       class="bg-white text-blue-600 px-3 py-2.5 rounded-lg text-xs font-bold hover:bg-blue-500 hover:text-white transition-all duration-300 text-center shadow-sm border border-blue-200 transform hover:scale-105">
+                        Nike
+                    </a>
+                    <a href="{{ route('products.index', ['category' => [7], 'brand' => 'Adidas']) }}" 
+                       class="bg-white text-blue-600 px-3 py-2.5 rounded-lg text-xs font-bold hover:bg-blue-500 hover:text-white transition-all duration-300 text-center shadow-sm border border-blue-200 transform hover:scale-105">
+                        Adidas
+                    </a>
+                </div>
+            </div>en items-center container mx-auto flex-wrap">
+        <div class="relative">
+            <button id="brands-dropdown-toggle" class="bg-white text-orange-500 border-none py-2 px-4 rounded flex items-center font-bold text-sm lg:text-base hover:bg-gray-100 transition-colors">
+                <span class="ml-2">⭐</span> العلامات التجارية المشهورة
+            </button>
+            
+            <!-- Famous Brands Dropdown - Fixed Position -->
+            <div id="brands-dropdown" class="hidden absolute top-full right-0 mt-2 bg-white rounded-lg shadow-xl border border-gray-200 z-50 w-80 max-w-[90vw]">
+                <div class="p-3 sm:p-4">
+                    <h3 class="text-orange-600 font-bold text-sm sm:text-base mb-3 border-b border-orange-100 pb-2">العلامات التجارية الرائدة</h3>
+                    
+                    <div class="grid grid-cols-1 gap-3">
+                        @foreach($topBrandsByCategory as $categoryId => $categoryData)
+                            <!-- {{ $categoryData['info']['name'] }} Category - Top 2 Brands -->
+                            <div class="bg-orange-50 rounded-lg p-2 sm:p-3">
+                                <h4 class="text-orange-700 font-semibold text-xs sm:text-sm mb-2 flex items-center">
+                                    <span class="ml-2">{{ $categoryData['info']['icon'] }}</span> {{ $categoryData['info']['name'] }}
+                                </h4>
+                                <div class="grid grid-cols-2 gap-2">
+                                    @foreach($categoryData['brands'] as $brand)
+                                        <a href="{{ route('products.index', ['category' => [$categoryId], 'brand' => $brand->name]) }}" 
+                                           class="bg-white text-orange-600 px-2 sm:px-3 py-1.5 sm:py-2 rounded-md text-xs sm:text-sm font-medium hover:bg-orange-100 transition-colors text-center border border-orange-200">
+                                            {{ $brand->name }}
+                                        </a>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                    
+                    <div class="mt-3 pt-2 sm:pt-3 border-t border-orange-100">
+                        <a href="{{ route('products.index') }}" class="text-orange-600 text-xs sm:text-sm font-medium hover:text-orange-700 transition-colors flex items-center justify-center">
+                            <span class="ml-1">👁️</span> عرض جميع المنتجات
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <ul class="flex list-none m-0 p-0 flex-wrap">
+            <li class="mr-3 lg:mr-6 relative font-bold">
+                <a href="{{ route('about') }}" class="text-white no-underline text-sm lg:text-base flex items-center hover:text-yellow-300 transition-colors">
+                    عن الشركة
+                </a>
+            </li>
+            <li class="mr-3 lg:mr-6 relative font-bold">
+                <a href="{{ route('offers') }}" class="text-white no-underline text-sm lg:text-base flex items-center hover:text-yellow-300 transition-colors">
+                    العروض
+                </a>
+            </li>
+            <li class="mr-3 lg:mr-6 relative font-bold">
+                <a href="{{ route('products.index', ['category' => [1]]) }}" class="text-white no-underline text-sm lg:text-base flex items-center hover:text-yellow-300 transition-colors">
+                    ألعاب
+                </a>
+            </li>
+            <li class="mr-3 lg:mr-6 relative font-bold">
+                <a href="{{ route('products.index', ['category' => [7]]) }}" class="text-white no-underline text-sm lg:text-base flex items-center hover:text-yellow-300 transition-colors">
+                    أحذية
+                </a>
+            </li>
+            <li class="mr-3 lg:mr-6 relative font-bold">
+                <a href="{{ route('products.index', ['category' => [13]]) }}" class="text-white no-underline text-sm lg:text-base flex items-center hover:text-yellow-300 transition-colors">
+                    مستلزمات أطفال
+                </a>
+            </li>
+            <li class="mr-3 lg:mr-6 relative font-bold">
+                <a href="{{ route('products.index') }}" class="text-white no-underline text-sm lg:text-base flex items-center hover:text-yellow-300 transition-colors">
+                    جميع المنتجات
+                </a>
+            </li>
+            <li class="mr-3 lg:mr-6 relative font-bold">
+                <a href="{{ route('contact') }}" class="text-white no-underline text-sm lg:text-base flex items-center hover:text-yellow-300 transition-colors">
+                    اتصل بنا
+                </a>
+            </li>
+        </ul>
+    </div>
+</nav>
+
+<!-- Mobile Navigation -->
+<nav class="bg-orange-500 text-white md:hidden">
+    <div class="px-4 py-3">
+        <!-- Mobile Top Bar -->
+        <div class="flex justify-between items-center">
+            <button id="mobile-nav-toggle" class="bg-white text-orange-500 border-none py-2 px-3 rounded flex items-center font-bold text-sm hover:bg-gray-100 transition-colors">
+                <span class="ml-1">≡</span> القائمة
+            </button>
+            <button id="mobile-brands-toggle" class="bg-white text-orange-500 border-none py-2 px-3 rounded flex items-center font-bold text-sm hover:bg-gray-100 transition-colors">
+                <span class="ml-1">⭐</span> العلامات المشهورة
+            </button>
+        </div>
+
+        <!-- Mobile Brands Dropdown -->
+        <div id="mobile-brands-dropdown" class="hidden mt-2 bg-white rounded-lg shadow-lg border border-orange-200 p-3">
+            <div class="text-center mb-3">
+                <h3 class="text-orange-600 font-bold text-sm mb-1">⭐ العلامات المشهورة</h3>
+                <p class="text-orange-400 text-xs">أفضل العلامات التجارية</p>
+            </div>
+            
+            <!-- Mobile Games Brands -->
+            <div class="mb-3 bg-gradient-to-r from-orange-50 to-orange-100 rounded-lg p-2.5">
+                <div class="flex items-center justify-center mb-2">
+                    <div class="bg-orange-500 p-1.5 rounded-full mr-1.5">
+                        <span class="text-white text-xs">🧸</span>
+                    </div>
+                    <h4 class="text-orange-700 font-bold text-xs">ألعاب</h4>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <a href="{{ route('products.index', ['category' => [1], 'brand' => 'LEGO']) }}" 
+                       class="bg-white text-orange-600 px-2 py-1.5 rounded text-xs font-bold hover:bg-orange-500 hover:text-white transition-all duration-300 text-center shadow-sm border border-orange-200 transform hover:scale-105">
+                        LEGO
+                    </a>
+                    <a href="{{ route('products.index', ['category' => [1], 'brand' => 'Fisher-Price']) }}" 
+                       class="bg-white text-orange-600 px-2 py-1.5 rounded text-xs font-bold hover:bg-orange-500 hover:text-white transition-all duration-300 text-center shadow-sm border border-orange-200 transform hover:scale-105">
+                        Fisher-Price
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Mobile Shoes Brands -->
+            <div class="mb-3">
+                <h4 class="text-orange-100 font-semibold text-xs mb-2 flex items-center">
+                    <span class="ml-1">�</span> أحذية
+                </h4>
+                <div class="grid grid-cols-2 gap-2">
+                    <a href="{{ route('products.index', ['category' => [7], 'brand' => 'Nike']) }}" 
+                       class="bg-white text-orange-600 px-2 py-1.5 rounded text-xs font-medium hover:bg-orange-100 transition-colors text-center">
+                        Nike
+                    </a>
+                    <a href="{{ route('products.index', ['category' => [7], 'brand' => 'Adidas']) }}" 
+                       class="bg-white text-orange-600 px-2 py-1.5 rounded text-xs font-medium hover:bg-orange-100 transition-colors text-center">
+                        Adidas
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Mobile Kids Supplies Brands -->
+            <div class="mb-3 bg-gradient-to-r from-pink-50 to-pink-100 rounded-lg p-2.5">
+                <div class="flex items-center justify-center mb-2">
+                    <div class="bg-pink-500 p-1.5 rounded-full mr-1.5">
+                        <span class="text-white text-xs">🎒</span>
+                    </div>
+                    <h4 class="text-pink-700 font-bold text-xs">مستلزمات أطفال</h4>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <a href="{{ route('products.index', ['category' => [13], 'brand' => 'Pampers']) }}" 
+                       class="bg-white text-pink-600 px-2 py-1.5 rounded text-xs font-bold hover:bg-pink-500 hover:text-white transition-all duration-300 text-center shadow-sm border border-pink-200 transform hover:scale-105">
+                        Pampers
+                    </a>
+                    <a href="{{ route('products.index', ['category' => [13], 'brand' => 'Johnson']) }}" 
+                       class="bg-white text-pink-600 px-2 py-1.5 rounded text-xs font-bold hover:bg-pink-500 hover:text-white transition-all duration-300 text-center shadow-sm border border-pink-200 transform hover:scale-105">
+                        Johnson's
+                    </a>
+                </div>
+            </div>
+            
+            <!-- View All Products Button -->
+            <div class="text-center pt-2 border-t border-orange-100">
+                <a href="{{ route('products.index') }}" class="inline-flex items-center justify-center bg-gradient-to-r from-orange-500 to-orange-600 text-white px-4 py-2 rounded-lg text-xs font-bold hover:from-orange-600 hover:to-orange-700 transition-all duration-300 shadow-md transform hover:scale-105">
+                    <span class="ml-1">👁️</span> 
+                    جميع المنتجات
+                </a>
+            </div>
+        </div>
+
+        <!-- Mobile Menu Dropdown -->
+        <div id="mobile-nav-menu" class="hidden mt-3 bg-orange-600 rounded-lg p-4">
+            <ul class="space-y-3">
+                <li>
+                    <a href="{{ route('products.index') }}" class="block text-white font-medium py-2 px-3 rounded hover:bg-orange-700 transition-colors">
+                        🏠 جميع المنتجات
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('products.index', ['category' => [1]]) }}" class="block text-white font-medium py-2 px-3 rounded hover:bg-orange-700 transition-colors">
+                        🧸 ألعاب
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('products.index', ['category' => [7]]) }}" class="block text-white font-medium py-2 px-3 rounded hover:bg-orange-700 transition-colors">
+                        👟 أحذية
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('products.index', ['category' => [13]]) }}" class="block text-white font-medium py-2 px-3 rounded hover:bg-orange-700 transition-colors">
+                        🎒 مستلزمات أطفال
+                    </a>
+                </li>
+                <li class="border-t border-orange-500 pt-3 mt-3">
+                    <a href="{{ route('offers') }}" class="block text-white font-medium py-2 px-3 rounded hover:bg-orange-700 transition-colors">
+                        🎁 العروض
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('about') }}" class="block text-white font-medium py-2 px-3 rounded hover:bg-orange-700 transition-colors">
+                        ℹ️ عن الشركة
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('contact') }}" class="block text-white font-medium py-2 px-3 rounded hover:bg-orange-700 transition-colors">
+                        📞 اتصل بنا
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Mobile Navigation Toggle
+    const toggleButton = document.getElementById('mobile-nav-toggle');
+    const mobileMenu = document.getElementById('mobile-nav-menu');
+    
+    if (toggleButton && mobileMenu) {
+        toggleButton.addEventListener('click', function() {
+            mobileMenu.classList.toggle('hidden');
+            // Close brands dropdown when opening main menu
+            const mobileBrandsDropdown = document.getElementById('mobile-brands-dropdown');
+            if (mobileBrandsDropdown && !mobileBrandsDropdown.classList.contains('hidden')) {
+                mobileBrandsDropdown.classList.add('hidden');
+            }
+        });
+        
+        // Close menu when clicking outside
+        document.addEventListener('click', function(event) {
+            if (!toggleButton.contains(event.target) && !mobileMenu.contains(event.target)) {
+                mobileMenu.classList.add('hidden');
+            }
+        });
+    }
+    
+    // Mobile Brands Dropdown Toggle
+    const mobileBrandsToggle = document.getElementById('mobile-brands-toggle');
+    const mobileBrandsDropdown = document.getElementById('mobile-brands-dropdown');
+    
+    if (mobileBrandsToggle && mobileBrandsDropdown) {
+        mobileBrandsToggle.addEventListener('click', function(event) {
+            event.stopPropagation();
+            mobileBrandsDropdown.classList.toggle('hidden');
+            // Close main menu when opening brands dropdown
+            if (mobileMenu && !mobileMenu.classList.contains('hidden')) {
+                mobileMenu.classList.add('hidden');
+            }
+        });
+        
+        // Close mobile brands dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            if (!mobileBrandsToggle.contains(event.target) && !mobileBrandsDropdown.contains(event.target)) {
+                mobileBrandsDropdown.classList.add('hidden');
+            }
+        });
+        
+        // Close dropdown when clicking on a brand link
+        const mobileBrandLinks = mobileBrandsDropdown.querySelectorAll('a');
+        mobileBrandLinks.forEach(link => {
+            link.addEventListener('click', function() {
+                mobileBrandsDropdown.classList.add('hidden');
+            });
+        });
+    }
+    
+    // Desktop Brands Dropdown Toggle
+    const brandsToggle = document.getElementById('brands-dropdown-toggle');
+    const brandsDropdown = document.getElementById('brands-dropdown');
+    
+    if (brandsToggle && brandsDropdown) {
+        brandsToggle.addEventListener('click', function(event) {
+            event.stopPropagation();
+            brandsDropdown.classList.toggle('hidden');
+        });
+        
+        // Close brands dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            if (!brandsToggle.contains(event.target) && !brandsDropdown.contains(event.target)) {
+                brandsDropdown.classList.add('hidden');
+            }
+        });
+        
+        // Close dropdown when clicking on a brand link
+        const brandLinks = brandsDropdown.querySelectorAll('a');
+        brandLinks.forEach(link => {
+            link.addEventListener('click', function() {
+                brandsDropdown.classList.add('hidden');
+            });
+        });
+    }
+});
+</script>
+
+
+

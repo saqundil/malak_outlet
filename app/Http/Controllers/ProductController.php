@@ -15,9 +15,8 @@ class ProductController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Product::with(['category', 'brand', 'images', 'sizes', 'discounts'])
+        $query = Product::with(['category', 'brand', 'images', 'sizes', 'discountProducts.discount'])
             ->active();
-
         // Search by name or description
         if ($request->filled('search')) {
             $searchTerm = $request->search;
@@ -87,24 +86,17 @@ class ProductController extends Controller
 
         // Filter by sale products
         if ($request->filled('on_sale')) {
-            $query->where(function($mainQuery) {
-                $mainQuery->whereHas('discounts', function ($q) {
-                    $q->where('discounts.is_active', true)
-                      ->where('discounts.is_deleted', false)
-                      ->where(function ($q) {
-                          $q->whereNull('discounts.starts_at')
-                            ->orWhere('discounts.starts_at', '<=', now());
-                      })
-                      ->where(function ($q) {
-                          $q->whereNull('discounts.ends_at')
-                            ->orWhere('discounts.ends_at', '>=', now());
-                      });
-                })->orWhere(function($q) {
-                    // Only include products with valid sale_price that's less than regular price
-                    $q->whereNotNull('sale_price')
-                      ->where('sale_price', '>', 0)
-                      ->whereColumn('sale_price', '<', 'price');
-                });
+            $query->whereHas('discountProducts.discount', function ($q) {
+                $q->where('discounts.is_active', true)
+                  ->where('discounts.is_deleted', false)
+                  ->where(function ($q) {
+                      $q->whereNull('discounts.starts_at')
+                        ->orWhere('discounts.starts_at', '<=', now());
+                  })
+                  ->where(function ($q) {
+                      $q->whereNull('discounts.ends_at')
+                        ->orWhere('discounts.ends_at', '>=', now());
+                  });
             });
         }
 
@@ -112,25 +104,18 @@ class ProductController extends Controller
         if ($request->filled('filter')) {
             switch ($request->filter) {
                 case 'sale':
-                    // Only show products that actually have active discounts or valid sale prices
-                    $query->where(function($mainQuery) {
-                        $mainQuery->whereHas('discounts', function ($q) {
-                            $q->where('discounts.is_active', true)
-                              ->where('discounts.is_deleted', false)
-                              ->where(function ($q) {
-                                  $q->whereNull('discounts.starts_at')
-                                    ->orWhere('discounts.starts_at', '<=', now());
-                              })
-                              ->where(function ($q) {
-                                  $q->whereNull('discounts.ends_at')
-                                    ->orWhere('discounts.ends_at', '>=', now());
-                              });
-                        })->orWhere(function($q) {
-                            // Only include products with valid sale_price that's less than regular price
-                            $q->whereNotNull('sale_price')
-                              ->where('sale_price', '>', 0)
-                              ->whereColumn('sale_price', '<', 'price');
-                        });
+                    // Only show products that actually have active discounts
+                    $query->whereHas('discountProducts.discount', function ($q) {
+                        $q->where('discounts.is_active', true)
+                          ->where('discounts.is_deleted', false)
+                          ->where(function ($q) {
+                              $q->whereNull('discounts.starts_at')
+                                ->orWhere('discounts.starts_at', '<=', now());
+                          })
+                          ->where(function ($q) {
+                              $q->whereNull('discounts.ends_at')
+                                ->orWhere('discounts.ends_at', '>=', now());
+                          });
                     });
                     break;
                 case 'featured':
@@ -238,6 +223,106 @@ class ProductController extends Controller
         return view('products.index', compact('products', 'categories', 'brands', 'sizes', 'availableSizes', 'wishlistProductIds'));
     }
 
+    public function category($slug)
+    {
+        // Find the category by slug
+        $category = Category::where('slug', $slug)
+            ->active()
+            ->firstOrFail();
+
+        // Get products for this category and its subcategories
+        $categoryIds = [$category->id];
+        
+        // If this is a main category, include subcategories
+        if (!$category->parent_id) {
+            $subcategoryIds = Category::where('parent_id', $category->id)
+                ->active()
+                ->pluck('id')
+                ->toArray();
+            $categoryIds = array_merge($categoryIds, $subcategoryIds);
+        }
+
+        $query = Product::with(['category', 'brand', 'images', 'sizes', 'discountProducts.discount'])
+            ->active()
+            ->whereIn('category_id', $categoryIds);
+
+        // Sort products
+        $sortBy = request()->get('sort', 'newest');
+        
+        switch ($sortBy) {
+            case 'price_low':
+                $query->orderBy('price', 'asc');
+                break;
+            case 'price_high':
+                $query->orderBy('price', 'desc');
+                break;
+            case 'newest':
+                $query->orderBy('created_at', 'desc');
+                break;
+            case 'popularity':
+                $query->withCount('favoritedByUsers')
+                      ->orderBy('favorited_by_users_count', 'desc');
+                break;
+            case 'name':
+                $query->orderBy('name', 'asc');
+                break;
+            default:
+                $query->orderBy('created_at', 'desc');
+        }
+
+        $products = $query->paginate(12);
+
+        // Get filter options
+        $categories = Category::whereNull('parent_id')
+            ->with(['children' => function($query) {
+                $query->active()->withCount('products')->orderBy('name');
+            }])
+            ->active()
+            ->withCount('products')
+            ->orderBy('name')
+            ->get();
+        
+        // Get brands that have products in this category
+        $brands = Brand::active()
+            ->whereHas('products', function($q) use ($categoryIds) {
+                $q->whereIn('category_id', $categoryIds)
+                  ->where('is_active', true)
+                  ->where('is_deleted', false);
+            })
+            ->withCount('products')
+            ->orderBy('name')
+            ->get();
+        
+        $sizes = ProductSize::select('size')->distinct()->orderBy('size')->pluck('size');
+        
+        // Get available sizes with counts for this category
+        $availableSizes = ProductSize::select('size')
+            ->selectRaw('COUNT(*) as count')
+            ->whereHas('product', function($query) use ($categoryIds) {
+                $query->whereIn('category_id', $categoryIds)
+                      ->where('is_active', true)
+                      ->where('is_deleted', false);
+            })
+            ->where('is_available', true)
+            ->groupBy('size')
+            ->orderBy('size')
+            ->pluck('count', 'size');
+
+        // Get user's wishlist product slugs for authenticated users
+        $wishlistProductIds = [];
+        if (Auth::check()) {
+            $wishlistProductIds = Favorite::where('user_id', Auth::id())
+                ->with('product:id,slug')
+                ->get()
+                ->pluck('product.slug')
+                ->filter()
+                ->toArray();
+        }
+
+        // Pass the current category to the view
+        return view('products.category', compact('products', 'categories', 'brands', 'sizes', 'availableSizes', 'wishlistProductIds', 'category'));
+    }
+
     public function show($slug)
     {
         $product = Product::with([
@@ -247,14 +332,16 @@ class ProductController extends Controller
             'sizes' => function($query) {
                 $query->where('is_available', true)->orderBy('size');
             },
-            'reviews.user'
+            'reviews.user',
+            'attributeValues.attribute',
+            'discountProducts.discount'
         ])
         ->where('slug', $slug)
         ->active()
         ->firstOrFail();
 
         // Get related products
-        $relatedProducts = Product::with(['images', 'brand'])
+        $relatedProducts = Product::with(['images', 'brand', 'discountProducts.discount'])
             ->where('category_id', $product->category_id)
             ->where('id', '!=', $product->id)
             ->active()
@@ -290,7 +377,7 @@ class ProductController extends Controller
             return response()->json(['products' => []]);
         }
 
-        $products = Product::with(['images', 'brand'])
+        $products = Product::with(['images', 'brand', 'discountProducts.discount'])
             ->where('name', 'LIKE', "%{$query}%")
             ->orWhere('description', 'LIKE', "%{$query}%")
             ->active()
@@ -422,7 +509,7 @@ class ProductController extends Controller
                       $categoryQuery->where('name', 'LIKE', "%{$query}%");
                   });
             })
-            ->with(['category', 'images'])
+            ->with(['category', 'images', 'discountProducts.discount'])
             ->limit(8)
             ->get();
         
@@ -457,9 +544,8 @@ class ProductController extends Controller
         $page = (int) $request->get('page', 1);
         $perPage = 12;
         
-        $productsQuery = Product::with(['category', 'brand', 'images', 'sizes'])
+        $productsQuery = Product::with(['category', 'brand', 'images', 'sizes', 'discountProducts.discount'])
             ->active();
-
         // Search by query
         if (!empty($query)) {
             $productsQuery->where(function ($q) use ($query) {
@@ -512,6 +598,9 @@ class ProductController extends Controller
                 'name' => $product->name,
                 'price' => $product->price,
                 'sale_price' => $product->sale_price,
+                'final_price' => $product->final_price,
+                'discount_percentage' => $product->discount_percentage,
+                'has_discount' => $product->has_discount,
                 'description' => $product->description,
                 'category' => $product->category ? [
                     'id' => $product->category->id,
@@ -555,6 +644,67 @@ class ProductController extends Controller
             'query' => $query,
             'sort' => $sort,
             'category' => $category
+        ]);
+    }
+
+    /**
+     * Get sizes based on selected categories (AJAX endpoint)
+     */
+    public function getSizesByCategories(Request $request)
+    {
+        if (!$request->filled('categories')) {
+            return response()->json([
+                'success' => true,
+                'sizes' => []
+            ]);
+        }
+
+        $categoriesParam = $request->get('categories');
+        
+        // Handle both comma-separated string and array
+        if (is_string($categoriesParam)) {
+            $categories_selected = explode(',', $categoriesParam);
+        } else {
+            $categories_selected = is_array($categoriesParam) ? $categoriesParam : [$categoriesParam];
+        }
+        
+        // Filter out empty values and convert to integers
+        $categories_selected = array_filter(array_map('intval', $categories_selected));
+        
+        if (empty($categories_selected)) {
+            return response()->json([
+                'success' => true,
+                'sizes' => []
+            ]);
+        }
+
+        // Get all selected categories and their subcategories
+        $allCategoryIds = collect($categories_selected);
+        
+        // For each selected category, add its subcategories if it's a main category
+        foreach ($categories_selected as $categoryId) {
+            $subcategories = Category::where('parent_id', $categoryId)->pluck('id');
+            $allCategoryIds = $allCategoryIds->merge($subcategories);
+        }
+
+        // Get available sizes for products in the selected categories
+        $sizes = ProductSize::select('size')
+            ->selectRaw('COUNT(*) as count')
+            ->whereHas('product', function($query) use ($allCategoryIds) {
+                $query->whereIn('category_id', $allCategoryIds->unique()->toArray())
+                      ->where('is_active', true)
+                      ->where('is_deleted', false);
+            })
+            ->where('is_available', true)
+            ->where('is_deleted', false)
+            ->groupBy('size')
+            ->orderBy('size')
+            ->get()
+            ->pluck('count', 'size');
+
+        return response()->json([
+            'success' => true,
+            'sizes' => $sizes->toArray()
         ]);
     }
 }

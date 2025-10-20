@@ -46,10 +46,6 @@ class Product extends Model
         return $this->belongsTo(Brand::class);
     }
 
-    public function discounts()
-    {
-        return $this->belongsToMany(Discount::class, 'discount_product');
-    }
     /**
      * المستخدم الذي عدّل المنتج
      */
@@ -58,41 +54,26 @@ class Product extends Model
         return $this->belongsTo(User::class, 'edit_by');
     }
 
-    /**
-     * العلاقة مع المفضلة
-     */
     public function favoritedByUsers()
     {
         return $this->belongsToMany(User::class, 'favorites');
     }
 
-    /**
-     * العلاقة مع التقييمات
-     */
     public function reviews()
     {
         return $this->hasMany(ProductReview::class);
     }
     
-    /**
-     * التقييمات المعتمدة فقط
-     */
     public function approvedReviews()
     {
         return $this->hasMany(ProductReview::class)->where('is_approved', true);
     }
     
-    /**
-     * العلاقة مع الأحجام
-     */
     public function sizes()
     {
         return $this->hasMany(ProductSize::class);
     }
     
-    /**
-     * الأحجام المتاحة فقط
-     */
     public function availableSizes()
     {
         return $this->hasMany(ProductSize::class)->where('is_available', true);
@@ -115,11 +96,11 @@ class Product extends Model
     }
 
     /**
-     * العلاقة مع خصائص المنتج
+     * العلاقة مع قيم خصائص المنتج
      */
-    public function attributes()
+    public function attributeValues()
     {
-        return $this->hasMany(ProductAttribute::class);
+        return $this->hasMany(AttributeValue::class, 'product_id')->where('is_deleted', false);
     }
 
     /**
@@ -138,6 +119,64 @@ class Product extends Model
         return $this->hasManyThrough(Order::class, OrderItem::class, 'product_id', 'id', 'id', 'order_id');
     }
 
+    public function discountProducts()
+    {
+        return $this->hasMany(DiscountProduct::class);
+    }
+
+    /**
+     * Direct discounts relationship (for compatibility with code using ->discounts())
+     * Uses the discount_product pivot table to access Discount models directly.
+     */
+    public function discounts()
+    {
+        return $this->belongsToMany(Discount::class, 'discount_product', 'product_id', 'discount_id')
+                    ->wherePivot('is_deleted', false);
+    }
+
+    public function getDiscountValueAttribute()
+    {
+        $discount = $this->activeDiscount();
+        return $discount ? $discount->discount_value : null;
+    }
+
+    public function getDiscountTypeAttribute()
+    {
+        $discount = $this->activeDiscount();
+        return $discount ? $discount->discount_type : null;
+    }
+
+    public function getFinalPriceAttribute()
+    {
+        if ($this->discount_value && $this->discount_type) {
+            if ($this->discount_type === 'percentage') {
+                return round($this->price - ($this->price * ($this->discount_value / 100)), 2);
+            }
+            return round(max($this->price - $this->discount_value, 0), 2);
+        }
+        return $this->price;
+    }
+
+    protected function activeDiscount()
+    {
+        $now = now();
+        $discountProduct = $this->discountProducts()
+            ->whereHas('discount', function ($q) use ($now) {
+                $q->where('is_active', true)
+                  ->where('is_deleted', false)
+                  ->where(function ($q) use ($now) {
+                      $q->whereNull('starts_at')->orWhere('starts_at', '<=', $now);
+                  })
+                  ->where(function ($q) use ($now) {
+                      $q->whereNull('ends_at')->orWhere('ends_at', '>=', $now);
+                  });
+            })
+            ->with('discount')
+            ->first();
+
+        return $discountProduct ? $discountProduct->discount : null;
+    }
+    
     // Scopes
     public function scopeActive($query)
     {
@@ -164,107 +203,102 @@ class Product extends Model
         return $query->where('quantity', '<=', $threshold)->where('quantity', '>', 0);
     }
 
-    // Accessors
-    public function getFormattedPriceAttribute()
-    {
-        return number_format($this->price, 2) . ' ريال';
-    }
-
-    public function getFormattedOriginalPriceAttribute()
-    {
-        return $this->original_price ? number_format($this->original_price, 2) . ' ريال' : null;
-    }
-
-    public function getDiscountPercentageAttribute()
-    {
-        // First check if product has active discount from discount table
-        $activeDiscount = $this->discounts()
-            ->where('discounts.is_active', true)
-            ->where('discounts.is_deleted', false)
-            ->where(function ($q) {
-                $q->whereNull('discounts.starts_at')
-                  ->orWhere('discounts.starts_at', '<=', now());
-            })
-            ->where(function ($q) {
-                $q->whereNull('discounts.ends_at')
-                  ->orWhere('discounts.ends_at', '>=', now());
-            })
-            ->first();
-        
-        if ($activeDiscount) {
-            if ($activeDiscount->discount_type === 'percentage') {
-                return min(95, max(1, $activeDiscount->discount_value));
-            } else if ($activeDiscount->discount_type === 'fixed') {
-                $discountPercent = round(($activeDiscount->discount_value / $this->price) * 100);
-                return min(95, max(1, $discountPercent));
-            }
-        }
-        
-        // Fallback to sale_price calculation
-        if ($this->sale_price && $this->sale_price > 0 && $this->price > $this->sale_price) {
-            $discountPercent = round((($this->price - $this->sale_price) / $this->price) * 100);
-            return min(95, max(1, $discountPercent)); // Cap discount at 95% and minimum 1%
-        }
-        
-        // Fallback to original_price for backward compatibility
-        if ($this->original_price && $this->original_price > $this->price) {
-            $discountPercent = round((($this->original_price - $this->price) / $this->original_price) * 100);
-            return min(95, max(1, $discountPercent)); // Cap discount at 95% and minimum 1%
-        }
-        
-        return 0;
-    }
-
-    /**
-     * Get the effective discounted price after applying active discounts
-     */
-    public function getEffectivePriceAttribute()
-    {
-        // First check if product has active discount from discount table
-        $activeDiscount = $this->discounts()
-            ->where('discounts.is_active', true)
-            ->where('discounts.is_deleted', false)
-            ->where(function ($q) {
-                $q->whereNull('discounts.starts_at')
-                  ->orWhere('discounts.starts_at', '<=', now());
-            })
-            ->where(function ($q) {
-                $q->whereNull('discounts.ends_at')
-                  ->orWhere('discounts.ends_at', '>=', now());
-            })
-            ->first();
-        
-        if ($activeDiscount) {
-            if ($activeDiscount->discount_type === 'percentage') {
-                $discountAmount = ($this->price * min(95, $activeDiscount->discount_value)) / 100;
-                return max(0.01, $this->price - $discountAmount); // Ensure minimum price of 0.01
-            } else if ($activeDiscount->discount_type === 'fixed') {
-                return max(0.01, $this->price - $activeDiscount->discount_value); // Ensure minimum price of 0.01
-            }
-        }
-        
-        // Fallback to sale_price if available
-        if ($this->sale_price && $this->sale_price > 0 && $this->price > $this->sale_price) {
-            return $this->sale_price;
-        }
-        
-        // Return original price
-        return $this->price;
-    }
-
-    public function getAverageRatingAttribute()
-    {
-        return $this->approvedReviews()->avg('rating') ?? 0;
-    }
-
-    public function getReviewsCountAttribute()
-    {
-        return $this->approvedReviews()->count();
-    }
-
     // Accessor for backward compatibility with views using stock_quantity
     public function getStockQuantityAttribute()
     {
         return $this->quantity;
     }
+
+    // Accessor for backward compatibility with code using track_quantity
+    public function getTrackQuantityAttribute()
+    {
+        return true; // Always track quantity for now
+    }
+
+    /**
+     * Calculate the discount percentage based on active discounts
+     */
+    public function getDiscountPercentageAttribute()
+    {
+        $discount = $this->activeDiscount();
+        if (!$discount) {
+            return 0;
+        }
+
+        if ($discount->discount_type === 'percentage') {
+            return (float) $discount->discount_value;
+        }
+        
+        if ($discount->discount_type === 'fixed') {
+            return $this->price > 0 ? round(($discount->discount_value / $this->price) * 100, 2) : 0;
+        }
+
+        return 0;
+    }
+
+    /**
+     * Calculate the effective price after applying discounts
+     */
+    public function getEffectivePriceAttribute()
+    {
+        return $this->final_price;
+    }
+
+    /**
+     * Check if product has any discount
+     */
+    public function getHasDiscountAttribute()
+    {
+        return $this->activeDiscount() !== null;
+    }
+
+    /**
+     * Get savings amount
+     */
+    public function getSavingsAmountAttribute()
+    {
+        $discount = $this->activeDiscount();
+        if (!$discount) {
+            return 0;
+        }
+
+        if ($discount->discount_type === 'percentage') {
+            return round($this->price * ($discount->discount_value / 100), 2);
+        }
+        
+        return min($discount->discount_value, $this->price);
+    }
+
+    /**
+     * Get formatted price with currency
+     */
+    public function getFormattedPriceAttribute()
+    {
+        return number_format($this->price, 2) . ' د.أ';
+    }
+
+    /**
+     * Get formatted final price with currency
+     */
+    public function getFormattedFinalPriceAttribute()
+    {
+        return number_format($this->final_price, 2) . ' د.أ';
+    }
+
+    /**
+     * Get average rating from reviews
+     */
+    public function getAverageRatingAttribute()
+    {
+        return $this->approvedReviews()->avg('rating') ?? 0;
+    }
+
+    /**
+     * Get reviews count
+     */
+    public function getReviewsCountAttribute()
+    {
+        return $this->approvedReviews()->count();
+    }
+   
 }

@@ -4,754 +4,641 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
-use Carbon\Carbon;
+use App\Models\Category;
+use App\Models\Brand;
+use App\Models\Product;
+use App\Models\ProductImage;
+use App\Models\ProductSize;
+use App\Models\ProductReview;
+use App\Models\Discount;
+use App\Models\DiscountProduct;
+use App\Models\User;
 
 class RealArabicDataSeeder extends Seeder
 {
+    /**
+     * Run the database seeds.
+     */
     public function run(): void
     {
-        // Seed Categories (الفئات)
-        $this->seedCategories();
+        $this->command->info('🚀 بدء إنشاء البيانات العربية الحقيقية...');
         
-        // Seed Brands (العلامات التجارية)
-        $this->seedBrands();
+        // Clear existing data
+        $this->clearExistingData();
         
-        // Seed Users (المستخدمين)
-        $this->seedUsers();
+        // Create users
+        $users = $this->createUsers();
         
-        // Seed Products (المنتجات)
-        $this->seedProducts();
+        // Create categories (3 main categories with subcategories)
+        $categories = $this->createCategories();
         
-        // Seed Product Sizes (أحجام المنتجات)
-        $this->seedProductSizes();
+        // Create brands (real toy and children brands)
+        $brands = $this->createBrands();
         
-        // Seed Product Reviews (تقييمات المنتجات)
-        $this->seedProductReviews();
+        // Create discounts
+        $discounts = $this->createDiscounts();
         
-        // Seed Orders (الطلبات)
-        $this->seedOrders();
+        // Create products for each category
+        $products = $this->createProducts($categories, $brands);
         
-        // Seed Order Items (عناصر الطلبات)
-        $this->seedOrderItems();
+        // Create product images
+        $this->createProductImages($products);
+        
+        // Create product sizes (for shoes and some toys)
+        $this->createProductSizes($products);
+        
+        // Create product reviews
+        $this->createProductReviews($products, $users);
+        
+        // Apply discounts to some products
+        $this->applyDiscountsToProducts($products, $discounts);
+        
+        $this->command->info('✅ تم إنشاء جميع البيانات العربية الحقيقية بنجاح!');
+        $this->printSummary();
     }
-
-    private function seedCategories(): void
+    
+    private function clearExistingData()
     {
-        $categories = [
+        $this->command->info('🗑️  تنظيف البيانات الموجودة...');
+        
+        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+        
+        // Clear in correct order to avoid foreign key constraints
+        DB::table('product_reviews')->truncate();
+        DB::table('discount_product')->truncate();
+        DB::table('discounts')->truncate();
+        DB::table('product_sizes')->truncate();
+        DB::table('product_images')->truncate();
+        DB::table('products')->truncate();
+        DB::table('brands')->truncate();
+        DB::table('categories')->truncate();
+        DB::table('users')->where('email', '!=', 'admin@malakoutlet.com')->delete();
+        
+        // Clear favorites if exists
+        if (Schema::hasTable('favorites')) {
+            DB::table('favorites')->truncate();
+        }
+        
+        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+    }
+    
+    private function createUsers()
+    {
+        $this->command->info('👥 إنشاء المستخدمين...');
+        
+        $users = collect();
+        
+        // Create test customers
+        $customerData = [
+            ['أحمد محمد', 'ahmed@test.com'],
+            ['فاطمة علي', 'fatima@test.com'], 
+            ['خالد حسن', 'khalid@test.com'],
+            ['مريم سالم', 'mariam@test.com'],
+            ['عمر يوسف', 'omar@test.com'],
+        ];
+        
+        foreach ($customerData as [$name, $email]) {
+            $users->push(User::create([
+                'name' => $name,
+                'email' => $email,
+                'email_verified_at' => now(),
+                'password' => bcrypt('password123'),
+                'is_admin' => false,
+            ]));
+        }
+        
+        $this->command->info("✅ تم إنشاء {$users->count()} مستخدمين");
+        return $users;
+    }
+    
+    private function createCategories()
+    {
+        $this->command->info('📂 إنشاء التصنيفات...');
+        
+        $categories = collect();
+        
+        // Main categories data
+        $mainCategoriesData = [
             [
-                'name' => 'ملابس رجالية',
-                'slug' => 'mens-clothing',
-                'description' => 'مجموعة متنوعة من الملابس الرجالية العصرية والأنيقة',
-                'is_active' => true,
-                'parent_id' => null,
-                'image' => 'mens-clothing.jpg',
-            ],
-            [
-                'name' => 'ملابس نسائية',
-                'slug' => 'womens-clothing',
-                'description' => 'أحدث صيحات الموضة النسائية والملابس العصرية',
-                'is_active' => true,
-                'parent_id' => null,
-                'image' => 'womens-clothing.jpg',
+                'name' => 'ألعاب',
+                'slug' => 'toys',
+                'description' => 'مجموعة واسعة من الألعاب التعليمية والترفيهية للأطفال من جميع الأعمار',
+                'subcategories' => [
+                    ['ألعاب تعليمية', 'educational-toys', 'ألعاب تساعد على التعلم وتنمية المهارات'],
+                    ['ألعاب إلكترونية', 'electronic-toys', 'ألعاب تقنية حديثة وتفاعلية'],
+                    ['ألعاب البناء', 'building-toys', 'مكعبات وألعاب البناء والتركيب'],
+                    ['دمى وعرائس', 'dolls', 'دمى جميلة ومتنوعة للأطفال'],
+                    ['ألعاب خارجية', 'outdoor-toys', 'ألعاب للاستمتاع في الهواء الطلق'],
+                    ['ألعاب الطاولة', 'board-games', 'ألعاب جماعية ممتعة للعائلة'],
+                ]
             ],
             [
                 'name' => 'أحذية',
-                'slug' => 'shoes',
-                'description' => 'مجموعة واسعة من الأحذية للرجال والنساء',
+                'slug' => 'shoes', 
+                'description' => 'أحذية مريحة وأنيقة للأطفال بأحجام وألوان متنوعة',
+                'subcategories' => [
+                    ['أحذية رياضية', 'sports-shoes', 'أحذية رياضية مريحة للأنشطة اليومية'],
+                    ['أحذية مدرسية', 'school-shoes', 'أحذية رسمية مناسبة للمدرسة'],
+                    ['صنادل صيفية', 'summer-sandals', 'صنادل مريحة لفصل الصيف'],
+                    ['أحذية شتوية', 'winter-boots', 'أحذية دافئة ومقاومة للماء'],
+                    ['أحذية منزلية', 'home-slippers', 'أحذية مريحة للاستخدام المنزلي'],
+                    ['أحذية المناسبات', 'formal-shoes', 'أحذية أنيقة للمناسبات الخاصة'],
+                ]
+            ],
+            [
+                'name' => 'مستلزمات أطفال',
+                'slug' => 'kids-accessories',
+                'description' => 'جميع المستلزمات الضرورية والعملية للأطفال',
+                'subcategories' => [
+                    ['حقائب مدرسية', 'school-bags', 'حقائب قوية ومريحة للمدرسة'],
+                    ['زجاجات مياه', 'water-bottles', 'زجاجات آمنة وملونة للأطفال'],
+                    ['أدوات الطعام', 'eating-utensils', 'أطباق وأكواب آمنة للأطفال'],
+                    ['إكسسوارات الشعر', 'hair-accessories', 'ربطات وإكسسوارات جميلة للشعر'],
+                    ['مستلزمات النوم', 'sleep-accessories', 'وسائد ولحف مريحة للأطفال'],
+                    ['مستلزمات الاستحمام', 'bath-accessories', 'منتجات آمنة لوقت الاستحمام'],
+                ]
+            ]
+        ];
+        
+        foreach ($mainCategoriesData as $mainCatData) {
+            // Create main category
+            $mainCategory = Category::create([
+                'name' => $mainCatData['name'],
+                'slug' => $mainCatData['slug'],
+                'description' => $mainCatData['description'],
                 'is_active' => true,
                 'parent_id' => null,
-                'image' => 'shoes.jpg',
-            ],
-            [
-                'name' => 'إكسسوارات',
-                'slug' => 'accessories',
-                'description' => 'إكسسوارات متنوعة لإكمال إطلالتك',
-                'is_active' => true,
-                'parent_id' => null,
-                'image' => 'accessories.jpg',
-            ],
-            [
-                'name' => 'حقائب',
-                'slug' => 'bags',
-                'description' => 'حقائب عملية وأنيقة للاستخدام اليومي',
-                'is_active' => true,
-                'parent_id' => null,
-                'image' => 'bags.jpg',
-            ],
-        ];
-
-        // إضافة فئات فرعية
-        $subCategories = [
-            // فئات فرعية للملابس الرجالية
-            [
-                'name' => 'قمصان رجالية',
-                'slug' => 'mens-shirts',
-                'description' => 'قمصان رجالية كلاسيكية وعصرية',
-                'parent_id' => 1,
-                'image' => 'mens-shirts.jpg',
-            ],
-            [
-                'name' => 'بناطيل رجالية',
-                'slug' => 'mens-pants',
-                'description' => 'بناطيل رجالية مريحة وأنيقة',
-                'parent_id' => 1,
-                'image' => 'mens-pants.jpg',
-            ],
-            [
-                'name' => 'جاكيتات رجالية',
-                'slug' => 'mens-jackets',
-                'description' => 'جاكيتات رجالية للطقس البارد',
-                'parent_id' => 1,
-                'image' => 'mens-jackets.jpg',
-            ],
-            // فئات فرعية للملابس النسائية
-            [
-                'name' => 'فساتين',
-                'slug' => 'dresses',
-                'description' => 'فساتين أنيقة لجميع المناسبات',
-                'parent_id' => 2,
-                'image' => 'dresses.jpg',
-            ],
-            [
-                'name' => 'بلوزات نسائية',
-                'slug' => 'womens-blouses',
-                'description' => 'بلوزات نسائية عصرية وأنيقة',
-                'parent_id' => 2,
-                'image' => 'womens-blouses.jpg',
-            ],
-            [
-                'name' => 'تنانير',
-                'slug' => 'skirts',
-                'description' => 'تنانير بتصاميم متنوعة وعصرية',
-                'parent_id' => 2,
-                'image' => 'skirts.jpg',
-            ],
-            // فئات فرعية للأحذية
-            [
-                'name' => 'أحذية رجالية',
-                'slug' => 'mens-shoes',
-                'description' => 'أحذية رجالية كلاسيكية ورياضية',
-                'parent_id' => 3,
-                'image' => 'mens-shoes.jpg',
-            ],
-            [
-                'name' => 'أحذية نسائية',
-                'slug' => 'womens-shoes',
-                'description' => 'أحذية نسائية بكعب عالي ومنخفض',
-                'parent_id' => 3,
-                'image' => 'womens-shoes.jpg',
-            ],
-        ];
-
-        // إدراج الفئات الرئيسية
-        foreach ($categories as $category) {
-            DB::table('categories')->insert([
-                'name' => $category['name'],
-                'slug' => $category['slug'],
-                'description' => $category['description'],
-                'is_active' => $category['is_active'],
-                'parent_id' => $category['parent_id'],
-                'image' => $category['image'],
                 'is_deleted' => false,
-                'edit_by' => 1,
-                'created_at' => Carbon::now(),
-                'updated_at' => Carbon::now(),
             ]);
+            
+            $categories->push($mainCategory);
+            
+            // Create subcategories
+            foreach ($mainCatData['subcategories'] as $subCatData) {
+                $subCategory = Category::create([
+                    'name' => $subCatData[0],
+                    'slug' => $subCatData[1],
+                    'description' => $subCatData[2],
+                    'is_active' => true,
+                    'parent_id' => $mainCategory->id,
+                    'is_deleted' => false,
+                ]);
+                
+                $categories->push($subCategory);
+            }
         }
-
-        // إدراج الفئات الفرعية
-        foreach ($subCategories as $subCategory) {
-            DB::table('categories')->insert([
-                'name' => $subCategory['name'],
-                'slug' => $subCategory['slug'],
-                'description' => $subCategory['description'],
-                'is_active' => true,
-                'parent_id' => $subCategory['parent_id'],
-                'image' => $subCategory['image'],
-                'is_deleted' => false,
-                'edit_by' => 1,
-                'created_at' => Carbon::now(),
-                'updated_at' => Carbon::now(),
-            ]);
-        }
+        
+        $this->command->info("✅ تم إنشاء {$categories->count()} تصنيف");
+        return $categories;
     }
-
-    private function seedBrands(): void
+    
+    private function createBrands()
     {
-        $brands = [
-            [
-                'name' => 'أديداس',
-                'slug' => 'adidas',
-                'image' => 'adidas-logo.jpg',
-            ],
-            [
-                'name' => 'نايكي',
-                'slug' => 'nike',
-                'image' => 'nike-logo.jpg',
-            ],
-            [
-                'name' => 'زارا',
-                'slug' => 'zara',
-                'image' => 'zara-logo.jpg',
-            ],
-            [
-                'name' => 'إتش آند إم',
-                'slug' => 'h-and-m',
-                'image' => 'hm-logo.jpg',
-            ],
-            [
-                'name' => 'بوما',
-                'slug' => 'puma',
-                'image' => 'puma-logo.jpg',
-            ],
-            [
-                'name' => 'فيرساتشي',
-                'slug' => 'versace',
-                'image' => 'versace-logo.jpg',
-            ],
-            [
-                'name' => 'غوتشي',
-                'slug' => 'gucci',
-                'image' => 'gucci-logo.jpg',
-            ],
-            [
-                'name' => 'شانيل',
-                'slug' => 'chanel',
-                'image' => 'chanel-logo.jpg',
-            ],
-            [
-                'name' => 'الماس العربي',
-                'slug' => 'almas-alarabi',
-                'image' => 'almas-logo.jpg',
-            ],
-            [
-                'name' => 'أناقة شرقية',
-                'slug' => 'anaqa-sharqiya',
-                'image' => 'anaqa-logo.jpg',
-            ],
+        $this->command->info('🏷️ إنشاء العلامات التجارية...');
+        
+        $brands = collect();
+        
+        // Real brands data for toys and kids products
+        $brandsData = [
+            ['ليجو', 'lego', 'أشهر علامة تجارية في ألعاب البناء'],
+            ['باربي', 'barbie', 'الدمى الأكثر شهرة في العالم'],
+            ['فيشر برايس', 'fisher-price', 'ألعاب تعليمية عالية الجودة'],
+            ['ماتيل', 'mattel', 'ألعاب ممتعة وآمنة للأطفال'],
+            ['هاسبرو', 'hasbro', 'ألعاب مبتكرة ومسلية'],
+            ['نايكي', 'nike', 'أحذية رياضية عالمية'],
+            ['أديداس', 'adidas', 'أحذية رياضية وملابس أطفال'],
+            ['كونفيرس', 'converse', 'أحذية كلاسيكية عصرية'],
+            ['سكيتشرز', 'skechers', 'أحذية مريحة للأطفال'],
+            ['ديزني', 'disney', 'منتجات بشخصيات ديزني المحبوبة'],
+            ['هيلو كيتي', 'hello-kitty', 'منتجات بشخصية هيلو كيتي'],
+            ['سبايدرمان', 'spiderman', 'منتجات بطل العنكبوت'],
         ];
-
-        foreach ($brands as $brand) {
-            DB::table('brands')->insert([
-                'name' => $brand['name'],
-                'slug' => $brand['slug'],
-                'image' => $brand['image'],
+        
+        foreach ($brandsData as [$name, $slug, $description]) {
+            $brands->push(Brand::create([
+                'name' => $name,
+                'slug' => $slug,
                 'is_active' => true,
                 'is_deleted' => false,
-                'edit_by' => 1,
-                'created_at' => Carbon::now(),
-                'updated_at' => Carbon::now(),
-            ]);
+            ]));
         }
+        
+        $this->command->info("✅ تم إنشاء {$brands->count()} علامة تجارية");
+        return $brands;
     }
-
-    private function seedUsers(): void
+    
+    private function createDiscounts()
     {
-        $users = [
+        $this->command->info('💰 إنشاء العروض والخصومات...');
+        
+        $discounts = collect();
+        
+        $discountsData = [
             [
-                'name' => 'أحمد محمد علي',
-                'email' => 'ahmed.mohamed@example.com',
-                'password' => bcrypt('password123'),
+                'name' => 'عرض العودة للمدارس',
+                'description' => 'خصم خاص على جميع المستلزمات المدرسية والحقائب',
+                'discount_type' => 'percentage',
+                'discount_value' => 20,
+                'starts_at' => now()->subDays(10),
+                'ends_at' => now()->addDays(30),
             ],
             [
-                'name' => 'فاطمة عبدالله',
-                'email' => 'fatima.abdullah@example.com',
-                'password' => bcrypt('password123'),
+                'name' => 'خصم الألعاب التعليمية',
+                'description' => 'خصم على مجموعة مختارة من الألعاب التعليمية',
+                'discount_type' => 'percentage', 
+                'discount_value' => 15,
+                'starts_at' => now()->subDays(5),
+                'ends_at' => now()->addDays(20),
             ],
             [
-                'name' => 'محمد حسن',
-                'email' => 'mohamed.hassan@example.com',
-                'password' => bcrypt('password123'),
-            ],
-            [
-                'name' => 'عائشة سالم',
-                'email' => 'aisha.salem@example.com',
-                'password' => bcrypt('password123'),
-            ],
-            [
-                'name' => 'عبدالرحمن أحمد',
-                'email' => 'abdulrahman.ahmed@example.com',
-                'password' => bcrypt('password123'),
-            ],
-            [
-                'name' => 'مريم يوسف',
-                'email' => 'mariam.youssef@example.com',
-                'password' => bcrypt('password123'),
-            ],
-            [
-                'name' => 'خالد عبدالعزيز',
-                'email' => 'khalid.abdulaziz@example.com',
-                'password' => bcrypt('password123'),
-            ],
-            [
-                'name' => 'نورا إبراهيم',
-                'email' => 'nora.ibrahim@example.com',
-                'password' => bcrypt('password123'),
-            ],
-            [
-                'name' => 'سعد المالكي',
-                'email' => 'saad.almalki@example.com',
-                'password' => bcrypt('password123'),
-            ],
-            [
-                'name' => 'هند الزهراني',
-                'email' => 'hind.alzahrani@example.com',
-                'password' => bcrypt('password123'),
+                'name' => 'عرض الأحذية الصيفية',
+                'description' => 'خصم ثابت على الصنادل والأحذية الصيفية',
+                'discount_type' => 'fixed',
+                'discount_value' => 10,
+                'starts_at' => now(),
+                'ends_at' => now()->addDays(15),
             ],
         ];
-
-        foreach ($users as $user) {
-            DB::table('users')->insert([
-                'name' => $user['name'],
-                'email' => $user['email'],
-                'password' => $user['password'],
-                'email_verified_at' => Carbon::now(),
-                'created_at' => Carbon::now(),
-                'updated_at' => Carbon::now(),
-            ]);
+        
+        foreach ($discountsData as $discountData) {
+            $discounts->push(Discount::create([
+                'name' => $discountData['name'],
+                'description' => $discountData['description'],
+                'discount_type' => $discountData['discount_type'],
+                'discount_value' => $discountData['discount_value'],
+                'starts_at' => $discountData['starts_at'],
+                'ends_at' => $discountData['ends_at'],
+                'is_active' => true,
+                'is_deleted' => false,
+            ]));
         }
+        
+        $this->command->info("✅ تم إنشاء {$discounts->count()} خصومات");
+        return $discounts;
     }
-
-    private function seedProducts(): void
+    
+    private function createProducts($categories, $brands)
     {
-        $products = [
-            // ملابس رجالية
+        $this->command->info('🛍️ إنشاء المنتجات...');
+        
+        $products = collect();
+        
+        // Get categories by name for easier reference
+        $toysCategory = $categories->firstWhere('name', 'ألعاب');
+        $shoesCategory = $categories->firstWhere('name', 'أحذية');
+        $accessoriesCategory = $categories->firstWhere('name', 'مستلزمات أطفال');
+        
+        // Toys products
+        $toysProducts = [
             [
-                'name' => 'قميص قطني أبيض كلاسيكي',
-                'slug' => 'classic-white-cotton-shirt',
-                'description' => 'قميص قطني أبيض كلاسيكي مناسب للعمل والمناسبات الرسمية. مصنوع من قطن عالي الجودة.',
+                'name' => 'مكعبات ليجو كلاسيك - مجموعة الإبداع',
+                'category' => $categories->firstWhere('name', 'ألعاب البناء'),
+                'brand' => $brands->firstWhere('name', 'ليجو'),
+                'price' => 85.00,
+                'description' => 'مجموعة رائعة من مكعبات ليجو الملونة تحتوي على 484 قطعة لبناء أشكال لا نهائية وتنمية الإبداع',
+                'is_sized' => false,
+            ],
+            [
+                'name' => 'دمية باربي أميرة الأحلام',
+                'category' => $categories->firstWhere('name', 'دمى وعرائس'),
+                'brand' => $brands->firstWhere('name', 'باربي'),
+                'price' => 45.00,
+                'description' => 'دمية باربي جميلة بفستان وردي لامع مع إكسسوارات متنوعة للعب والتخيل',
+                'is_sized' => false,
+            ],
+            [
+                'name' => 'لعبة تعلم الحروف والأرقام التفاعلية',
+                'category' => $categories->firstWhere('name', 'ألعاب تعليمية'),
+                'brand' => $brands->firstWhere('name', 'فيشر برايس'),
+                'price' => 65.00,
+                'description' => 'لعبة تعليمية تفاعلية تساعد الأطفال على تعلم الحروف والأرقام بطريقة ممتعة',
+                'is_sized' => false,
+            ],
+            [
+                'name' => 'جهاز ألعاب إلكتروني محمول للأطفال',
+                'category' => $categories->firstWhere('name', 'ألعاب إلكترونية'),
+                'brand' => $brands->firstWhere('name', 'ماتيل'),
                 'price' => 120.00,
-                'original_price' => 150.00,
-                'sku' => 'SHIRT-001',
-                'quantity' => 50,
-                'category_id' => 6, // قمصان رجالية
-                'brand_id' => 3, // زارا
-                'status' => 'in_stock',
-                'is_sized' => true,
-                'meta_title' => 'قميص قطني أبيض كلاسيكي - ملاك أوتلت',
-                'meta_description' => 'اشتري أفضل قميص قطني أبيض كلاسيكي من ملاك أوتلت بأفضل الأسعار',
+                'description' => 'جهاز ألعاب محمول يحتوي على 50 لعبة تعليمية وترفيهية مناسبة للأطفال',
+                'is_sized' => false,
             ],
             [
-                'name' => 'بنطلون جينز أزرق غامق',
-                'slug' => 'dark-blue-jeans',
-                'description' => 'بنطلون جينز أزرق غامق عالي الجودة، مريح ومناسب للاستخدام اليومي.',
-                'price' => 180.00,
-                'original_price' => 220.00,
-                'sku' => 'JEANS-001',
-                'quantity' => 30,
-                'category_id' => 7, // بناطيل رجالية
-                'brand_id' => 4, // إتش آند إم
-                'status' => 'in_stock',
+                'name' => 'كرة قدم للأطفال - ديزني',
+                'category' => $categories->firstWhere('name', 'ألعاب خارجية'),
+                'brand' => $brands->firstWhere('name', 'ديزني'),
+                'price' => 25.00,
+                'description' => 'كرة قدم ملونة بشخصيات ديزني المحبوبة، مناسبة للعب في الحديقة',
                 'is_sized' => true,
-                'meta_title' => 'بنطلون جينز أزرق غامق - ملاك أوتلت',
-                'meta_description' => 'بنطلون جينز عالي الجودة بسعر مميز من ملاك أوتلت',
             ],
             [
-                'name' => 'جاكيت شتوي أسود',
-                'slug' => 'black-winter-jacket',
-                'description' => 'جاكيت شتوي أسود دافئ ومقاوم للماء، مثالي للطقس البارد.',
-                'price' => 350.00,
-                'original_price' => 450.00,
-                'sku' => 'JACKET-001',
-                'quantity' => 25,
-                'category_id' => 8, // جاكيتات رجالية
-                'brand_id' => 1, // أديداس
-                'status' => 'in_stock',
-                'is_sized' => true,
-                'meta_title' => 'جاكيت شتوي أسود - ملاك أوتلت',
-                'meta_description' => 'جاكيت شتوي عالي الجودة يحميك من البرد',
+                'name' => 'لعبة الثعابين والسلالم العائلية',
+                'category' => $categories->firstWhere('name', 'ألعاب الطاولة'),
+                'brand' => $brands->firstWhere('name', 'هاسبرو'),
+                'price' => 35.00,
+                'description' => 'لعبة كلاسيكية ممتعة للعائلة تجمع الأطفال والكبار في أوقات مرحة',
+                'is_sized' => false,
             ],
-            // ملابس نسائية
+        ];
+        
+        // Shoes products
+        $shoesProducts = [
             [
-                'name' => 'فستان سهرة أحمر',
-                'slug' => 'red-evening-dress',
-                'description' => 'فستان سهرة أحمر أنيق مناسب للمناسبات الخاصة والحفلات.',
-                'price' => 280.00,
-                'original_price' => 350.00,
-                'sku' => 'DRESS-001',
-                'quantity' => 20,
-                'category_id' => 9, // فساتين
-                'brand_id' => 6, // فيرساتشي
-                'status' => 'in_stock',
-                'is_sized' => true,
-                'meta_title' => 'فستان سهرة أحمر أنيق - ملاك أوتلت',
-                'meta_description' => 'فستان سهرة راقي ومميز لإطلالة ساحرة',
-            ],
-            [
-                'name' => 'بلوزة حريرية زرقاء',
-                'slug' => 'blue-silk-blouse',
-                'description' => 'بلوزة حريرية زرقاء ناعمة وأنيقة، مناسبة للعمل والمناسبات.',
-                'price' => 160.00,
-                'original_price' => 200.00,
-                'sku' => 'BLOUSE-001',
-                'quantity' => 35,
-                'category_id' => 10, // بلوزات نسائية
-                'brand_id' => 8, // شانيل
-                'status' => 'in_stock',
-                'is_sized' => true,
-                'meta_title' => 'بلوزة حريرية زرقاء - ملاك أوتلت',
-                'meta_description' => 'بلوزة حريرية فاخرة بجودة عالية',
-            ],
-            [
-                'name' => 'تنورة قصيرة سوداء',
-                'slug' => 'black-short-skirt',
-                'description' => 'تنورة قصيرة سوداء عصرية وأنيقة، مناسبة للإطلالات اليومية.',
+                'name' => 'حذاء رياضي أطفال نايكي - أبيض وأزرق',
+                'category' => $categories->firstWhere('name', 'أحذية رياضية'),
+                'brand' => $brands->firstWhere('name', 'نايكي'),
                 'price' => 95.00,
-                'original_price' => 120.00,
-                'sku' => 'SKIRT-001',
-                'quantity' => 40,
-                'category_id' => 11, // تنانير
-                'brand_id' => 3, // زارا
-                'status' => 'in_stock',
+                'description' => 'حذاء رياضي مريح ومتين للأطفال، مثالي للأنشطة اليومية والرياضة',
                 'is_sized' => true,
-                'meta_title' => 'تنورة قصيرة سوداء - ملاك أوتلت',
-                'meta_description' => 'تنورة عصرية وأنيقة بأفضل الأسعار',
-            ],
-            // أحذية
-            [
-                'name' => 'حذاء رياضي أبيض',
-                'slug' => 'white-sneakers',
-                'description' => 'حذاء رياضي أبيض مريح ومناسب للرياضة والاستخدام اليومي.',
-                'price' => 220.00,
-                'original_price' => 280.00,
-                'sku' => 'SHOE-001',
-                'quantity' => 45,
-                'category_id' => 12, // أحذية رجالية
-                'brand_id' => 2, // نايكي
-                'status' => 'in_stock',
-                'is_sized' => true,
-                'meta_title' => 'حذاء رياضي أبيض - ملاك أوتلت',
-                'meta_description' => 'حذاء رياضي مريح وعصري من نايكي',
             ],
             [
-                'name' => 'صندل نسائي بكعب عالي',
-                'slug' => 'womens-high-heel-sandals',
-                'description' => 'صندل نسائي أنيق بكعب عالي، مثالي للمناسبات الخاصة.',
-                'price' => 190.00,
-                'original_price' => 240.00,
-                'sku' => 'SANDAL-001',
-                'quantity' => 25,
-                'category_id' => 13, // أحذية نسائية
-                'brand_id' => 7, // غوتشي
-                'status' => 'in_stock',
+                'name' => 'حذاء مدرسي أسود كلاسيكي',
+                'category' => $categories->firstWhere('name', 'أحذية مدرسية'),
+                'brand' => $brands->firstWhere('name', 'كونفيرس'),
+                'price' => 75.00,
+                'description' => 'حذاء مدرسي أنيق ومريح، مناسب للاستخدام اليومي في المدرسة',
                 'is_sized' => true,
-                'meta_title' => 'صندل نسائي بكعب عالي - ملاك أوتلت',
-                'meta_description' => 'صندل نسائي فاخر وأنيق من غوتشي',
+            ],
+            [
+                'name' => 'صندل صيفي ملون للأطفال',
+                'category' => $categories->firstWhere('name', 'صنادل صيفية'),
+                'brand' => $brands->firstWhere('name', 'سكيتشرز'),
+                'price' => 55.00,
+                'description' => 'صندل مريح وملون مثالي لفصل الصيف والأنشطة المائية',
+                'is_sized' => true,
+            ],
+            [
+                'name' => 'حذاء شتوي مقاوم للماء',
+                'category' => $categories->firstWhere('name', 'أحذية شتوية'),
+                'brand' => $brands->firstWhere('name', 'أديداس'),
+                'price' => 110.00,
+                'description' => 'حذاء شتوي دافئ ومقاوم للماء، يحافظ على دفء أقدام الأطفال',
+                'is_sized' => true,
+            ],
+            [
+                'name' => 'حذاء أنيق للمناسبات الخاصة',
+                'category' => $categories->firstWhere('name', 'أحذية المناسبات'),
+                'brand' => $brands->firstWhere('name', 'كونفيرس'),
+                'price' => 85.00,
+                'description' => 'حذاء أنيق مناسب للمناسبات الخاصة والحفلات',
+                'is_sized' => true,
             ],
         ];
-
-        foreach ($products as $product) {
-            DB::table('products')->insert([
-                'name' => $product['name'],
-                'slug' => $product['slug'],
-                'description' => $product['description'],
-                'price' => $product['price'],
-                'original_price' => $product['original_price'],
-                'sku' => $product['sku'],
-                'quantity' => $product['quantity'],
-                'category_id' => $product['category_id'],
-                'brand_id' => $product['brand_id'],
+        
+        // Accessories products
+        $accessoriesProducts = [
+            [
+                'name' => 'حقيبة مدرسية سبايدرمان',
+                'category' => $categories->firstWhere('name', 'حقائب مدرسية'),
+                'brand' => $brands->firstWhere('name', 'سبايدرمان'),
+                'price' => 60.00,
+                'description' => 'حقيبة مدرسية قوية ومريحة بتصميم سبايدرمان مع جيوب متعددة',
+                'is_sized' => false,
+            ],
+            [
+                'name' => 'زجاجة مياه هيلو كيتي',
+                'category' => $categories->firstWhere('name', 'زجاجات مياه'),
+                'brand' => $brands->firstWhere('name', 'هيلو كيتي'),
+                'price' => 25.00,
+                'description' => 'زجاجة مياه آمنة وجميلة بتصميم هيلو كيتي، سعة 500 مل',
+                'is_sized' => false,
+            ],
+            [
+                'name' => 'طقم أدوات طعام ديزني',
+                'category' => $categories->firstWhere('name', 'أدوات الطعام'),
+                'brand' => $brands->firstWhere('name', 'ديزني'),
+                'price' => 35.00,
+                'description' => 'طقم كامل من الأطباق والأكواب الآمنة بشخصيات ديزني',
+                'is_sized' => false,
+            ],
+            [
+                'name' => 'مجموعة ربطات شعر ملونة',
+                'category' => $categories->firstWhere('name', 'إكسسوارات الشعر'),
+                'brand' => $brands->firstWhere('name', 'ديزني'),
+                'price' => 20.00,
+                'description' => 'مجموعة من ربطات الشعر الملونة والجميلة مع شخصيات كرتونية',
+                'is_sized' => false,
+            ],
+            [
+                'name' => 'وسادة نوم ناعمة للأطفال',
+                'category' => $categories->firstWhere('name', 'مستلزمات النوم'),
+                'brand' => $brands->firstWhere('name', 'ديزني'),
+                'price' => 40.00,
+                'description' => 'وسادة ناعمة ومريحة بتصميم جميل مناسبة لنوم الأطفال',
+                'is_sized' => false,
+            ],
+            [
+                'name' => 'منشفة استحمام ملونة',
+                'category' => $categories->firstWhere('name', 'مستلزمات الاستحمام'),
+                'brand' => $brands->firstWhere('name', 'ديزني'),
+                'price' => 30.00,
+                'description' => 'منشفة استحمام ناعمة وماصة بألوان زاهية وتصاميم محببة للأطفال',
+                'is_sized' => false,
+            ],
+        ];
+        
+        // Combine all products
+        $allProductsData = array_merge($toysProducts, $shoesProducts, $accessoriesProducts);
+        
+        foreach ($allProductsData as $productData) {
+            $product = Product::create([
+                'name' => $productData['name'],
+                'slug' => Str::slug($productData['name']),
+                'description' => $productData['description'],
+                'price' => $productData['price'],
+                'original_price' => $productData['price'] * 1.2, // Original price 20% higher
+                'sku' => 'MO-' . str_pad(rand(1000, 9999), 4, '0', STR_PAD_LEFT),
+                'quantity' => rand(50, 200),
+                'category_id' => $productData['category']->id,
+                'brand_id' => $productData['brand']->id,
                 'is_active' => true,
-                'status' => $product['status'],
-                'meta_title' => $product['meta_title'],
-                'meta_description' => $product['meta_description'],
-                'is_sized' => $product['is_sized'],
+                'status' => 'in_stock',
+                'meta_title' => $productData['name'],
+                'meta_description' => Str::limit($productData['description'], 155),
+                'is_sized' => $productData['is_sized'],
                 'is_deleted' => false,
-                'edit_by' => 1,
-                'created_at' => Carbon::now(),
-                'updated_at' => Carbon::now(),
             ]);
+            
+            $products->push($product);
         }
+        
+        $this->command->info("✅ تم إنشاء {$products->count()} منتج");
+        return $products;
     }
-
-    private function seedProductSizes(): void
+    
+    private function createProductImages($products)
     {
-        // أحجام الملابس
-        $clothingSizes = [
-            ['size' => 'XS', 'size_type' => 'ملابس', 'description' => 'صغير جداً'],
-            ['size' => 'S', 'size_type' => 'ملابس', 'description' => 'صغير'],
-            ['size' => 'M', 'size_type' => 'ملابس', 'description' => 'متوسط'],
-            ['size' => 'L', 'size_type' => 'ملابس', 'description' => 'كبير'],
-            ['size' => 'XL', 'size_type' => 'ملابس', 'description' => 'كبير جداً'],
-            ['size' => 'XXL', 'size_type' => 'ملابس', 'description' => 'كبير جداً جداً'],
+        $this->command->info('🖼️ إنشاء صور المنتجات...');
+        
+        $imageCount = 0;
+        
+        // Available sample images
+        $sampleImages = [
+            '/images/talking-doll-1.jpg',
+            '/images/rc-car-1.jpg',
+            '/images/rc-car-2.jpg',
+            '/images/blocks-1.jpg',
+            '/images/placeholder-1.svg',
+            '/images/placeholder-2.svg',
+            '/images/placeholder-3.svg',
+            '/images/placeholder-4.svg',
+            '/images/baby.png',
+            '/images/pngegg.png',
         ];
-
-        // أحجام الأحذية
-        $shoeSizes = [
-            ['size' => '38', 'size_type' => 'أحذية', 'description' => ''],
-            ['size' => '39', 'size_type' => 'أحذية', 'description' => ''],
-            ['size' => '40', 'size_type' => 'أحذية', 'description' => ''],
-            ['size' => '41', 'size_type' => 'أحذية', 'description' => ''],
-            ['size' => '42', 'size_type' => 'أحذية', 'description' => ''],
-            ['size' => '43', 'size_type' => 'أحذية', 'description' => ''],
-            ['size' => '44', 'size_type' => 'أحذية', 'description' => ''],
-            ['size' => '45', 'size_type' => 'أحذية', 'description' => ''],
-        ];
-
-        // إضافة أحجام للمنتجات (المنتجات 1-6 ملابس، المنتجات 7-8 أحذية)
-        for ($productId = 1; $productId <= 6; $productId++) {
-            foreach ($clothingSizes as $size) {
-                DB::table('product_sizes')->insert([
-                    'product_id' => $productId,
-                    'size' => $size['size'],
-                    'size_type' => $size['size_type'],
-                    'description' => $size['description'],
-                    'stock_quantity' => rand(5, 20),
-                    'additional_price' => 0.00,
-                    'is_available' => true,
-                    'is_popular' => in_array($size['size'], ['S', 'M', 'L']),
+        
+        foreach ($products as $product) {
+            $numImages = rand(2, 4); // 2-4 images per product
+            
+            for ($i = 1; $i <= $numImages; $i++) {
+                ProductImage::create([
+                    'product_id' => $product->id,
+                    'image_path' => $sampleImages[array_rand($sampleImages)],
+                    'is_primary' => $i === 1,
                     'is_deleted' => false,
-                    'edit_by' => 1,
-                    'created_at' => Carbon::now(),
-                    'updated_at' => Carbon::now(),
                 ]);
+                $imageCount++;
             }
         }
-
-        // إضافة أحجام الأحذية للمنتجات 7-8
-        for ($productId = 7; $productId <= 8; $productId++) {
-            foreach ($shoeSizes as $size) {
-                DB::table('product_sizes')->insert([
-                    'product_id' => $productId,
-                    'size' => $size['size'],
-                    'size_type' => $size['size_type'],
-                    'description' => $size['description'],
-                    'stock_quantity' => rand(3, 15),
+        
+        $this->command->info("✅ تم إنشاء {$imageCount} صورة منتج");
+    }
+    
+    private function createProductSizes($products)
+    {
+        $this->command->info('📏 إنشاء أحجام المنتجات...');
+        
+        $sizeCount = 0;
+        
+        foreach ($products as $product) {
+            if (!$product->is_sized) continue;
+            
+            // Define sizes based on category
+            $sizes = [];
+            
+            if ($product->category->parent_id == Category::where('name', 'أحذية')->first()->id) {
+                // Shoe sizes
+                $sizes = [
+                    ['size' => '28', 'size_type' => 'أحذية أطفال', 'stock' => rand(10, 30)],
+                    ['size' => '30', 'size_type' => 'أحذية أطفال', 'stock' => rand(15, 35)],
+                    ['size' => '32', 'size_type' => 'أحذية أطفال', 'stock' => rand(12, 25)],
+                    ['size' => '34', 'size_type' => 'أحذية أطفال', 'stock' => rand(8, 20)],
+                    ['size' => '36', 'size_type' => 'أحذية أطفال', 'stock' => rand(10, 28)],
+                ];
+            } else {
+                // General toy sizes
+                $sizes = [
+                    ['size' => 'صغير', 'size_type' => 'عام', 'stock' => rand(20, 40)],
+                    ['size' => 'متوسط', 'size_type' => 'عام', 'stock' => rand(25, 45)],
+                    ['size' => 'كبير', 'size_type' => 'عام', 'stock' => rand(15, 35)],
+                ];
+            }
+            
+            foreach ($sizes as $sizeData) {
+                ProductSize::create([
+                    'product_id' => $product->id,
+                    'size' => $sizeData['size'],
+                    'size_type' => $sizeData['size_type'],
+                    'description' => null,
+                    'stock_quantity' => $sizeData['stock'],
                     'additional_price' => 0.00,
                     'is_available' => true,
-                    'is_popular' => in_array($size['size'], ['40', '41', '42']),
+                    'is_popular' => rand(0, 1) == 1,
                     'is_deleted' => false,
-                    'edit_by' => 1,
-                    'created_at' => Carbon::now(),
-                    'updated_at' => Carbon::now(),
                 ]);
+                $sizeCount++;
             }
         }
+        
+        $this->command->info("✅ تم إنشاء {$sizeCount} حجم منتج");
     }
-
-    private function seedProductReviews(): void
+    
+    private function createProductReviews($products, $users)
     {
-        $reviews = [
-            [
-                'product_id' => 1,
-                'user_id' => 1,
-                'rating' => 5,
-                'comment' => 'منتج ممتاز! جودة القماش رائعة والمقاس مضبوط تماماً. أنصح بالشراء.',
-            ],
-            [
-                'product_id' => 1,
-                'user_id' => 2,
-                'rating' => 4,
-                'comment' => 'قميص جميل ومريح، لكن الشحن استغرق وقت أطول من المتوقع.',
-            ],
-            [
-                'product_id' => 2,
-                'user_id' => 3,
-                'rating' => 5,
-                'comment' => 'بنطلون جينز رائع! المقاس مثالي والجودة عالية جداً.',
-            ],
-            [
-                'product_id' => 2,
-                'user_id' => 4,
-                'rating' => 4,
-                'comment' => 'منتج جيد بشكل عام، اللون أجمل من الصور.',
-            ],
-            [
-                'product_id' => 3,
-                'user_id' => 5,
-                'rating' => 5,
-                'comment' => 'جاكيت دافئ جداً ومقاوم للماء كما هو مذكور. ممتاز للشتاء.',
-            ],
-            [
-                'product_id' => 4,
-                'user_id' => 6,
-                'rating' => 5,
-                'comment' => 'فستان رائع وأنيق! حصلت على إعجاب الجميع في الحفلة.',
-            ],
-            [
-                'product_id' => 4,
-                'user_id' => 7,
-                'rating' => 4,
-                'comment' => 'فستان جميل لكن المقاس كان أكبر قليلاً مما توقعت.',
-            ],
-            [
-                'product_id' => 5,
-                'user_id' => 8,
-                'rating' => 5,
-                'comment' => 'بلوزة حريرية فاخرة وناعمة جداً. تستحق السعر المدفوع.',
-            ],
-            [
-                'product_id' => 6,
-                'user_id' => 9,
-                'rating' => 4,
-                'comment' => 'تنورة أنيقة ومناسبة للعمل. جودة جيدة.',
-            ],
-            [
-                'product_id' => 7,
-                'user_id' => 10,
-                'rating' => 5,
-                'comment' => 'أفضل حذاء رياضي اشتريته! مريح جداً ومناسب للجري.',
-            ],
-            [
-                'product_id' => 7,
-                'user_id' => 1,
-                'rating' => 5,
-                'comment' => 'حذاء ممتاز وسعر معقول. التوصيل كان سريع.',
-            ],
-            [
-                'product_id' => 8,
-                'user_id' => 2,
-                'rating' => 4,
-                'comment' => 'صندل جميل وأنيق، لكن الكعب عالي قليلاً بالنسبة لي.',
-            ],
+        $this->command->info('⭐ إنشاء تقييمات المنتجات...');
+        
+        $reviewCount = 0;
+        
+        // Arabic review comments
+        $reviewComments = [
+            'منتج رائع جداً، أطفالي يحبونه كثيراً',
+            'جودة ممتازة وسعر مناسب',
+            'وصل في الوقت المحدد والتغليف ممتاز',
+            'ابنتي سعيدة جداً بهذا المنتج',
+            'مناسب للعمر المذكور وآمن للأطفال',
+            'ألوان زاهية وجميلة',
+            'قيمة ممتازة مقابل السعر',
+            'مقاوم ومتين، يتحمل اللعب الكثير',
+            'تصميم جميل وعملي',
+            'أنصح بشرائه للأطفال',
+            'منتج تعليمي رائع',
+            'مريح جداً في الاستخدام',
+            'حجم مناسب للأطفال',
+            'ابني يلعب به يومياً',
+            'سهل التنظيف والصيانة',
         ];
-
-        foreach ($reviews as $review) {
-            DB::table('product_reviews')->insert([
-                'product_id' => $review['product_id'],
-                'user_id' => $review['user_id'],
-                'rating' => $review['rating'],
-                'comment' => $review['comment'],
-                'is_approved' => true,
-                'is_deleted' => false,
-                'edit_by' => 1,
-                'created_at' => Carbon::now()->subDays(rand(1, 30)),
-                'updated_at' => Carbon::now()->subDays(rand(1, 30)),
-            ]);
+        
+        // Create reviews for random products
+        $reviewedProducts = $products->random(rand(12, 18));
+        
+        foreach ($reviewedProducts as $product) {
+            $numReviews = rand(2, 8); // 2-8 reviews per product
+            $reviewedUsers = $users->random(min($numReviews, $users->count()));
+            
+            foreach ($reviewedUsers as $user) {
+                ProductReview::create([
+                    'product_id' => $product->id,
+                    'user_id' => $user->id,
+                    'rating' => rand(3, 5), // Rating between 3-5 stars
+                    'comment' => $reviewComments[array_rand($reviewComments)],
+                    'is_approved' => rand(0, 1) == 1, // Random approval status
+                    'is_deleted' => false,
+                ]);
+                $reviewCount++;
+            }
         }
+        
+        $this->command->info("✅ تم إنشاء {$reviewCount} تقييم");
     }
-
-    private function seedOrders(): void
+    
+    private function applyDiscountsToProducts($products, $discounts)
     {
-        $orders = [
-            [
-                'order_number' => 'ORD-2025-001',
-                'user_id' => 1,
-                'status' => 'delivered',
-                'subtotal' => 300.00,
-                'shipping_cost' => 25.00,
-                'total_amount' => 325.00,
-                'shipping_address' => 'الرياض، حي النخيل، شارع الأمير سلطان، رقم 123',
-                'phone' => '+966501234567',
-                'notes' => 'يرجى التوصيل بعد المغرب',
-                'shipped_at' => Carbon::now()->subDays(5),
-                'delivered_at' => Carbon::now()->subDays(3),
-            ],
-            [
-                'order_number' => 'ORD-2025-002',
-                'user_id' => 2,
-                'status' => 'shipped',
-                'subtotal' => 180.00,
-                'shipping_cost' => 20.00,
-                'total_amount' => 200.00,
-                'shipping_address' => 'جدة، حي الزهراء، شارع التحلية، رقم 456',
-                'phone' => '+966507654321',
-                'notes' => null,
-                'shipped_at' => Carbon::now()->subDays(2),
-                'delivered_at' => null,
-            ],
-            [
-                'order_number' => 'ORD-2025-003',
-                'user_id' => 3,
-                'status' => 'pending',
-                'subtotal' => 450.00,
-                'shipping_cost' => 30.00,
-                'total_amount' => 480.00,
-                'shipping_address' => 'الدمام، حي الفيصلية، شارع الملك فهد، رقم 789',
-                'phone' => '+966512345678',
-                'notes' => 'طلب عاجل',
-                'shipped_at' => null,
-                'delivered_at' => null,
-            ],
-            [
-                'order_number' => 'ORD-2025-004',
-                'user_id' => 4,
-                'status' => 'delivered',
-                'subtotal' => 280.00,
-                'shipping_cost' => 25.00,
-                'total_amount' => 305.00,
-                'shipping_address' => 'مكة المكرمة، حي العزيزية، شارع إبراهيم الجفالي، رقم 321',
-                'phone' => '+966598765432',
-                'notes' => null,
-                'shipped_at' => Carbon::now()->subDays(7),
-                'delivered_at' => Carbon::now()->subDays(5),
-            ],
-            [
-                'order_number' => 'ORD-2025-005',
-                'user_id' => 5,
-                'status' => 'cancelled',
-                'subtotal' => 160.00,
-                'shipping_cost' => 20.00,
-                'total_amount' => 180.00,
-                'shipping_address' => 'المدينة المنورة، حي قربان، شارع سيد الشهداء، رقم 654',
-                'phone' => '+966534567890',
-                'notes' => null,
-                'shipped_at' => null,
-                'delivered_at' => null,
-                'cancelled_at' => Carbon::now()->subDays(1),
-                'cancellation_reason' => 'طلب العميل إلغاء الطلب',
-            ],
-        ];
-
-        foreach ($orders as $order) {
-            DB::table('orders')->insert([
-                'order_number' => $order['order_number'],
-                'user_id' => $order['user_id'],
-                'status' => $order['status'],
-                'subtotal' => $order['subtotal'],
-                'shipping_cost' => $order['shipping_cost'],
-                'total_amount' => $order['total_amount'],
-                'shipping_address' => $order['shipping_address'],
-                'phone' => $order['phone'],
-                'notes' => $order['notes'],
-                'shipped_at' => $order['shipped_at'],
-                'delivered_at' => $order['delivered_at'],
-                'cancelled_at' => $order['cancelled_at'] ?? null,
-                'cancellation_reason' => $order['cancellation_reason'] ?? null,
+        $this->command->info('🎯 تطبيق الخصومات على المنتجات...');
+        
+        $discountCount = 0;
+        
+        // Apply discounts to random products
+        $discountedProducts = $products->random(rand(8, 15));
+        
+        foreach ($discountedProducts as $product) {
+            $randomDiscount = $discounts->random();
+            
+            DiscountProduct::create([
+                'product_id' => $product->id,
+                'discount_id' => $randomDiscount->id,
                 'is_deleted' => false,
-                'edit_by' => 1,
-                'created_at' => Carbon::now()->subDays(rand(1, 10)),
-                'updated_at' => Carbon::now()->subDays(rand(1, 5)),
             ]);
+            
+            $discountCount++;
         }
+        
+        $this->command->info("✅ تم تطبيق {$discountCount} خصم على المنتجات");
     }
-
-    private function seedOrderItems(): void
+    
+    private function printSummary()
     {
-        $orderItems = [
-            // Order 1 items
-            ['order_id' => 1, 'product_id' => 1, 'quantity' => 2, 'price' => 120.00, 'size' => 'L'],
-            ['order_id' => 1, 'product_id' => 6, 'quantity' => 1, 'price' => 95.00, 'size' => 'M'],
-            
-            // Order 2 items
-            ['order_id' => 2, 'product_id' => 2, 'quantity' => 1, 'price' => 180.00, 'size' => '42'],
-            
-            // Order 3 items
-            ['order_id' => 3, 'product_id' => 3, 'quantity' => 1, 'price' => 350.00, 'size' => 'XL'],
-            ['order_id' => 3, 'product_id' => 4, 'quantity' => 1, 'price' => 280.00, 'size' => 'M'],
-            
-            // Order 4 items
-            ['order_id' => 4, 'product_id' => 4, 'quantity' => 1, 'price' => 280.00, 'size' => 'S'],
-            
-            // Order 5 items (cancelled)
-            ['order_id' => 5, 'product_id' => 5, 'quantity' => 1, 'price' => 160.00, 'size' => 'L'],
-        ];
-
-        foreach ($orderItems as $item) {
-            $total = $item['price'] * $item['quantity'];
-            DB::table('order_items')->insert([
-                'order_id' => $item['order_id'],
-                'product_id' => $item['product_id'],
-                'quantity' => $item['quantity'],
-                'price' => $item['price'],
-                'size' => $item['size'],
-                'total' => $total,
-                'is_deleted' => false,
-                'edit_by' => 1,
-                'created_at' => Carbon::now(),
-                'updated_at' => Carbon::now(),
-            ]);
-        }
+        $this->command->info('');
+        $this->command->info('📊 ملخص البيانات المنشأة:');
+        $this->command->info('- المستخدمين: ' . User::count());
+        $this->command->info('- التصنيفات: ' . Category::count());
+        $this->command->info('- العلامات التجارية: ' . Brand::count());
+        $this->command->info('- المنتجات: ' . Product::count());
+        $this->command->info('- صور المنتجات: ' . ProductImage::count());
+        $this->command->info('- أحجام المنتجات: ' . ProductSize::count());
+        $this->command->info('- التقييمات: ' . ProductReview::count());
+        $this->command->info('- الخصومات: ' . Discount::count());
+        $this->command->info('- المنتجات المخفضة: ' . DiscountProduct::count());
+        $this->command->info('');
+        $this->command->info('🎉 متجر ملاك جاهز للعمل!');
     }
 }

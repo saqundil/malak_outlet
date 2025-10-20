@@ -72,6 +72,17 @@
                                             
                                             <!-- Price on Mobile -->
                                             <div class="text-right">
+                                                <?php if($item['product']->price > $item['product']->final_price): ?>
+                                                    <!-- Show original price crossed out if there's a discount -->
+                                                    <div class="text-sm text-gray-400 line-through mb-1">
+                                                        <?php echo e(number_format($item['product']->price * $item['quantity'], 2)); ?> د.أ
+                                                    </div>
+                                                    <div class="inline-flex items-center gap-2 mb-2">
+                                                        <span class="bg-red-100 text-red-600 px-2 py-1 rounded-full text-xs font-bold">
+                                                            خصم <?php echo e(round((($item['product']->price - $item['product']->final_price) / $item['product']->price) * 100)); ?>%
+                                                        </span>
+                                                    </div>
+                                                <?php endif; ?>
                                                 <div class="text-lg font-bold text-orange-600">
                                                     <?php echo e(number_format($item['subtotal'], 2)); ?> د.أ
                                                 </div>
@@ -212,7 +223,18 @@
                                     
                                     <!-- Price Section -->
                                     <div class="text-left flex-shrink-0">
-                                        <div class="text-sm text-gray-500 mb-1">سعر الوحدة</div>
+                                        <?php if($item['product']->price > $item['product']->final_price): ?>
+                                            <!-- Show discount badge and original price -->
+                                            <div class="flex items-center justify-end gap-2 mb-2">
+                                                <span class="bg-red-100 text-red-600 px-2 py-1 rounded-full text-xs font-bold">
+                                                    خصم <?php echo e(round((($item['product']->price - $item['product']->final_price) / $item['product']->price) * 100)); ?>%
+                                                </span>
+                                            </div>
+                                            <div class="text-sm text-gray-400 line-through mb-1">السعر الأصلي: <?php echo e(number_format($item['product']->price, 2)); ?> د.أ</div>
+                                            <div class="text-sm text-green-600 font-medium mb-1">سعر الوحدة بعد الخصم</div>
+                                        <?php else: ?>
+                                            <div class="text-sm text-gray-500 mb-1">سعر الوحدة</div>
+                                        <?php endif; ?>
                                         <div class="text-lg font-bold text-gray-900 mb-2"><?php echo e(number_format($item['price'], 2)); ?> د.أ</div>
                                         <?php if($item['quantity'] > 1): ?>
                                         <div class="text-sm text-gray-500 mb-2">
@@ -241,34 +263,90 @@
                         </h2>
                         
                         <div class="space-y-3 sm:space-y-4 mb-6">
+                            <?php if($totalSavings > 0): ?>
                             <div class="flex justify-between text-gray-600 text-sm sm:text-base">
-                                <span>المجموع الفرعي:</span>
+                                <span>السعر الأصلي:</span>
+                                <span class="font-semibold line-through text-gray-400"><?php echo e(number_format($totalOriginal, 2)); ?> د.أ</span>
+                            </div>
+                            <div class="flex justify-between text-green-600 text-sm sm:text-base">
+                                <span>إجمالي الخصم:</span>
+                                <span class="font-bold">-<?php echo e(number_format($totalSavings, 2)); ?> د.أ</span>
+                            </div>
+                            <?php endif; ?>
+                            <div class="flex justify-between text-gray-600 text-sm sm:text-base">
+                                <span>إجمالي المنتجات:</span>
                                 <span class="font-semibold"><?php echo e(number_format($total, 2)); ?> د.أ</span>
                             </div>
                             <div class="flex justify-between text-gray-600 text-sm sm:text-base">
                                 <span>الشحن:</span>
-                                <span class="font-semibold text-green-600">مجاني</span>
-                            </div>
-                            <div class="flex justify-between text-gray-600 text-sm sm:text-base">
-                                <span>الضريبة:</span>
-                                <span class="font-semibold">مشمولة</span>
+                                <span class="font-medium text-blue-600">سيتم تحديده عند اختيار المدينة</span>
                             </div>
                             <div class="border-t border-gray-200 pt-3 sm:pt-4">
                                 <div class="flex justify-between">
-                                    <span class="font-bold text-gray-900 text-base sm:text-lg">المجموع الكلي:</span>
-                                    <span class="font-bold text-xl sm:text-2xl text-orange-600"><?php echo e(number_format($total, 2)); ?> د.أ</span>
+                                    <span class="font-bold text-gray-900 text-base sm:text-lg">المجموع النهائي:</span>
+                                    <div class="text-left">
+                                        <span class="font-bold text-xl sm:text-2xl text-orange-600"><?php echo e(number_format($total, 2)); ?> د.أ</span>
+                                        <div class="text-xs text-gray-500 mt-1">+ رسوم الشحن</div>
+                                    </div>
+                                </div>
+                                <?php if($totalSavings > 0): ?>
+                                <div class="text-center mt-2">
+                                    <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-bold">
+                                        🎉 وفرت <?php echo e(number_format($totalSavings, 2)); ?> د.أ
+                                    </span>
+                                </div>
+                                <?php endif; ?>
+                                
+                                <!-- Shipping Notice -->
+                                <div class="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                    <div class="flex items-start">
+                                        <svg class="w-4 h-4 text-blue-500 mt-0.5 ml-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                        <p class="text-blue-700 text-sm font-medium">
+                                            ستتمكن من معرفة تكلفة الشحن الدقيقة عند اختيار مدينتك في صفحة الدفع
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                         
                         <div class="space-y-3">
+                            <?php if(auth()->guard()->check()): ?>
                             <a href="<?php echo e(route('checkout.index')); ?>" 
                                class="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-3 sm:py-4 px-4 sm:px-6 rounded-xl font-bold text-base sm:text-lg hover:from-orange-600 hover:to-orange-700 transition-all duration-200 text-center block shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
                                 <svg class="w-4 h-4 sm:w-5 sm:h-5 inline-block ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
                                 </svg>
-                                إتمام الطلب
+                                متابعة إلى الدفع
+                                <div class="text-xs font-normal mt-1 opacity-90">سيتم حساب رسوم الشحن في الخطوة التالية</div>
                             </a>
+                            <?php else: ?>
+                            <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
+                                <div class="flex items-center">
+                                    <svg class="w-5 h-5 text-blue-500 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    <p class="text-blue-700 font-medium">يجب تسجيل الدخول لإتمام عملية الشراء</p>
+                                </div>
+                            </div>
+                            <div class="flex flex-col sm:flex-row gap-3">
+                                <a href="<?php echo e(route('login')); ?>" 
+                                   class="flex-1 bg-gradient-to-r from-orange-500 to-orange-600 text-white py-3 sm:py-4 px-4 sm:px-6 rounded-xl font-bold text-base sm:text-lg hover:from-orange-600 hover:to-orange-700 transition-all duration-200 text-center block shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                                    <svg class="w-4 h-4 sm:w-5 sm:h-5 inline-block ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
+                                    </svg>
+                                    تسجيل الدخول
+                                </a>
+                                <a href="<?php echo e(route('register')); ?>" 
+                                   class="flex-1 bg-gray-100 text-gray-700 py-3 sm:py-4 px-4 sm:px-6 rounded-xl font-bold text-base sm:text-lg hover:bg-gray-200 transition-all duration-200 text-center block border-2 border-gray-200">
+                                    <svg class="w-4 h-4 sm:w-5 sm:h-5 inline-block ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
+                                    </svg>
+                                    إنشاء حساب
+                                </a>
+                            </div>
+                            <?php endif; ?>
                             
                             <button type="button" 
                                     id="clear-cart"
@@ -332,6 +410,14 @@
 <?php $__env->startPush('scripts'); ?>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Check if CSRF token is available
+    const csrfToken = document.querySelector('meta[name="csrf-token"]');
+    if (!csrfToken) {
+        console.error('CSRF token not found');
+        showError('خطأ في الأمان - يرجى إعادة تحميل الصفحة');
+        return;
+    }
+    
     // Quantity controls
     document.querySelectorAll('.quantity-btn').forEach(button => {
         button.addEventListener('click', function() {
@@ -340,6 +426,11 @@ document.addEventListener('DOMContentLoaded', function() {
             const isIncrease = this.classList.contains('increase-qty');
             
             const input = document.querySelector(`input[data-product-id="${productId}"][data-size="${size}"]`);
+            if (!input) {
+                console.error('Quantity input not found');
+                return;
+            }
+            
             let quantity = parseInt(input.value);
             
             if (isIncrease) {
@@ -373,87 +464,173 @@ document.addEventListener('DOMContentLoaded', function() {
             const productId = this.dataset.productId;
             const size = this.dataset.size || '';
             
-            if (confirm('هل أنت متأكد من حذف هذا المنتج من السلة؟')) {
+            showConfirm('هل أنت متأكد من حذف هذا المنتج من السلة؟', () => {
                 removeFromCart(productId, size);
-            }
+            });
         });
     });
     
     // Clear cart
     document.getElementById('clear-cart')?.addEventListener('click', function() {
-        if (confirm('هل أنت متأكد من تفريغ السلة بالكامل؟')) {
+        showConfirm('هل أنت متأكد من تفريغ السلة بالكامل؟', () => {
             clearCart();
-        }
+        });
     });
     
     function updateCartItem(productId, quantity, size) {
-        const formData = new FormData();
-        formData.append('quantity', quantity);
-        formData.append('size', size);
-        formData.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
-        formData.append('_method', 'PUT');
+        const csrfToken = document.querySelector('meta[name="csrf-token"]');
+        if (!csrfToken) {
+            showError('خطأ في الأمان - يرجى إعادة تحميل الصفحة');
+            return;
+        }
+        
+        // Create cart key same way as backend
+        let cartKey = productId;
+        if (size && size !== '') {
+            // Find the size ID from the size name 
+            const sizeInput = document.querySelector(`input[data-product-id="${productId}"][data-size="${size}"]`);
+            if (sizeInput) {
+                const cartItem = sizeInput.closest('.cart-item');
+                const actualCartKey = cartItem?.dataset.cartKey;
+                if (actualCartKey) {
+                    cartKey = actualCartKey;
+                } else {
+                    cartKey = productId + '_size_' + size;
+                }
+            }
+        }
         
         fetch(`/cart/update/${productId}`, {
             method: 'POST',
-            body: formData
+            headers: {
+                'X-CSRF-TOKEN': csrfToken.getAttribute('content'),
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                quantity: quantity,
+                cart_key: cartKey
+            })
         })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                throw new Error('Response is not JSON');
+            }
+            return response.json();
+        })
         .then(data => {
             if (data.success) {
-                location.reload(); // Reload to update totals
+                showSuccess('تم تحديث السلة بنجاح');
+                setTimeout(() => location.reload(), 1000); // Reload after showing success message
             } else {
-                alert('حدث خطأ أثناء تحديث السلة');
+                showError('حدث خطأ أثناء تحديث السلة: ' + (data.message || 'خطأ غير معروف'));
             }
         })
         .catch(error => {
-            console.error('Error:', error);
-            alert('حدث خطأ أثناء تحديث السلة');
+            console.error('Error updating cart:', error);
+            showError('حدث خطأ أثناء تحديث السلة: ' + error.message);
         });
     }
     
     function removeFromCart(productId, size) {
-        const formData = new FormData();
-        formData.append('size', size);
-        formData.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
-        formData.append('_method', 'DELETE');
+        const csrfToken = document.querySelector('meta[name="csrf-token"]');
+        if (!csrfToken) {
+            showError('خطأ في الأمان - يرجى إعادة تحميل الصفحة');
+            return;
+        }
         
-        fetch(`/cart/remove/${productId}`, {
+        // Create cart key same way as backend
+        let cartKey = productId;
+        if (size && size !== '') {
+            const sizeInput = document.querySelector(`input[data-product-id="${productId}"][data-size="${size}"]`);
+            if (sizeInput) {
+                const cartItem = sizeInput.closest('.cart-item');
+                const actualCartKey = cartItem?.dataset.cartKey;
+                if (actualCartKey) {
+                    cartKey = actualCartKey;
+                } else {
+                    cartKey = productId + '_size_' + size;
+                }
+            }
+        }
+        
+        fetch(`/cart/remove/${cartKey}`, {
             method: 'POST',
-            body: formData
+            headers: {
+                'X-CSRF-TOKEN': csrfToken.getAttribute('content'),
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({})
         })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                throw new Error('Response is not JSON');
+            }
+            return response.json();
+        })
         .then(data => {
             if (data.success) {
-                location.reload();
+                showSuccess('تم حذف المنتج من السلة بنجاح');
+                setTimeout(() => location.reload(), 1000); // Reload after showing success message
             } else {
-                alert('حدث خطأ أثناء حذف المنتج');
+                showError('حدث خطأ أثناء حذف المنتج: ' + (data.message || 'خطأ غير معروف'));
             }
         })
         .catch(error => {
-            console.error('Error:', error);
-            alert('حدث خطأ أثناء حذف المنتج');
+            console.error('Error removing from cart:', error);
+            showError('حدث خطأ أثناء حذف المنتج: ' + error.message);
         });
     }
     
     function clearCart() {
-        const formData = new FormData();
-        formData.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
+        const csrfToken = document.querySelector('meta[name="csrf-token"]');
+        if (!csrfToken) {
+            showError('خطأ في الأمان - يرجى إعادة تحميل الصفحة');
+            return;
+        }
         
         fetch('/cart/clear', {
             method: 'POST',
-            body: formData
+            headers: {
+                'X-CSRF-TOKEN': csrfToken.getAttribute('content'),
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({})
         })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                throw new Error('Response is not JSON');
+            }
+            return response.json();
+        })
         .then(data => {
             if (data.success) {
-                location.reload();
+                showSuccess('تم تفريغ السلة بنجاح');
+                setTimeout(() => location.reload(), 1000); // Reload after showing success message
             } else {
-                alert('حدث خطأ أثناء تفريغ السلة');
+                showError('حدث خطأ أثناء تفريغ السلة: ' + (data.message || 'خطأ غير معروف'));
             }
         })
         .catch(error => {
-            console.error('Error:', error);
-            alert('حدث خطأ أثناء تفريغ السلة');
+            console.error('Error clearing cart:', error);
+            showError('حدث خطأ أثناء تفريغ السلة: ' + error.message);
         });
     }
 });

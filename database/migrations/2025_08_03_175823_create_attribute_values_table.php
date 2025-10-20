@@ -9,6 +9,7 @@ return new class extends Migration {
     {
         Schema::create('attribute_values', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('product_id')->constrained('products')->onDelete('cascade');
             $table->foreignId('product_attribute_id')->constrained('product_attributes')->onDelete('cascade');
             $table->string('value'); // مثال: أحمر، XL، قطن، إلخ
             $table->boolean('is_deleted')->default(false);
