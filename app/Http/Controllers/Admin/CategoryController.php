@@ -54,9 +54,12 @@ class CategoryController extends Controller
         }
         
         // Get statistics
-        $activeCategories = Category::where('is_active', true)->count();
-        $totalProducts = Product::count();
-        $averageProductsPerCategory = $activeCategories > 0 ? round($totalProducts / $activeCategories, 1) : 0;
+        $stats = [
+            'total_categories' => Category::count(),
+            'active_categories' => Category::where('is_active', true)->count(),
+            'parent_categories' => Category::whereNull('parent_id')->count(),
+            'total_products' => Product::count(),
+        ];
         
         // Handle export
         if ($request->filled('export') && $request->export === 'excel') {
@@ -67,9 +70,7 @@ class CategoryController extends Controller
         
         return view('admin.categories.index', compact(
             'categories',
-            'activeCategories',
-            'totalProducts',
-            'averageProductsPerCategory'
+            'stats'
         ));
     }
     

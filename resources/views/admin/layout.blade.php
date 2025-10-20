@@ -162,7 +162,6 @@
         .p-4 i.fas,
         .rounded-lg i.fas {
             margin-left: 0 !important;
-            margin-right: 12px !important;
         }
         
         .gap-6 {

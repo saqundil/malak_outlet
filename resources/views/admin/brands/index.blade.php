@@ -1,7 +1,12 @@
 @extends('admin.layout')
 
 @section('title', 'إدارة العلامات التجارية')
-@section('page-title', 'إدارة العلامات التجارية')
+@section('page-            <a href="{{ route('admin.brands.create') }}" 
+               class="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors">
+                <i class="fas fa-plus ml-2"></i>
+                إضافة علامة تجارية
+            </a>
+        </div>رة العلامات التجارية')
 @section('page-description', 'عرض وإدارة جميع العلامات التجارية في المتجر')
 
 @section('content')

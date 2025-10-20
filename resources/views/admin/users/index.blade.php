@@ -128,10 +128,6 @@
                 
                 @if($users->count() > 0)
                     <div class="flex gap-3">
-                        <button onclick="exportUsers()" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors">
-                            <i class="fas fa-download ml-2"></i>
-                            تصدير Excel
-                        </button>
                         <button onclick="toggleBulkActions()" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors">
                             <i class="fas fa-tasks ml-2"></i>
                             إجراءات متعددة

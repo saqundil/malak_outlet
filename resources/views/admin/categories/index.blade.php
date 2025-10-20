@@ -15,14 +15,9 @@
         <div class="flex flex-col sm:flex-row gap-3">
             <a href="{{ route('admin.categories.create') }}" 
                class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-medium flex items-center">
-                <i class="fas fa-plus ml-2"></i>
-                إضافة فئة جديدة
+                <i class="fas fa-plus"></i>
+                <span class="mr-2">إضافة فئة جديدة</span>
             </a>
-            <button onclick="exportCategories()" 
-                    class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg font-medium flex items-center">
-                <i class="fas fa-download ml-2"></i>
-                تصدير
-            </button>
         </div>
     </div>
 
@@ -78,23 +73,37 @@
     </div>
 
     <!-- Filters and Search -->
-    <div class="bg-white p-6 rounded-xl shadow-lg">
-        <form method="GET" action="{{ route('admin.categories.index') }}" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
+        <div class="mb-4">
+            <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+                <i class="fas fa-filter text-blue-500"></i>
+                <span class="mr-3">البحث والتصفية</span>
+            </h3>
+            <p class="text-sm text-gray-600 mt-1">استخدم الخيارات التالية للبحث وتصفية الفئات</p>
+        </div>
+        
+        <form method="GET" action="{{ route('admin.categories.index') }}" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <!-- Search -->
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">البحث</label>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    <i class="fas fa-search text-gray-500"></i>
+                    <span class="mr-2">البحث</span>
+                </label>
                 <div class="relative">
                     <input type="text" name="search" value="{{ request('search') }}" 
                            placeholder="البحث في الفئات..." 
-                           class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                    <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                           class="w-full pr-10 pl-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                    <i class="fas fa-search absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                 </div>
             </div>
 
             <!-- Status Filter -->
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">الحالة</label>
-                <select name="status" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    <i class="fas fa-toggle-on text-gray-500"></i>
+                    <span class="mr-2">الحالة</span>
+                </label>
+                <select name="status" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-right bg-white" style="background-image: url('data:image/svg+xml;utf8,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><path d=&quot;M6 9l6 6 6-6&quot;/></svg>'); background-repeat: no-repeat; background-position: left 12px center; background-size: 16px; padding-left: 40px; appearance: none;">
                     <option value="">جميع الحالات</option>
                     <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>نشط</option>
                     <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>غير نشط</option>
@@ -103,8 +112,11 @@
 
             <!-- Parent Filter -->
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">نوع الفئة</label>
-                <select name="parent" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    <i class="fas fa-sitemap text-gray-500"></i>
+                    <span class="mr-2">نوع الفئة</span>
+                </label>
+                <select name="parent" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-right bg-white" style="background-image: url('data:image/svg+xml;utf8,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><path d=&quot;M6 9l6 6 6-6&quot;/></svg>'); background-repeat: no-repeat; background-position: left 12px center; background-size: 16px; padding-left: 40px; appearance: none;">
                     <option value="">جميع الأنواع</option>
                     <option value="main" {{ request('parent') == 'main' ? 'selected' : '' }}>فئات رئيسية</option>
                     <option value="sub" {{ request('parent') == 'sub' ? 'selected' : '' }}>فئات فرعية</option>
@@ -113,8 +125,11 @@
 
             <!-- Sort Filter -->
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">ترتيب حسب</label>
-                <select name="sort" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    <i class="fas fa-sort text-gray-500"></i>
+                    <span class="mr-2">ترتيب حسب</span>
+                </label>
+                <select name="sort" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-right bg-white" style="background-image: url('data:image/svg+xml;utf8,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><path d=&quot;M6 9l6 6 6-6&quot;/></svg>'); background-repeat: no-repeat; background-position: left 12px center; background-size: 16px; padding-left: 40px; appearance: none;">
                     <option value="created_at_desc" {{ request('sort') == 'created_at_desc' ? 'selected' : '' }}>الأحدث</option>
                     <option value="created_at_asc" {{ request('sort') == 'created_at_asc' ? 'selected' : '' }}>الأقدم</option>
                     <option value="name_asc" {{ request('sort') == 'name_asc' ? 'selected' : '' }}>الاسم (أ-ي)</option>
@@ -123,15 +138,22 @@
                 </select>
             </div>
 
-            <div class="md:col-span-4 flex gap-3">
-                <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg">
-                    <i class="fas fa-search ml-2"></i>
-                    بحث
+            <!-- Action Buttons -->
+            <div class="lg:col-span-4 flex flex-wrap gap-3 pt-4 border-t border-gray-200">
+                <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-medium transition-colors flex items-center">
+                    <i class="fas fa-search"></i>
+                    <span class="mr-2">بحث</span>
                 </button>
-                <a href="{{ route('admin.categories.index') }}" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg">
-                    <i class="fas fa-refresh ml-2"></i>
-                    إعادة تعيين
+                <a href="{{ route('admin.categories.index') }}" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg font-medium transition-colors flex items-center">
+                    <i class="fas fa-undo"></i>
+                    <span class="mr-2">إعادة تعيين</span>
                 </a>
+                @if(request()->hasAny(['search', 'status', 'parent', 'sort']))
+                    <div class="flex items-center text-sm text-gray-600 bg-blue-50 px-3 py-2 rounded-lg border border-blue-200">
+                        <i class="fas fa-info-circle text-blue-500"></i>
+                        <span class="mr-2">يتم عرض النتائج المفلترة</span>
+                    </div>
+                @endif
             </div>
         </form>
     </div>
@@ -192,13 +214,13 @@
                                     @if($category->image)
                                         <img src="{{ asset('storage/' . $category->image) }}" 
                                              alt="{{ $category->name }}" 
-                                             class="w-12 h-12 rounded-lg object-cover ml-4">
+                                             class="w-12 h-12 rounded-lg object-cover">
                                     @else
-                                        <div class="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center ml-4">
+                                        <div class="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center">
                                             <i class="fas fa-tag text-gray-400"></i>
                                         </div>
                                     @endif
-                                    <div>
+                                    <div class="ml-4">
                                         <div class="text-sm font-medium text-gray-900">{{ $category->name }}</div>
                                         <div class="text-sm text-gray-500">{{ Str::limit($category->description ?? '', 50) }}</div>
                                         @if($category->slug)
@@ -221,7 +243,7 @@
                             <td class="px-6 py-4 text-sm text-gray-900">
                                 <div class="flex items-center">
                                     <span class="font-medium">{{ $category->products_count ?? 0 }}</span>
-                                    <span class="text-gray-500 mr-2">منتج</span>
+                                    <span class="text-gray-500 ml-2">منتج</span>
                                 </div>
                             </td>
                             <td class="px-6 py-4">
@@ -230,7 +252,7 @@
                                         {{ $category->is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
                                         {{ $category->is_active ? 'نشط' : 'غير نشط' }}
                                     </span>
-                                    <button onclick="toggleStatus({{ $category->slug }})" 
+                                    <button onclick="toggleStatus('{{ $category->slug }}')" 
                                             class="text-xs text-blue-600 hover:text-blue-800">
                                         تغيير
                                     </button>
@@ -249,15 +271,15 @@
                                        class="text-indigo-600 hover:text-indigo-800" title="تعديل">
                                         <i class="fas fa-edit"></i>
                                     </a>
-                                    <button onclick="viewProducts({{ $category->slug }})" 
+                                    <button onclick="viewProducts('{{ $category->slug }}')" 
                                             class="text-green-600 hover:text-green-800" title="عرض المنتجات">
                                         <i class="fas fa-box"></i>
                                     </button>
-                                    <button onclick="duplicateCategory({{ $category->slug }})" 
+                                    <button onclick="duplicateCategory('{{ $category->slug }}')" 
                                             class="text-purple-600 hover:text-purple-800" title="نسخ">
                                         <i class="fas fa-copy"></i>
                                     </button>
-                                    <button onclick="deleteCategory({{ $category->slug }})" 
+                                    <button onclick="deleteCategory('{{ $category->slug }}')" 
                                             class="text-red-600 hover:text-red-800" title="حذف">
                                         <i class="fas fa-trash"></i>
                                     </button>
@@ -283,8 +305,8 @@
                 <p class="text-gray-500 mb-6">ابدأ بإضافة فئات لتصنيف منتجاتك</p>
                 <a href="{{ route('admin.categories.create') }}" 
                    class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-medium inline-flex items-center">
-                    <i class="fas fa-plus ml-2"></i>
-                    إضافة أول فئة
+                    <i class="fas fa-plus"></i>
+                    <span class="mr-2">إضافة أول فئة</span>
                 </a>
             </div>
         @endif
@@ -299,7 +321,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const bulkActionsBar = document.getElementById('bulkActionsBar');
     const selectedCountSpan = document.getElementById('selectedCount');
 
-    selectAllCheckbox.addEventListener('change', function() {
+    selectAllCheckbox?.addEventListener('change', function() {
         categoryCheckboxes.forEach(checkbox => {
             checkbox.checked = this.checked;
         });
@@ -315,10 +337,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const count = selectedCategories.length;
         
         if (count > 0) {
-            bulkActionsBar.classList.remove('hidden');
+            bulkActionsBar?.classList.remove('hidden');
             selectedCountSpan.textContent = count;
         } else {
-            bulkActionsBar.classList.add('hidden');
+            bulkActionsBar?.classList.add('hidden');
         }
         
         selectAllCheckbox.checked = count === categoryCheckboxes.length;
@@ -331,7 +353,7 @@ function clearSelection() {
         checkbox.checked = false;
     });
     document.getElementById('selectAll').checked = false;
-    document.getElementById('bulkActionsBar').classList.add('hidden');
+    document.getElementById('bulkActionsBar')?.classList.add('hidden');
 }
 
 function toggleStatus(categoryId) {

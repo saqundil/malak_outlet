@@ -18,11 +18,6 @@
                 <i class="fas fa-plus ml-2"></i>
                 إضافة منتج جديد
             </a>
-            <button onclick="exportProducts()" 
-                    class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg font-medium flex items-center">
-                <i class="fas fa-download ml-2"></i>
-                تصدير
-            </button>
         </div>
     </div>
 
