@@ -49,6 +49,10 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(fun
     Route::resource('discounts', DiscountController::class);
     Route::post('discounts/{discount}/toggle-status', [DiscountController::class, 'toggleStatus'])->name('discounts.toggle-status');
     Route::post('discounts/bulk-action', [DiscountController::class, 'bulkAction'])->name('discounts.bulk-action');
+    Route::get('discounts/{discount}/products', [DiscountController::class, 'products'])->name('discounts.products');
+    Route::get('discounts/{discount}/categories', [DiscountController::class, 'categories'])->name('discounts.categories');
+    Route::put('discounts/{discount}/sync-products', [DiscountController::class, 'syncProducts'])->name('discounts.sync-products');
+    Route::put('discounts/{discount}/sync-categories', [DiscountController::class, 'syncCategories'])->name('discounts.sync-categories');
     Route::post('discounts/{discount}/apply-to-products', [DiscountController::class, 'applyToProducts'])->name('discounts.apply-to-products');
     Route::post('discounts/{discount}/apply-to-categories', [DiscountController::class, 'applyToCategories'])->name('discounts.apply-to-categories');
     

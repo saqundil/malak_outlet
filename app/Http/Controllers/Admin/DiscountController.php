@@ -22,8 +22,7 @@ class DiscountController extends Controller
             $search = $request->search;
             $query->where(function($q) use ($search) {
                 $q->where('name', 'LIKE', "%{$search}%")
-                  ->orWhere('description', 'LIKE', "%{$search}%")
-                  ->orWhere('code', 'LIKE', "%{$search}%");
+                  ->orWhere('description', 'LIKE', "%{$search}%");
             });
         }
 
@@ -42,7 +41,7 @@ class DiscountController extends Controller
 
         // Filter by type
         if ($request->filled('type')) {
-            $query->where('type', $request->type);
+            $query->where('discount_type', $request->type);
         }
 
         // Sort
@@ -62,6 +61,9 @@ class DiscountController extends Controller
         } elseif ($sortBy === 'name_desc') {
             $sortBy = 'name';
             $sortDirection = 'desc';
+        } elseif ($sortBy === 'discount_value') {
+            $sortBy = 'discount_value';
+            $sortDirection = 'asc';
         }
         
         $query->orderBy($sortBy, $sortDirection);
@@ -73,11 +75,7 @@ class DiscountController extends Controller
 
     public function create()
     {
-        $products = Product::active()->orderBy('name')->get(['id', 'name', 'price']);
-        $categories = Category::active()->orderBy('name')->get(['id', 'name']);
-        $brands = Brand::active()->orderBy('name')->get(['id', 'name']);
-
-        return view('admin.discounts.create', compact('products', 'categories', 'brands'));
+        return view('admin.discounts.create');
     }
 
     public function store(Request $request)
@@ -85,47 +83,24 @@ class DiscountController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'code' => 'nullable|string|max:50|unique:discounts,code',
-            'type' => 'required|in:percentage,fixed_amount',
-            'value' => 'required|numeric|min:0',
-            'min_purchase_amount' => 'nullable|numeric|min:0',
-            'max_discount_amount' => 'nullable|numeric|min:0',
-            'usage_limit' => 'nullable|integer|min:1',
+            'discount_type' => 'required|in:percentage,fixed',
+            'discount_value' => 'required|numeric|min:0',
             'starts_at' => 'nullable|date',
             'ends_at' => 'nullable|date|after:starts_at',
             'is_active' => 'boolean',
-            'apply_to' => 'required|in:all_products,specific_products,specific_categories',
-            'product_ids' => 'nullable|array',
-            'product_ids.*' => 'exists:products,id',
-            'category_ids' => 'nullable|array',
-            'category_ids.*' => 'exists:categories,id',
         ]);
 
         // Validate percentage discounts
-        if ($validated['type'] === 'percentage' && $validated['value'] > 100) {
-            return back()->withErrors(['value' => 'Percentage discount cannot exceed 100%'])->withInput();
+        if ($validated['discount_type'] === 'percentage' && $validated['discount_value'] > 100) {
+            return back()->withErrors(['discount_value' => 'Percentage discount cannot exceed 100%'])->withInput();
         }
 
-        DB::beginTransaction();
         try {
             $discount = Discount::create($validated);
-
-            // Handle product associations
-            if ($validated['apply_to'] === 'specific_products' && !empty($validated['product_ids'])) {
-                $discount->products()->attach($validated['product_ids']);
-            }
-
-            // Handle category associations
-            if ($validated['apply_to'] === 'specific_categories' && !empty($validated['category_ids'])) {
-                $discount->categories()->attach($validated['category_ids']);
-            }
-
-            DB::commit();
 
             return redirect()->route('admin.discounts.index')
                            ->with('success', 'Discount created successfully!');
         } catch (\Exception $e) {
-            DB::rollback();
             Log::error('Error creating discount: ' . $e->getMessage());
             return back()->withErrors(['error' => 'Failed to create discount.'])->withInput();
         }
@@ -161,51 +136,24 @@ class DiscountController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'code' => 'nullable|string|max:50|unique:discounts,code,' . $discount->id,
-            'type' => 'required|in:percentage,fixed_amount',
-            'value' => 'required|numeric|min:0',
-            'min_purchase_amount' => 'nullable|numeric|min:0',
-            'max_discount_amount' => 'nullable|numeric|min:0',
-            'usage_limit' => 'nullable|integer|min:1',
+            'discount_type' => 'required|in:percentage,fixed',
+            'discount_value' => 'required|numeric|min:0',
             'starts_at' => 'nullable|date',
             'ends_at' => 'nullable|date|after:starts_at',
             'is_active' => 'boolean',
-            'apply_to' => 'required|in:all_products,specific_products,specific_categories',
-            'product_ids' => 'nullable|array',
-            'product_ids.*' => 'exists:products,id',
-            'category_ids' => 'nullable|array',
-            'category_ids.*' => 'exists:categories,id',
         ]);
 
         // Validate percentage discounts
-        if ($validated['type'] === 'percentage' && $validated['value'] > 100) {
-            return back()->withErrors(['value' => 'Percentage discount cannot exceed 100%'])->withInput();
+        if ($validated['discount_type'] === 'percentage' && $validated['discount_value'] > 100) {
+            return back()->withErrors(['discount_value' => 'Percentage discount cannot exceed 100%'])->withInput();
         }
 
-        DB::beginTransaction();
         try {
             $discount->update($validated);
-
-            // Update product associations
-            if ($validated['apply_to'] === 'specific_products') {
-                $discount->products()->sync($validated['product_ids'] ?? []);
-            } else {
-                $discount->products()->detach();
-            }
-
-            // Update category associations
-            if ($validated['apply_to'] === 'specific_categories') {
-                $discount->categories()->sync($validated['category_ids'] ?? []);
-            } else {
-                $discount->categories()->detach();
-            }
-
-            DB::commit();
 
             return redirect()->route('admin.discounts.index')
                            ->with('success', 'Discount updated successfully!');
         } catch (\Exception $e) {
-            DB::rollback();
             Log::error('Error updating discount: ' . $e->getMessage());
             return back()->withErrors(['error' => 'Failed to update discount.'])->withInput();
         }
@@ -311,6 +259,65 @@ class DiscountController extends Controller
                 'success' => false,
                 'message' => 'Failed to apply discount to products.'
             ], 500);
+        }
+    }
+
+    public function products(Discount $discount)
+    {
+        $discount->load('products.images');
+        $availableProducts = Product::whereNotIn('id', $discount->products->pluck('id'))
+                                  ->where('is_active', true)
+                                  ->with('images')
+                                  ->orderBy('name')
+                                  ->get();
+        
+        return view('admin.discounts.products', compact('discount', 'availableProducts'));
+    }
+
+    public function categories(Discount $discount)
+    {
+        $discount->load('categories');
+        $availableCategories = Category::whereNotIn('id', $discount->categories->pluck('id'))
+                                     ->where('is_active', true)
+                                     ->orderBy('name')
+                                     ->get();
+        
+        return view('admin.discounts.categories', compact('discount', 'availableCategories'));
+    }
+
+    public function syncProducts(Request $request, Discount $discount)
+    {
+        $validated = $request->validate([
+            'product_ids' => 'array',
+            'product_ids.*' => 'exists:products,id'
+        ]);
+
+        try {
+            $discount->products()->sync($validated['product_ids'] ?? []);
+            
+            return redirect()->route('admin.discounts.products', $discount)
+                           ->with('success', 'تم تحديث المنتجات المرتبطة بالخصم بنجاح!');
+        } catch (\Exception $e) {
+            Log::error('Error syncing discount products: ' . $e->getMessage());
+            return back()->withErrors(['error' => 'فشل في تحديث المنتجات المرتبطة.']);
+        }
+    }
+
+    public function syncCategories(Request $request, Discount $discount)
+    {
+        $validated = $request->validate([
+            'category_ids' => 'array',
+            'category_ids.*' => 'exists:categories,id'
+        ]);
+
+        try {
+            $discount->categories()->sync($validated['category_ids'] ?? []);
+            
+            return redirect()->route('admin.discounts.categories', $discount)
+                           ->with('success', 'تم تحديث الفئات المرتبطة بالخصم بنجاح!');
+        } catch (\Exception $e) {
+            Log::error('Error syncing discount categories: ' . $e->getMessage());
+            return back()->withErrors(['error' => 'فشل في تحديث الفئات المرتبطة.']);
         }
     }
 
