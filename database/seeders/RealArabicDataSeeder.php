@@ -578,10 +578,15 @@ class RealArabicDataSeeder extends Seeder
             'سهل التنظيف والصيانة',
         ];
         
-        // Create reviews for random products
-        $reviewedProducts = $products->random(rand(12, 18));
-        
-        foreach ($reviewedProducts as $product) {
+        // Create reviews for random products (safe bounds)
+        $productsCount = $products->count();
+        if ($productsCount > 0) {
+            $minReviewed = min(12, $productsCount);
+            $maxReviewed = min(18, $productsCount);
+            $reviewPick = rand($minReviewed, $maxReviewed);
+            $reviewedProducts = $products->shuffle()->take($reviewPick);
+
+            foreach ($reviewedProducts as $product) {
             $numReviews = rand(2, 8); // 2-8 reviews per product
             $reviewedUsers = $users->random(min($numReviews, $users->count()));
             
@@ -596,6 +601,7 @@ class RealArabicDataSeeder extends Seeder
                 ]);
                 $reviewCount++;
             }
+            }
         }
         
         $this->command->info("✅ تم إنشاء {$reviewCount} تقييم");
@@ -607,19 +613,26 @@ class RealArabicDataSeeder extends Seeder
         
         $discountCount = 0;
         
-        // Apply discounts to random products
-        $discountedProducts = $products->random(rand(8, 15));
-        
-        foreach ($discountedProducts as $product) {
-            $randomDiscount = $discounts->random();
-            
-            DiscountProduct::create([
-                'product_id' => $product->id,
-                'discount_id' => $randomDiscount->id,
-                'is_deleted' => false,
-            ]);
-            
-            $discountCount++;
+        // Apply discounts to random products (safe bounds)
+        $productsCount = $products->count();
+        $discountsCount = $discounts->count();
+        if ($productsCount > 0 && $discountsCount > 0) {
+            $minDiscounted = min(8, $productsCount);
+            $maxDiscounted = min(15, $productsCount);
+            $discountPick = rand($minDiscounted, $maxDiscounted);
+            $discountedProducts = $products->shuffle()->take($discountPick);
+
+            foreach ($discountedProducts as $product) {
+                $randomDiscount = $discounts->random();
+
+                DiscountProduct::create([
+                    'product_id' => $product->id,
+                    'discount_id' => $randomDiscount->id,
+                    'is_deleted' => false,
+                ]);
+
+                $discountCount++;
+            }
         }
         
         $this->command->info("✅ تم تطبيق {$discountCount} خصم على المنتجات");
