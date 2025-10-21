@@ -152,30 +152,73 @@
         
         <!-- Action Buttons -->
         @if($cardSize === 'compact')
-        <button class="add-to-cart-btn bg-orange-500 text-white p-2 rounded-lg hover:bg-orange-600 transition-colors text-xs float-left"
-                data-product-id="{{ $product->slug }}">
-            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-            </svg>
-        </button>
+            @if($product->stock_quantity <= 0)
+                <!-- Out of stock -->
+                <button class="bg-gray-400 text-white p-2 rounded-lg text-xs float-left cursor-not-allowed" disabled>
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18.364 5.636 5.636 18.364"></path>
+                    </svg>
+                </button>
+            @elseif($product->sizes && $product->sizes->count() > 0)
+                <!-- Product has sizes - redirect to product page -->
+                <a href="{{ route('products.show', $product->slug) }}" 
+                   class="bg-orange-500 text-white p-2 rounded-lg hover:bg-orange-600 transition-colors text-xs float-left">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                    </svg>
+                </a>
+            @else
+                <!-- Product without sizes - direct add to cart -->
+                <button class="add-to-cart-btn bg-orange-500 text-white p-2 rounded-lg hover:bg-orange-600 transition-colors text-xs float-left"
+                        data-product-id="{{ $product->slug }}">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                    </svg>
+                </button>
+            @endif
         @else
         <div class="flex space-x-3 space-x-reverse">
-            <button class="add-to-cart-btn flex-1 btn-gradient text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed {{ $product->stock_quantity <= 0 ? 'opacity-50 cursor-not-allowed' : '' }}"
-                    data-product-id="{{ $product->slug }}"
-                    {{ $product->stock_quantity <= 0 ? 'disabled' : '' }}>
-                <span class="btn-text flex items-center justify-center">
-                    <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 2.5M7 13l2.5 2.5m6 0L18 18H9m6 0a2 2 0 11-4 0m4 0a2 2 0 11-4 0m4 0h2a2 2 0 002-2V6a2 2 0 00-2-2H4a2 2 0 00-2 2v6a2 2 0 002 2z"></path>
-                    </svg>
-                    {{ $product->stock_quantity <= 0 ? 'نفذت الكمية' : 'أضف للسلة' }}
-                </span>
-                <span class="loading-text hidden">
-                    <svg class="animate-spin h-5 w-5 text-white mx-auto" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                </span>
-            </button>
+            @if($product->stock_quantity <= 0)
+                <!-- Out of stock -->
+                <button class="flex-1 btn-gradient text-white font-bold py-3 px-4 rounded-lg opacity-50 cursor-not-allowed" disabled>
+                    <span class="flex items-center justify-center">
+                        <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18.364 5.636 5.636 18.364"></path>
+                        </svg>
+                        نفذت الكمية
+                    </span>
+                </button>
+            @elseif($product->sizes && $product->sizes->count() > 0)
+                <!-- Product has sizes - redirect to product page -->
+                <a href="{{ route('products.show', $product->slug) }}" 
+                   class="flex-1 btn-gradient text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl text-center">
+                    <span class="flex items-center justify-center">
+                        <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                        </svg>
+                        اختر المقاس
+                    </span>
+                </a>
+            @else
+                <!-- Product without sizes - direct add to cart -->
+                <button class="add-to-cart-btn flex-1 btn-gradient text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl"
+                        data-product-id="{{ $product->slug }}">
+                    <span class="btn-text flex items-center justify-center">
+                        <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 2.5M7 13l2.5 2.5m6 0L18 18H9m6 0a2 2 0 11-4 0m4 0a2 2 0 11-4 0m4 0h2a2 2 0 002-2V6a2 2 0 00-2-2H4a2 2 0 00-2 2v6a2 2 0 002 2z"></path>
+                        </svg>
+                        أضف للسلة
+                    </span>
+                    <span class="loading-text hidden">
+                        <svg class="animate-spin h-5 w-5 text-white mx-auto" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                    </span>
+                </button>
+            @endif
             
             <button class="bg-gray-100 text-gray-600 p-3 rounded-lg hover:bg-orange-50 hover:text-orange-600 transition-colors duration-200 group add-to-wishlist-btn {{ in_array($product->slug, $wishlistProductIds) ? 'is-in-wishlist text-red-500' : '' }}"
                     data-product-id="{{ $product->slug }}"

@@ -205,7 +205,7 @@
                         <div class="relative mb-6">
                             <div class="aspect-square bg-gray-100 rounded-2xl overflow-hidden group">
                                 <?php if($product->images->first()): ?>
-                                    <img src="<?php echo e($product->images->first()->image_path); ?>" alt="<?php echo e($product->name); ?>"
+                                    <img src="<?php echo e(asset('storage/' . $product->images->first()->image_path)); ?>" alt="<?php echo e($product->name); ?>"
                                         class="w-full h-full object-cover product-image-zoom cursor-zoom-in" id="main-image">
                                 <?php else: ?>
                                     <div class="w-full h-full bg-gray-200 flex items-center justify-center">
@@ -232,8 +232,8 @@
                             <div class="flex gap-3 overflow-x-auto pb-2">
                                 <?php $__currentLoopData = $product->images; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $image): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                     <div class="flex-shrink-0 w-20 h-20 bg-gray-100 rounded-lg overflow-hidden cursor-pointer border-2 transition-all duration-200 <?php echo e($index === 0 ? 'border-orange-500' : 'border-transparent hover:border-gray-300'); ?> thumbnail-image"
-                                        data-image-url="<?php echo e($image->image_path); ?>">
-                                        <img src="<?php echo e($image->image_path); ?>" alt="<?php echo e($product->name); ?>"
+                                        data-image-url="<?php echo e(asset('storage/' . $image->image_path)); ?>">
+                                        <img src="<?php echo e(asset('storage/' . $image->image_path)); ?>" alt="<?php echo e($product->name); ?>"
                                             class="w-full h-full object-cover">
                                     </div>
                                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
@@ -311,7 +311,21 @@
                                 getSelectedSizeData() {
                                     return this.sizes.find(size => size.id === this.selectedSize) || null;
                                 }
-                            }" class="mb-8 p-6 bg-white rounded-xl border">
+                            }" class="mb-8 p-6 bg-white rounded-xl border" x-init="
+                                $watch('selectedSize', value => {
+                                    const addToCartBtn = document.querySelector('.add-to-cart-main');
+                                    const btnText = addToCartBtn?.querySelector('.btn-text');
+                                    if (btnText) {
+                                        if (value) {
+                                            btnText.innerHTML = '<i class=\"fas fa-shopping-cart ml-2\"></i>أضف إلى السلة';
+                                            addToCartBtn.classList.remove('opacity-75');
+                                        } else {
+                                            btnText.innerHTML = '<i class=\"fas fa-hand-point-up ml-2\"></i>اختر المقاس أولاً';
+                                            addToCartBtn.classList.add('opacity-75');
+                                        }
+                                    }
+                                })
+                            ">
                                 <label class="text-lg font-semibold text-gray-700 mb-4 block">الحجم المتاح:</label>
                                 <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
                                     <?php $__currentLoopData = $product->availableSizes; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $size): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
@@ -435,9 +449,14 @@
 
                                 <div class="space-y-4">
                                     <button data-product-id="<?php echo e($product->slug); ?>"
-                                        class="add-to-cart-main w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-4 px-6 rounded-xl font-bold text-lg hover:from-orange-600 hover:to-orange-700 transition-all duration-300 transform hover:scale-105 shadow-lg add-to-cart-btn">
-                                        <i class="fas fa-shopping-cart ml-2"></i>
-                                        <span class="btn-text">أضف إلى السلة</span>
+                                        class="add-to-cart-main w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-4 px-6 rounded-xl font-bold text-lg hover:from-orange-600 hover:to-orange-700 transition-all duration-300 transform hover:scale-105 shadow-lg add-to-cart-btn <?php echo e($product->sizes && $product->sizes->count() > 0 ? 'opacity-75' : ''); ?>">
+                                        <?php if($product->sizes && $product->sizes->count() > 0): ?>
+                                            <i class="fas fa-hand-point-up ml-2"></i>
+                                            <span class="btn-text">اختر المقاس أولاً</span>
+                                        <?php else: ?>
+                                            <i class="fas fa-shopping-cart ml-2"></i>
+                                            <span class="btn-text">أضف إلى السلة</span>
+                                        <?php endif; ?>
                                         <span class="loading-text hidden">
                                             <i class="fas fa-spinner fa-spin ml-2"></i>جاري الإضافة...
                                         </span>
@@ -453,29 +472,6 @@
                                 </div>
                             </div>
                         <?php endif; ?>
-
-                        <!-- Product Features -->
-                        <div class="mb-8 p-6 bg-white rounded-xl border">
-                            <h3 class="text-lg font-bold text-gray-900 mb-4">مميزات المنتج</h3>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div class="flex items-center gap-3">
-                                    <i class="fas fa-shipping-fast text-orange-500"></i>
-                                    <span class="text-gray-700">شحن مجاني للطلبات فوق 200 د.أ</span>
-                                </div>
-                                <div class="flex items-center gap-3">
-                                    <i class="fas fa-undo text-orange-500"></i>
-                                    <span class="text-gray-700">إمكانية الإرجاع خلال 14 يوم</span>
-                                </div>
-                                <div class="flex items-center gap-3">
-                                    <i class="fas fa-shield-alt text-orange-500"></i>
-                                    <span class="text-gray-700">ضمان الجودة</span>
-                                </div>
-                                <div class="flex items-center gap-3">
-                                    <i class="fas fa-headset text-orange-500"></i>
-                                    <span class="text-gray-700">دعم فني 24/7</span>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -869,105 +865,155 @@
                             <?php endif; ?>
                         </div>
                     </div>
-                </div>
-            </div>
-            <!-- Professional Related Products Section -->
-            <?php if($relatedProducts->count() > 0): ?>
-                <div class="bg-white rounded-xl shadow-lg overflow-hidden">
-                    <div class="border-b border-gray-200 p-6">
-                        <div class="flex items-center justify-between" dir="rtl">
-                            <h2 class="text-2xl font-bold text-gray-900">منتجات ذات صلة</h2>
-                            <a href="<?php echo e(route('products.category', $product->category->slug)); ?>"
-                                class="text-orange-500 hover:text-orange-600 font-medium transition-colors">
-                                عرض المزيد <i class="fas fa-arrow-left mr-2"></i>
-                            </a>
-                        </div>
-                    </div>
 
-                    <div class="p-6">
-                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                            <?php $__currentLoopData = $relatedProducts; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $relatedProduct): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                <div
-                                    class="group bg-gray-50 rounded-xl overflow-hidden hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
-                                    <div class="relative aspect-square overflow-hidden">
-                                        <?php if($relatedProduct->images->first()): ?>
-                                            <img src="<?php echo e($relatedProduct->images->first()->image_path); ?>"
-                                                alt="<?php echo e($relatedProduct->name); ?>"
-                                                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
-                                        <?php else: ?>
-                                            <div class="w-full h-full bg-gray-200 flex items-center justify-center">
-                                                <i class="fas fa-image text-gray-400 text-4xl"></i>
-                                            </div>
-                                        <?php endif; ?>
+                    <!-- Professional Related Products Section -->
+                    <?php if($relatedProducts->count() > 0): ?>
+                        <div class="border-t border-gray-200">
+                            <div class="p-6">
+                                <div class="flex items-center justify-between mb-6" dir="rtl">
+                                    <h2 class="text-2xl font-bold text-gray-900">منتجات ذات صلة</h2>
+                                    <a href="<?php echo e(route('products.category', $product->category->slug)); ?>"
+                                        class="text-orange-500 hover:text-orange-600 font-medium transition-colors">
+                                        عرض المزيد <i class="fas fa-arrow-left mr-2"></i>
+                                    </a>
+                                </div>
 
-                                        <!-- Sale Badge -->
-                                        <?php if($relatedProduct->has_discount): ?>
-                                            <div
-                                                class="absolute top-3 right-3 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-bold">
-                                                خصم
-                                                <?php echo e(number_format($relatedProduct->discount_percentage, 0)); ?>%
-                                            </div>
-                                        <?php endif; ?>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+                                    <?php $__currentLoopData = $relatedProducts->take(4); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $relatedProduct): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <div class="bg-white rounded-lg sm:rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 group border border-gray-100 flex flex-col h-full">
+                                            <div class="relative">
+                                                <a href="<?php echo e(route('products.show', $relatedProduct->slug)); ?>" class="block">
+                                                    <?php if($relatedProduct->images->first()): ?>
+                                                        <img src="<?php echo e(asset('storage/' . $relatedProduct->images->first()->image_path)); ?>" 
+                                                             alt="<?php echo e($relatedProduct->name); ?>" 
+                                                             class="w-full h-40 sm:h-48 lg:h-56 object-cover group-hover:scale-105 transition-transform duration-300">
+                                                    <?php else: ?>
+                                                        <div class="w-full h-40 sm:h-48 lg:h-56 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                                                            <svg class="w-8 h-8 sm:w-12 sm:h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 01-2-2z"></path>
+                                                            </svg>
+                                                        </div>
+                                                    <?php endif; ?>
+                                                </a>
+                                                
+                                                <!-- Badges -->
+                                                <div class="absolute top-2 sm:top-3 left-2 sm:left-3 flex flex-col gap-1 sm:gap-2">
+                                                    <?php if($relatedProduct->has_discount): ?>
+                                                        <span class="bg-gradient-to-r from-red-500 to-red-600 text-white px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs font-bold shadow-lg border-2 border-white">
+                                                            خصم <?php echo e(number_format($relatedProduct->discount_percentage, 0)); ?>%
+                                                        </span>
+                                                    <?php endif; ?>
+                                                    <?php if($relatedProduct->is_featured): ?>
+                                                        <span class="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs font-bold shadow-lg border-2 border-white">
+                                                            مميز
+                                                        </span>
+                                                    <?php endif; ?>
+                                                </div>
+                                                
+                                                <!-- Wishlist Button -->
+                                                <div class="absolute top-2 sm:top-3 right-2 sm:right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                                    <button class="bg-white/90 backdrop-blur-sm p-1.5 sm:p-2 rounded-full shadow-lg hover:bg-white hover:shadow-xl text-gray-600 add-to-wishlist-btn transition-all duration-200"
+                                                            data-product-id="<?php echo e($relatedProduct->slug); ?>"
+                                                            title="إضافة إلى قائمة الأمنيات">
+                                                        <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                                                        </svg>
+                                                    </button>
+                                                </div>
 
-                                        <!-- Quick View Button -->
-                                        <div
-                                            class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300 flex items-center justify-center">
-                                            <a href="<?php echo e(route('products.show', $product->slug)); ?>"
-                                                class="bg-white text-gray-900 px-4 py-2 rounded-lg font-medium opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300 shadow-lg">
-                                                عرض سريع
-                                            </a>
-                                        </div>
-                                    </div>
-
-                                    <div class="p-4" dir="rtl">
-                                        <h3
-                                            class="font-semibold text-lg mb-2 text-gray-800 group-hover:text-orange-600 transition-colors line-clamp-2">
-                                            <?php echo e($relatedProduct->name); ?>
-
-                                        </h3>
-
-                                        <?php if($relatedProduct->brand): ?>
-                                            <p class="text-sm text-gray-500 mb-3"><?php echo e($relatedProduct->brand->name); ?></p>
-                                        <?php endif; ?>
-
-                                        <div class="flex items-center justify-between">
-                                            <div>
-                                                <?php if($relatedProduct->has_discount): ?>
-                                                    <div class="space-y-1">
-                                                        <span
-                                                            class="text-lg font-bold text-orange-600"><?php echo e(number_format($relatedProduct->final_price, 2)); ?>
-
-                                                            د.أ</span>
-                                                        <br>
-                                                        <span
-                                                            class="text-sm text-gray-500 line-through"><?php echo e(number_format($relatedProduct->price, 2)); ?>
-
-                                                            د.أ</span>
+                                                <!-- Stock Status -->
+                                                <?php if($relatedProduct->stock_quantity <= 0): ?>
+                                                    <div class="absolute inset-0 bg-black/50 flex items-center justify-center">
+                                                        <span class="bg-red-500 text-white px-3 sm:px-4 py-2 rounded-lg font-semibold text-sm">غير متوفر</span>
                                                     </div>
-                                                <?php else: ?>
-                                                    <span
-                                                        class="text-lg font-bold text-gray-800"><?php echo e(number_format($relatedProduct->price, 2)); ?>
-
-                                                        د.أ</span>
                                                 <?php endif; ?>
                                             </div>
+                                            
+                                            <div class="p-3 sm:p-4 flex flex-col flex-1" dir="rtl">
+                                                <!-- Product Brand -->
+                                                <?php if($relatedProduct->brand): ?>
+                                                    <p class="text-xs text-orange-600 font-medium mb-1 uppercase tracking-wide"><?php echo e($relatedProduct->brand->name); ?></p>
+                                                <?php endif; ?>
 
-                                            <?php if($relatedProduct->stock_quantity > 0): ?>
-                                                <button data-product-id="<?php echo e($relatedProduct->slug); ?>"
-                                                    class="add-to-cart-quick bg-orange-500 text-white p-2 rounded-lg hover:bg-orange-600 transition-colors shadow-md">
-                                                    <i class="fas fa-shopping-cart"></i>
-                                                </button>
-                                            <?php else: ?>
-                                                <span class="text-xs text-red-500 font-medium">غير متوفر</span>
-                                            <?php endif; ?>
+                                                <!-- Product Name -->
+                                                <a href="<?php echo e(route('products.show', $relatedProduct->slug)); ?>" class="block">
+                                                    <h3 class="font-bold text-sm sm:text-base lg:text-lg mb-2 text-gray-800 hover:text-orange-600 transition-colors duration-200 leading-tight line-clamp-2">
+                                                        <?php echo e(Str::limit($relatedProduct->name, 50)); ?>
+
+                                                    </h3>
+                                                </a>
+
+                                                <!-- Product Category -->
+                                                <?php if($relatedProduct->category): ?>
+                                                    <p class="text-xs text-gray-500 mb-2 sm:mb-3"><?php echo e($relatedProduct->category->name); ?></p>
+                                                <?php endif; ?>
+                                                
+                                                <!-- Flexible content area -->
+                                                <div class="flex-1">
+                                                    <!-- Price Section -->
+                                                    <div class="mb-3 sm:mb-4">
+                                                        <?php if($relatedProduct->has_discount): ?>
+                                                            <div class="flex items-center gap-1 sm:gap-2 mb-1">
+                                                                <span class="text-base sm:text-lg font-bold text-orange-600"><?php echo e(number_format($relatedProduct->final_price, 2)); ?> د.أ</span>
+                                                                <span class="text-xs sm:text-sm text-gray-500 line-through"><?php echo e(number_format($relatedProduct->price, 2)); ?> د.أ</span>
+                                                            </div>
+                                                        <?php else: ?>
+                                                            <span class="text-base sm:text-lg font-bold text-gray-800"><?php echo e(number_format($relatedProduct->price, 2)); ?> د.أ</span>
+                                                        <?php endif; ?>
+                                                    </div>
+                                                </div>
+                                                
+                                                <!-- Action Buttons - Always at bottom -->
+                                                <div class="mt-auto">
+                                                    <!-- Quick Info -->
+                                                    <?php if($relatedProduct->stock_quantity > 0 && $relatedProduct->stock_quantity <= 5): ?>
+                                                        <p class="text-xs text-red-600 mb-2 sm:mb-3 font-medium">
+                                                            <svg class="w-3 h-3 inline ml-1" fill="currentColor" viewBox="0 0 20 20">
+                                                                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                                            </svg>
+                                                            متبقي <?php echo e($relatedProduct->stock_quantity); ?> قطع فقط!
+                                                        </p>
+                                                    <?php endif; ?>
+
+                                                    <div class="flex items-center gap-1.5 sm:gap-2">
+                                                        <?php if($relatedProduct->stock_quantity > 0): ?>
+                                                            <?php if($relatedProduct->sizes && $relatedProduct->sizes->count() > 0): ?>
+                                                                <!-- Products with sizes - redirect to product page -->
+                                                                <a href="<?php echo e(route('products.show', $relatedProduct->slug)); ?>" 
+                                                                   class="flex-1 bg-gradient-to-r from-orange-500 to-orange-600 text-white py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg text-xs sm:text-sm font-semibold hover:from-orange-600 hover:to-orange-700 transition-all duration-300 text-center shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                                                                    اختر المقاس
+                                                                </a>
+                                                            <?php else: ?>
+                                                                <!-- Regular products without sizes -->
+                                                                <button data-product-id="<?php echo e($relatedProduct->slug); ?>" 
+                                                                        class="flex-1 add-to-cart-quick bg-gradient-to-r from-orange-500 to-orange-600 text-white py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg text-xs sm:text-sm font-semibold hover:from-orange-600 hover:to-orange-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                                                                    <span class="btn-text">أضف للسلة</span>
+                                                                    <span class="loading-text hidden">جاري الإضافة...</span>
+                                                                </button>
+                                                            <?php endif; ?>
+                                                            <a href="<?php echo e(route('products.show', $relatedProduct->slug)); ?>" 
+                                                               class="px-2 sm:px-3 py-2 sm:py-2.5 border border-orange-300 text-orange-600 hover:bg-orange-50 rounded-lg text-xs sm:text-sm font-medium transition-colors duration-200">
+                                                                <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                                                </svg>
+                                                            </a>
+                                                        <?php else: ?>
+                                                            <div class="flex-1 bg-gray-100 text-gray-500 py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg text-xs sm:text-sm font-medium text-center">
+                                                                غير متوفر
+                                                            </div>
+                                                        <?php endif; ?>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                 </div>
-                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                            </div>
                         </div>
-                    </div>
+                    <?php endif; ?>
                 </div>
-            <?php endif; ?>
+            </div>
         </main>
     </div>
 
