@@ -106,6 +106,7 @@ class RealArabicDataSeeder extends Seeder
                 'email_verified_at' => now(),
                 'password' => bcrypt('password123'),
                 'is_admin' => false,
+                'is_verified' => true,
             ]));
         }
         
