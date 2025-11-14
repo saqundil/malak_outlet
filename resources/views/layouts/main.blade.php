@@ -258,6 +258,7 @@
     </style>
     
     @stack('styles')
+    <meta name="google-site-verification" content="GOVH6m7DqDhN6O9TeJ_JeJBZIoK3smGM8BFNbnJ5SeA" />
 </head>
 
 <body class="text-gray-700 bg-white m-0 p-0" x-data="{ mobileMenuOpen: false }">
